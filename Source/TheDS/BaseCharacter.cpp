@@ -15,20 +15,18 @@ ABaseCharacter::ABaseCharacter()
 
 	SpringArm->SetupAttachment(GetCapsuleComponent());
 	SpringArm->TargetArmLength = 400.f;
-	SpringArm->SocketOffset = FVector(0.f, 120.f, 75.f);
+	SpringArm->SocketOffset = FVector(0.f, 120.f, 200.f);
 	SpringArm->bUsePawnControlRotation = true;
 
 	Camera->SetupAttachment(SpringArm);
+	Camera->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
 	Camera->bUsePawnControlRotation = false;
 }
 
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	if (HasAuthority()) // 서버일 때만
-	{
-		SetCharacterDefaults();
-	}
+	SetCharacterDefaults();
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -67,9 +65,10 @@ void ABaseCharacter::SetCharacterDefaults()
 {
 	walkSpeed = 500.f;
 	runSpeed = 800.f;
+	jumpZVelocity = 420.f;
 
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
-	GetCharacterMovement()->JumpZVelocity = 420.f;
+	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
 }
 
 void ABaseCharacter::MoveForward(float Value)
@@ -124,4 +123,9 @@ void ABaseCharacter::MulticastStartRun_Implementation()
 void ABaseCharacter::MulticastStopRun_Implementation()
 {
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
+}
+
+void ABaseCharacter::ResetAttack()
+{
+	bIsAttacking = true;
 }

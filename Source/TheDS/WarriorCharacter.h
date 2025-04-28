@@ -21,8 +21,9 @@ private:
 
 	virtual void SetCharacterDefaults() override;
 
-	virtual void Attack() override;
-
+	virtual void Attack() override;		// 공격 상속 정의
+	
+	// 서버, 클라이언트 공격 분리
 	UFUNCTION(Server, Reliable)
 	void ServerAttack();
 	UFUNCTION(NetMulticast, Reliable)
