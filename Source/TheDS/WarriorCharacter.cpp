@@ -2,6 +2,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "CharacterAnimInstance.h"
 
 AWarriorCharacter::AWarriorCharacter()
 {
@@ -12,7 +13,11 @@ AWarriorCharacter::AWarriorCharacter()
 void AWarriorCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	SetCharacterDefaults();
+	SetCharacterDefaults();		//이동속도, 점프 설정
+	AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance 가져오기
+	// 함수 등록
+	AnimInstance->OnMontageEnded.AddDynamic(this, &AWarriorCharacter::OnAttackMontageEnded);
+	AnimInstance->OnAttackHit.AddUObject(this, &AWarriorCharacter::Attack);
 }
 
 void AWarriorCharacter::SetCharacterDefaults()
@@ -65,12 +70,16 @@ void AWarriorCharacter::ServerAttack_Implementation()
 
 void AWarriorCharacter::MulticastAttack_Implementation()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Attack"));
 	// 단순 애니매이션 재생
-	if (AttackMontage)
+	if (AnimInstance)
 	{
 		bIsAttacking = false;
-		float length = AttackMontage->GetPlayLength();
-		PlayAnimMontage(AttackMontage);
-		GetWorldTimerManager().SetTimer(AttackResetTimerHandle, this, &AWarriorCharacter::ResetAttack, length, false);
+		AnimInstance->PlayAttackMontage();
 	}
+}
+
+void AWarriorCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	bIsAttacking = true;
 }

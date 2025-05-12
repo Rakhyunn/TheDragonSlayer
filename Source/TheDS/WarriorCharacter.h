@@ -13,8 +13,8 @@ public:
 	AWarriorCharacter();
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	class UAnimMontage* AttackMontage;
+	UPROPERTY()
+	class UCharacterAnimInstance* AnimInstance;
 
 private: 
 	virtual void BeginPlay() override;
@@ -28,4 +28,7 @@ private:
 	void ServerAttack();
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastAttack();
+	// 몽타지 종료 시 호출
+	UFUNCTION()
+	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 };
