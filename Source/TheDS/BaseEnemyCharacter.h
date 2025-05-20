@@ -12,6 +12,13 @@ class THEDS_API ABaseEnemyCharacter : public ACharacter
 public:
 	ABaseEnemyCharacter();
 
+public:
+	bool bIsAttacking = true;	// 공격 가능 여부
+
+public:
+	// 공격 함수 가상화 -> 상속받은 캐릭터에서 구현
+	virtual void Attack() { };
+
 protected:
 	UPROPERTY(Replicated)
 	float walkSpeed;
@@ -22,7 +29,6 @@ protected:
 	UPROPERTY(Replicated)
 	float jumpZVelocity;
 
-	bool bIsAttacking = true;	// 공격 가능 여부
 	FTimerHandle AttackResetTimerHandle;
 
 protected:
@@ -34,9 +40,6 @@ protected:
 
 	// 이동속도, 점프 능력치 조정 함수
 	virtual void SetCharacterDefaults();
-
-	// 공격 함수 가상화 -> 상속받은 캐릭터에서 구현
-	virtual void Attack() { };
 
 	void ResetAttack();
 };
