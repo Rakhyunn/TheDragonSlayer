@@ -1,28 +1,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BaseCharacter.h"
-#include "WarriorCharacter.generated.h"
+#include "BaseEnemyCharacter.h"
+#include "BasicEnemy_1.generated.h"
 
 UCLASS()
-class THEDS_API AWarriorCharacter : public ABaseCharacter
+class THEDS_API ABasicEnemy_1 : public ABaseEnemyCharacter
 {
 	GENERATED_BODY()
-
+	
 public:
-	AWarriorCharacter();
+	ABasicEnemy_1();
 
 private:
 	UPROPERTY()
 	class UCharacterAnimInstance* AnimInstance;
 
-private: 
+private:
 	virtual void BeginPlay() override;
 
 	virtual void SetCharacterDefaults() override;
 
 	virtual void Attack() override;		// 공격 상속 정의
-	
+
 	// 서버, 클라이언트 공격 분리
 	UFUNCTION(Server, Reliable)
 	void ServerAttack();
