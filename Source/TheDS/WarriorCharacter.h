@@ -14,7 +14,7 @@ public:
 
 private:
 	UPROPERTY()
-	class UCharacterAnimInstance* AnimInstance;
+	class UCharacterAnimInstance* animInstance;
 
 private: 
 	virtual void BeginPlay() override;

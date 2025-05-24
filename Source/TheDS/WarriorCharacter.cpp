@@ -3,21 +3,28 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "CharacterAnimInstance.h"
+#include "BaseStatComponent.h"
+#include "BaseEnemyCharacter.h"
 
 AWarriorCharacter::AWarriorCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+
+	stat->SetLevel(1);
+	stat->SetAttack(20.f);
+	stat->SetMagic(10.f);
+	stat->SetDefense(20.f);
 }
 
 void AWarriorCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	SetCharacterDefaults();		//이동속도, 점프 설정
-	AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance 가져오기
+	animInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance 가져오기
 	// 함수 등록
-	AnimInstance->OnMontageEnded.AddDynamic(this, &AWarriorCharacter::OnAttackMontageEnded);
-	AnimInstance->OnAttackHit.AddUObject(this, &AWarriorCharacter::Attack);
+	animInstance->OnMontageEnded.AddDynamic(this, &AWarriorCharacter::OnAttackMontageEnded);
+	animInstance->OnAttackHit.AddUObject(this, &AWarriorCharacter::Attack);
 }
 
 void AWarriorCharacter::SetCharacterDefaults()
@@ -64,6 +71,10 @@ void AWarriorCharacter::ServerAttack_Implementation()
 	if (bHit && hitResult.GetActor())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Warrior hit: %s"), *hitResult.GetActor()->GetName());
+		if (hitResult.GetActor()->ActorHasTag(TEXT("Enemy"))) {
+			ABaseEnemyCharacter* hitEnemy = Cast<ABaseEnemyCharacter>(hitResult.GetActor());
+			hitEnemy->ReceiveDamage(this, stat->GetAttack());
+		}
 	}
 	MulticastAttack();
 }
@@ -72,10 +83,10 @@ void AWarriorCharacter::MulticastAttack_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack"));
 	// 단순 애니매이션 재생
-	if (AnimInstance)
+	if (animInstance)
 	{
 		bIsAttacking = false;
-		AnimInstance->PlayAttackMontage();
+		animInstance->PlayAttackMontage();
 	}
 }
 

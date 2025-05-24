@@ -31,4 +31,6 @@ private:
 	// 몽타지 종료 시 호출
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	virtual void Die(class ABaseCharacter* Causer) override;
 };

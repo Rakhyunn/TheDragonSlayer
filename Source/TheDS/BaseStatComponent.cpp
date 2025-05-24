@@ -4,17 +4,17 @@
 UBaseStatComponent::UBaseStatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	SetLevel(1);
 }
 
 void UBaseStatComponent::SetLevel(int32 newLevel)
 {
 	level = newLevel;
-	maxHP = 100.f + (level * 20.f);
-	maxMP = 50.f + (level * 10.f);
-	attack = 10.f + (level * 5.f);
-	defense = 5.f + (level * 3.f);
-	maxEXP = 100 + (level * 50);
+	maxHP = maxHP + (level * 20.f);
+	maxMP = maxMP + (level * 10.f);
+	attack = attack + (level * 5.f);
+	magic = magic + (level * 5.f);
+	defense = defense + (level * 3.f);
+	maxEXP = maxEXP + (level * 50);
 
 	currentHP = maxHP;
 	currentMP = maxMP;
@@ -40,6 +40,7 @@ void UBaseStatComponent::RestoreMP(float amount)
 
 void UBaseStatComponent::AddExperience(int32 amount)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Get EXP: %d"), amount);
 	currentEXP += amount;
 	if (CanLevelUp()) 
 	{

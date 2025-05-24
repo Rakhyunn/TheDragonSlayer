@@ -14,6 +14,14 @@ public:
     UBaseStatComponent();
 
     void SetLevel(int32 newLevel);
+    void SetHP(float newHP) { maxHP = newHP; };
+    void SetMP(float newMP) { maxMP = newMP; };
+    void SetAttack(float newAttack) { attack = newAttack; };
+    void SetMagic(float newMagic) { magic = newMagic; };
+    void SetDefense(float newDefense) { defense = newDefense; };
+    void SetExp(int32 newExp) { maxEXP = newExp; };
+    void SetEnemyExp(int32 newExp) { enemyEXP = newExp; };
+
     void GetDamage(float damageAmount);
     void RestoreHP(float amount);
     void RestoreMP(float amount);
@@ -21,9 +29,11 @@ public:
     float GetCurrentHP() { return currentHP; };
     float GetCurrentMP() { return currentMP; };
     float GetAttack() { return attack; };
+    float GetMagic() { return magic; };
     float GetDefense() { return defense; };
     int32 GetLevel() { return level; };
     int32 GetCurrentEXP() { return currentEXP; };
+    int32 GetEnemyEXP() { return enemyEXP; };
 
     void AddExperience(int32 amount);
     bool CanLevelUp();
@@ -47,6 +57,7 @@ private:
     float currentMP;
 
     float attack = 10.f;
+    float magic = 10.f;
     float defense = 5.f;
 
     UPROPERTY(Replicated)
@@ -54,4 +65,6 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_ExperienceChanged)
     int32 currentEXP = 100;
+
+    int32 enemyEXP = 10;
 };

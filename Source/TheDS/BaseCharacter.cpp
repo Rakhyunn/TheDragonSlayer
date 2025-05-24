@@ -4,6 +4,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "BaseStatComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -21,6 +22,8 @@ ABaseCharacter::ABaseCharacter()
 	Camera->SetupAttachment(SpringArm);
 	Camera->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
 	Camera->bUsePawnControlRotation = false;
+
+	stat = CreateDefaultSubobject<UBaseStatComponent>(TEXT("StatComponent"));
 }
 
 void ABaseCharacter::BeginPlay()
@@ -125,7 +128,8 @@ void ABaseCharacter::MulticastStopRun_Implementation()
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
 }
 
-void ABaseCharacter::ResetAttack()
+void ABaseCharacter::ReceiveDamage(float damage)
 {
-	bIsAttacking = true;
+	stat->GetDamage(damage);
+	UE_LOG(LogTemp, Warning, TEXT("Remain HP: %f"), stat->GetCurrentHP());
 }
