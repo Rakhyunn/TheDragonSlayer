@@ -4,6 +4,7 @@
 UBaseStatComponent::UBaseStatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 void UBaseStatComponent::SetLevel(int32 newLevel)
@@ -19,6 +20,8 @@ void UBaseStatComponent::SetLevel(int32 newLevel)
 	currentHP = maxHP;
 	currentMP = maxMP;
 	currentEXP = 0;
+	OnRep_ExperienceChanged();
+	OnRep_HPChanged();
 }
 
 void UBaseStatComponent::GetDamage(float damageAmount)
@@ -26,11 +29,13 @@ void UBaseStatComponent::GetDamage(float damageAmount)
 	float ActualDamage = damageAmount - defense;
 	ActualDamage = FMath::Max(ActualDamage, 1.f);
 	currentHP = FMath::Clamp(currentHP - ActualDamage, 0.f, maxHP);
+	OnRep_HPChanged();
 }
 
 void UBaseStatComponent::RestoreHP(float amount)
 {
 	currentHP = FMath::Min(currentHP + amount, maxHP);
+	OnRep_HPChanged();
 }
 
 void UBaseStatComponent::RestoreMP(float amount)
@@ -68,6 +73,15 @@ void UBaseStatComponent::LevelUp()
 void UBaseStatComponent::OnRep_ExperienceChanged()
 {
 	// 경험치 UI 갱신
+	float percent = currentEXP / maxEXP;
+	OnEXPChangedDelgate.Broadcast(percent);
+}
+
+void UBaseStatComponent::OnRep_HPChanged()
+{
+	// HP UI 갱신
+	float percent = currentHP / maxHP;
+	OnHPChangedDelegate.Broadcast(percent);
 }
 
 void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

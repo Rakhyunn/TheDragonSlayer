@@ -12,7 +12,7 @@ ABasicEnemy_1::ABasicEnemy_1()
 	bReplicates = true;
 
 	stat->SetLevel(1);
-	stat->SetAttack(20.f);
+	stat->SetAttack(30.f);
 	stat->SetEnemyExp(10);
 }
 

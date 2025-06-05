@@ -31,7 +31,14 @@ protected:
 	bool bIsAttacking = true;	// 공격 가능 여부
 	FTimerHandle AttackResetTimerHandle;
 
+	UPROPERTY(BlueprintReadOnly)
+	class UWidgetComponent* HPWidgetComponent;
+	UPROPERTY(BlueprintReadOnly)
+	class UHPBarWidget* HPBarWidget;
+
 protected:
+	virtual void PostInitializeComponents() override;
+
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;

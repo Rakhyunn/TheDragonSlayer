@@ -34,7 +34,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
 	class UBaseStatComponent* stat;
 
+	UPROPERTY(BlueprintReadOnly)
+	class UWidgetComponent* HPWidgetComponent;
+	UPROPERTY(BlueprintReadOnly)
+	class UHPBarWidget* HPBarWidget;
+
 protected:
+	virtual void PostInitializeComponents() override;
+
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;
