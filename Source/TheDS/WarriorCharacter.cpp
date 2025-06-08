@@ -12,7 +12,7 @@ AWarriorCharacter::AWarriorCharacter()
 	bReplicates = true;
 
 	stat->SetLevel(1);
-	stat->SetAttack(20.f);
+	stat->SetAttack(100.f);
 	stat->SetMagic(10.f);
 	stat->SetDefense(20.f);
 }

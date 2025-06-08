@@ -5,8 +5,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "BaseStatComponent.h"
-#include "HPBarWidget.h"
-#include "Components/WidgetComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -26,17 +24,6 @@ ABaseCharacter::ABaseCharacter()
 	Camera->bUsePawnControlRotation = false;
 
 	stat = CreateDefaultSubobject<UBaseStatComponent>(TEXT("StatComponent"));
-
-	HPWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPWidgetComponent"));
-	HPWidgetComponent->SetupAttachment(GetMesh());
-	HPWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	static ConstructorHelpers::FClassFinder<UHPBarWidget> UW(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/BP_Widget/WBP_HPBar.WBP_HPBar_C'"));
-	if (UW.Succeeded())
-	{
-		HPWidgetComponent->SetWidgetClass(UW.Class);
-		HPWidgetComponent->SetDrawSize(FVector2D(200.f, 20.f));
-		HPWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
-	}
 }
 
 void ABaseCharacter::PostInitializeComponents()
@@ -48,12 +35,6 @@ void ABaseCharacter::PostInitializeComponents()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	if (HPWidgetComponent)
-	{
-		HPBarWidget = Cast<UHPBarWidget>(HPWidgetComponent->GetUserWidgetObject());
-		if (HPBarWidget)
-			HPBarWidget->BindHp(stat);
-	}
 }
 
 void ABaseCharacter::Tick(float DeltaTime)

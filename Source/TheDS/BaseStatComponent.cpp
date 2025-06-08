@@ -15,13 +15,15 @@ void UBaseStatComponent::SetLevel(int32 newLevel)
 	attack = attack + (level * 5.f);
 	magic = magic + (level * 5.f);
 	defense = defense + (level * 3.f);
-	maxEXP = maxEXP + (level * 50);
+	maxEXP = maxEXP + (level * 50.f);
 
 	currentHP = maxHP;
 	currentMP = maxMP;
-	currentEXP = 0;
-	OnRep_ExperienceChanged();
+	currentEXP = 0.f;
+	OnRep_EXPChanged();
 	OnRep_HPChanged();
+	OnRep_MPChanged();
+	OnRep_LevelChanged();
 }
 
 void UBaseStatComponent::GetDamage(float damageAmount)
@@ -41,6 +43,7 @@ void UBaseStatComponent::RestoreHP(float amount)
 void UBaseStatComponent::RestoreMP(float amount)
 {
 	currentMP = FMath::Min(currentMP + amount, maxMP);
+	OnRep_MPChanged();
 }
 
 void UBaseStatComponent::AddExperience(int32 amount)
@@ -56,7 +59,7 @@ void UBaseStatComponent::AddExperience(int32 amount)
 		}
 		LevelUp();
 	}
-	OnRep_ExperienceChanged();
+	OnRep_EXPChanged();
 }
 
 bool UBaseStatComponent::CanLevelUp()
@@ -70,11 +73,11 @@ void UBaseStatComponent::LevelUp()
 	UE_LOG(LogTemp, Log, TEXT("레벨 업! 현재 레벨: %d"), level);
 }
 
-void UBaseStatComponent::OnRep_ExperienceChanged()
+void UBaseStatComponent::OnRep_EXPChanged()
 {
 	// 경험치 UI 갱신
 	float percent = currentEXP / maxEXP;
-	OnEXPChangedDelgate.Broadcast(percent);
+	OnEXPChangedDelegate.Broadcast(percent);
 }
 
 void UBaseStatComponent::OnRep_HPChanged()
@@ -82,6 +85,19 @@ void UBaseStatComponent::OnRep_HPChanged()
 	// HP UI 갱신
 	float percent = currentHP / maxHP;
 	OnHPChangedDelegate.Broadcast(percent);
+}
+
+void UBaseStatComponent::OnRep_MPChanged()
+{
+	// MP UI 갱신
+	float percent = currentMP / maxMP;
+	OnMPChangedDelegate.Broadcast(percent);
+}
+
+void UBaseStatComponent::OnRep_LevelChanged()
+{
+	// Level UI 갱신
+	OnLevelChangedDelegate.Broadcast(level);
 }
 
 void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

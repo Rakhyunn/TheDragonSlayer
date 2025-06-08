@@ -22,5 +22,5 @@ public:
 	void BindHp(class UBaseStatComponent* stat);
 
 	UFUNCTION()
-	void UpdateHealth(float percent);
+	void UpdateHP(float percent);
 };

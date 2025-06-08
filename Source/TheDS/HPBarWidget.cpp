@@ -14,12 +14,12 @@ void UHPBarWidget::BindHp(UBaseStatComponent* stat)
 {
 	if (!IsValid(stat)) return;
 	currentStat = stat;
-	stat->OnHPChangedDelegate.AddUObject(this, &UHPBarWidget::UpdateHealth);
+	stat->OnHPChangedDelegate.AddUObject(this, &UHPBarWidget::UpdateHP);
 	float InitPercent = stat->GetCurrentHP() / stat->GetMaxHP();
-	UpdateHealth(InitPercent);
+	UpdateHP(InitPercent);
 }
 
-void UHPBarWidget::UpdateHealth(float percent)
+void UHPBarWidget::UpdateHP(float percent)
 {
 	if (!PB_HPBar) return;
 	UE_LOG(LogTemp, Warning, TEXT("Percent: %f"), currentStat->GetCurrentHP() / currentStat->GetMaxHP());

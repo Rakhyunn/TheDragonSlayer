@@ -7,6 +7,8 @@
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnEXPChangedDelegate, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMPChangedDelegate, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLevelChangedDelegate, int32);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class THEDS_API UBaseStatComponent : public UActorComponent
@@ -22,8 +24,8 @@ public:
     void SetAttack(float newAttack) { attack = newAttack; };
     void SetMagic(float newMagic) { magic = newMagic; };
     void SetDefense(float newDefense) { defense = newDefense; };
-    void SetExp(int32 newExp) { maxEXP = newExp; };
-    void SetEnemyExp(int32 newExp) { enemyEXP = newExp; };
+    void SetExp(float newExp) { maxEXP = newExp; };
+    void SetEnemyExp(float newExp) { enemyEXP = newExp; };
 
     void GetDamage(float damageAmount);
     void RestoreHP(float amount);
@@ -37,19 +39,25 @@ public:
     float GetMagic() { return magic; };
     float GetDefense() { return defense; };
     int32 GetLevel() { return level; };
-    int32 GetMaxEXP() { return maxEXP; };
-    int32 GetCurrentEXP() { return currentEXP; };
-    int32 GetEnemyEXP() { return enemyEXP; };
+    float GetMaxEXP() { return maxEXP; };
+    float GetCurrentEXP() { return currentEXP; };
+    float GetEnemyEXP() { return enemyEXP; };
 
     void AddExperience(int32 amount);
     bool CanLevelUp();
     void LevelUp();
 
     UFUNCTION()
-    void OnRep_ExperienceChanged();
+    void OnRep_EXPChanged();
 
     UFUNCTION()
     void OnRep_HPChanged();
+
+    UFUNCTION()
+    void OnRep_MPChanged();
+
+    UFUNCTION()
+    void OnRep_LevelChanged();
 
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -57,7 +65,7 @@ protected:
     virtual void BeginPlay() override;
 
 private:
-    UPROPERTY(Replicated)
+    UPROPERTY(ReplicatedUsing = OnRep_LevelChanged)
     int32 level = 1;
 
     float maxHP = 100.f;
@@ -65,21 +73,23 @@ private:
     float currentHP;
 
     float maxMP = 50.f;
-    UPROPERTY(Replicated)
+    UPROPERTY(ReplicatedUsing = OnRep_MPChanged)
     float currentMP;
 
     float attack = 10.f;
     float magic = 10.f;
     float defense = 5.f;
 
-    int32 maxEXP = 0;
+    float maxEXP = 100,f;
 
-    UPROPERTY(ReplicatedUsing = OnRep_ExperienceChanged)
-    int32 currentEXP = 100;
+    UPROPERTY(ReplicatedUsing = OnRep_EXPChanged)
+    float currentEXP = 0.f;
 
-    int32 enemyEXP = 10;
+    float enemyEXP = 10.f;
 
 public:
     FOnHPChangedDelegate OnHPChangedDelegate;
-    FOnEXPChangedDelegate OnEXPChangedDelgate;
+    FOnEXPChangedDelegate OnEXPChangedDelegate;
+    FOnMPChangedDelegate OnMPChangedDelegate;
+    FOnLevelChangedDelegate OnLevelChangedDelegate;
 };
