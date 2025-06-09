@@ -32,6 +32,8 @@ protected:
 	FTimerHandle AttackResetTimerHandle;
 
 protected:
+	virtual void PostInitializeComponents() override;
+
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;
@@ -60,6 +62,11 @@ protected:
 
 	// 공격 함수 가상화 -> 상속받은 캐릭터에서 구현
 	virtual void Attack() { };
-	
-	void ResetAttack();
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
+	class UBaseStatComponent* stat;
+
+public:
+	void ReceiveDamage(float damage);
 };

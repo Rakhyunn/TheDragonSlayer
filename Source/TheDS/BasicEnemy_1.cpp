@@ -3,11 +3,17 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "CharacterAnimInstance.h"
+#include "BaseStatComponent.h"
+#include "BaseCharacter.h"
 
 ABasicEnemy_1::ABasicEnemy_1()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+
+	stat->SetLevel(1);
+	stat->SetAttack(30.f);
+	stat->SetEnemyExp(10);
 }
 
 void ABasicEnemy_1::BeginPlay()
@@ -64,6 +70,10 @@ void ABasicEnemy_1::ServerAttack_Implementation()
 	if (bHit && hitResult.GetActor())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Warrior hit: %s"), *hitResult.GetActor()->GetName());
+		if (hitResult.GetActor()->ActorHasTag(TEXT("Player"))) {
+			ABaseCharacter* hitPlayer = Cast<ABaseCharacter>(hitResult.GetActor());
+			hitPlayer->ReceiveDamage(stat->GetAttack());
+		}
 	}
 	MulticastAttack();
 }
@@ -82,4 +92,11 @@ void ABasicEnemy_1::MulticastAttack_Implementation()
 void ABasicEnemy_1::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsAttacking = true;
+}
+
+void ABasicEnemy_1::Die(ABaseCharacter* Causer)
+{
+	Super::Die(Causer);
+	Causer->stat->AddExperience(stat->GetEnemyEXP());
+	SetLifeSpan(1.f);
 }

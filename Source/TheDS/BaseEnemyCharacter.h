@@ -31,7 +31,17 @@ protected:
 
 	FTimerHandle AttackResetTimerHandle;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
+	class UBaseStatComponent* stat;
+
+	UPROPERTY(BlueprintReadOnly)
+	class UWidgetComponent* HPWidgetComponent;
+	UPROPERTY(BlueprintReadOnly)
+	class UHPBarWidget* HPBarWidget;
+
 protected:
+	virtual void PostInitializeComponents() override;
+
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;
@@ -41,5 +51,8 @@ protected:
 	// 이동속도, 점프 능력치 조정 함수
 	virtual void SetCharacterDefaults();
 
-	void ResetAttack();
+	virtual void Die(class ABaseCharacter* Causer) { };
+
+public:
+	void ReceiveDamage(class ABaseCharacter* Causer, float Damage);
 };
