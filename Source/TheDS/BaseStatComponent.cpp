@@ -73,6 +73,22 @@ void UBaseStatComponent::LevelUp()
 	UE_LOG(LogTemp, Log, TEXT("레벨 업! 현재 레벨: %d"), level);
 }
 
+void UBaseStatComponent::AddAttack(float plusAttack)
+{
+	if (attack + plusAttack <= 0)
+		attack = 0;
+	else
+		attack += plusAttack;
+}
+
+void UBaseStatComponent::AddDefense(float plusDefense)
+{
+	if (defense + plusDefense <= 0)
+		defense = 0;
+	else
+		defense += plusDefense;
+}
+
 void UBaseStatComponent::OnRep_EXPChanged()
 {
 	// 경험치 UI 갱신

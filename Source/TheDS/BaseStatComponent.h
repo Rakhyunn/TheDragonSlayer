@@ -47,6 +47,9 @@ public:
     bool CanLevelUp();
     void LevelUp();
 
+    void AddAttack(float plusAttack);
+    void AddDefense(float plusDefense);
+
     UFUNCTION()
     void OnRep_EXPChanged();
 
