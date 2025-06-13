@@ -36,6 +36,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* TXT_Level;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* BTN_Inventory;
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -53,4 +56,7 @@ public:
 
 	UFUNCTION()
 	void UpdateLevel(int32 newLevel);
+
+	UFUNCTION(BlueprintCallable)
+	void OpenInventory();
 };

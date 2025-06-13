@@ -9,6 +9,9 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnEXPChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMPChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnLevelChangedDelegate, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAttackChangedDelegate, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMagicChangedDelegate, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnDefenseChangedDelegate, float);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class THEDS_API UBaseStatComponent : public UActorComponent
@@ -62,6 +65,15 @@ public:
     UFUNCTION()
     void OnRep_LevelChanged();
 
+    UFUNCTION()
+    void OnRep_AttackChanged();
+
+    UFUNCTION()
+    void OnRep_MagicChanged();
+
+    UFUNCTION()
+    void OnRep_DefenseChanged();
+
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
@@ -79,11 +91,14 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_MPChanged)
     float currentMP;
 
+    UPROPERTY(ReplicatedUsing = OnRep_AttackChanged)
     float attack = 10.f;
+    UPROPERTY(ReplicatedUsing = OnRep_MagicChanged)
     float magic = 10.f;
+    UPROPERTY(ReplicatedUsing = OnRep_DefenseChanged)
     float defense = 5.f;
 
-    float maxEXP = 100,f;
+    float maxEXP = 100.f;
 
     UPROPERTY(ReplicatedUsing = OnRep_EXPChanged)
     float currentEXP = 0.f;
@@ -95,4 +110,7 @@ public:
     FOnEXPChangedDelegate OnEXPChangedDelegate;
     FOnMPChangedDelegate OnMPChangedDelegate;
     FOnLevelChangedDelegate OnLevelChangedDelegate;
+    FOnAttackChangedDelegate OnAttackChangedDelegate;
+    FOnMagicChangedDelegate OnMagicChangedDelegate;
+    FOnDefenseChangedDelegate OnDefenseChangedDelegate;
 };

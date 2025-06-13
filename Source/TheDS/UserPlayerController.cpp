@@ -2,6 +2,16 @@
 #include "PlayerInfoWidget.h"
 #include "BaseCharacter.h"
 #include "BaseStatComponent.h"
+#include "InventoryComponent.h"
+#include "InventoryWidget.h"
+#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
+#include "PlayerInfoWidget.h"
+
+AUserPlayerController::AUserPlayerController()
+{
+	SetShowMouseCursor(true);
+}
 
 void AUserPlayerController::BeginPlay()
 {
@@ -21,6 +31,40 @@ void AUserPlayerController::BeginPlay()
 			{
 				PlayerInfoWidget->BindInfo(MyCharacter->stat);
 			}
+		}
+	}
+}
+
+void AUserPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	InputComponent->BindAction("ToggleInventory", IE_Pressed, this, &AUserPlayerController::ToggleInventory);
+}
+
+void AUserPlayerController::ToggleInventory()
+{
+	if (!InventoryWidgetInstance)
+	{
+		if (!InventoryWidgetClass) return;
+		InventoryWidgetInstance = CreateWidget<UInventoryWidget>(this, InventoryWidgetClass);
+		UInventoryComponent* inventory = GetPawn()->FindComponentByClass<UInventoryComponent>();
+		if (inventory)
+		{
+			InventoryWidgetInstance->SetInventoryReference(inventory);
+		}
+	}
+	if (InventoryWidgetInstance)
+	{
+		if (InventoryWidgetInstance->IsInViewport())
+		{
+			InventoryWidgetInstance->RemoveFromParent();
+		}
+		else
+		{
+			ABaseCharacter* player = Cast<ABaseCharacter>(GetPawn());
+			InventoryWidgetInstance->SetInventoryReference(player->inventoryComponent);
+			InventoryWidgetInstance->AddToViewport();
+			InventoryWidgetInstance->RefreshInventory();
 		}
 	}
 }

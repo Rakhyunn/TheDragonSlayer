@@ -50,3 +50,8 @@ void UCharacterAnimInstance::PlayAttackMontage()
 	// 몽타지 재생
 	Montage_Play(AttackMontage, 1.f);
 }
+
+void UCharacterAnimInstance::StopMove()
+{
+	ShouldMove = false;
+}

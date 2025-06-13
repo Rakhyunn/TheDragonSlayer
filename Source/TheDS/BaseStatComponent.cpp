@@ -24,6 +24,9 @@ void UBaseStatComponent::SetLevel(int32 newLevel)
 	OnRep_HPChanged();
 	OnRep_MPChanged();
 	OnRep_LevelChanged();
+	OnRep_AttackChanged();
+	OnRep_MagicChanged();
+	OnRep_DefenseChanged();
 }
 
 void UBaseStatComponent::GetDamage(float damageAmount)
@@ -37,12 +40,14 @@ void UBaseStatComponent::GetDamage(float damageAmount)
 void UBaseStatComponent::RestoreHP(float amount)
 {
 	currentHP = FMath::Min(currentHP + amount, maxHP);
+	UE_LOG(LogTemp, Warning, TEXT("HP: %f"), currentHP);
 	OnRep_HPChanged();
 }
 
 void UBaseStatComponent::RestoreMP(float amount)
 {
 	currentMP = FMath::Min(currentMP + amount, maxMP);
+	UE_LOG(LogTemp, Warning, TEXT("MP: %f"), currentMP);
 	OnRep_MPChanged();
 }
 
@@ -79,6 +84,7 @@ void UBaseStatComponent::AddAttack(float plusAttack)
 		attack = 0;
 	else
 		attack += plusAttack;
+	OnRep_AttackChanged();
 }
 
 void UBaseStatComponent::AddDefense(float plusDefense)
@@ -87,6 +93,7 @@ void UBaseStatComponent::AddDefense(float plusDefense)
 		defense = 0;
 	else
 		defense += plusDefense;
+	OnRep_DefenseChanged();
 }
 
 void UBaseStatComponent::OnRep_EXPChanged()
@@ -116,6 +123,21 @@ void UBaseStatComponent::OnRep_LevelChanged()
 	OnLevelChangedDelegate.Broadcast(level);
 }
 
+void UBaseStatComponent::OnRep_AttackChanged()
+{
+	OnAttackChangedDelegate.Broadcast(attack);
+}
+
+void UBaseStatComponent::OnRep_MagicChanged()
+{
+	OnMagicChangedDelegate.Broadcast(magic);
+}
+
+void UBaseStatComponent::OnRep_DefenseChanged()
+{
+	OnDefenseChangedDelegate.Broadcast(defense);
+}
+
 void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -123,6 +145,9 @@ void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(UBaseStatComponent, currentHP);
 	DOREPLIFETIME(UBaseStatComponent, currentMP);
 	DOREPLIFETIME(UBaseStatComponent, currentEXP);
+	DOREPLIFETIME(UBaseStatComponent, attack);
+	DOREPLIFETIME(UBaseStatComponent, magic);
+	DOREPLIFETIME(UBaseStatComponent, defense);
 }
 
 void UBaseStatComponent::BeginPlay()

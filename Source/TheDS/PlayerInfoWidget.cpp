@@ -2,10 +2,17 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "BaseStatComponent.h"
+#include "InventoryWidget.h"
+#include "InventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "BaseCharacter.h"
+#include "Components/Button.h"
+#include "UserPlayerController.h"
 
 void UPlayerInfoWidget::NativeConstruct()
 {
-
+	Super::NativeConstruct();
+	if (BTN_Inventory) BTN_Inventory->OnClicked.AddDynamic(this, &UPlayerInfoWidget::OpenInventory);
 }
 
 void UPlayerInfoWidget::BindInfo(UBaseStatComponent* stat)
@@ -57,4 +64,13 @@ void UPlayerInfoWidget::UpdateLevel(int32 newLevel)
 {
 	if (!TXT_Level) return;
 	TXT_Level->SetText(FText::AsNumber(currentStat->GetLevel()));
+}
+
+void UPlayerInfoWidget::OpenInventory()
+{
+	AUserPlayerController* PC = Cast<AUserPlayerController>(GetOwningPlayer());
+	if (PC)
+	{
+		PC->ToggleInventory();
+	}
 }
