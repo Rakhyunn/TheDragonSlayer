@@ -6,6 +6,7 @@
 #include "Net/UnrealNetwork.h"
 #include "BaseStatComponent.h"
 #include "InventoryComponent.h"
+#include "EquipmentComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -26,7 +27,8 @@ ABaseCharacter::ABaseCharacter()
 
 	stat = CreateDefaultSubobject<UBaseStatComponent>(TEXT("StatComponent"));
 
-	inventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	EquipmentComponent = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComponent"));
 }
 
 void ABaseCharacter::PostInitializeComponents()
@@ -39,8 +41,10 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	inventoryComponent->AddItem(TestSwordDataAsset, 1);
-	inventoryComponent->AddItem(TestPotionDataAsset, 3);
+	InventoryComponent->AddItem(TestSwordDataAsset, 1);
+	InventoryComponent->AddItem(TestShieldDataAsset, 1);
+	InventoryComponent->AddItem(TestHeadDataAsset, 1);
+	InventoryComponent->AddItem(TestPotionDataAsset, 150);
 }
 
 void ABaseCharacter::Tick(float DeltaTime)

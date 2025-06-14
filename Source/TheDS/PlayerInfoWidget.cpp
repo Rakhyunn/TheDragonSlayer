@@ -13,6 +13,7 @@ void UPlayerInfoWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	if (BTN_Inventory) BTN_Inventory->OnClicked.AddDynamic(this, &UPlayerInfoWidget::OpenInventory);
+	if (BTN_Equipment) BTN_Equipment->OnClicked.AddDynamic(this, &UPlayerInfoWidget::OpenEquipment);
 }
 
 void UPlayerInfoWidget::BindInfo(UBaseStatComponent* stat)
@@ -72,5 +73,14 @@ void UPlayerInfoWidget::OpenInventory()
 	if (PC)
 	{
 		PC->ToggleInventory();
+	}
+}
+
+void UPlayerInfoWidget::OpenEquipment()
+{
+	AUserPlayerController* PC = Cast<AUserPlayerController>(GetOwningPlayer());
+	if (PC)
+	{
+		PC->ToggleEquipment();
 	}
 }

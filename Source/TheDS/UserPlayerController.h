@@ -6,6 +6,8 @@
 
 class UPlayerInfoWidget;
 class UBaseStatComponent;
+class UInventoryWidget;
+class UEquipmentWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -16,6 +18,8 @@ public:
 	AUserPlayerController();
 
 	void ToggleInventory();
+
+	void ToggleEquipment();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -27,12 +31,18 @@ protected:
 	TSubclassOf<UPlayerInfoWidget> PlayerInfoWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
+	TSubclassOf<UInventoryWidget> InventoryWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UEquipmentWidget> EquipmentWidgetClass;
 
 private:
 	UPROPERTY()
-	UPlayerInfoWidget* PlayerInfoWidget;
+	UPlayerInfoWidget* PlayerInfoWidgetInstance;
 
 	UPROPERTY()
 	UInventoryWidget* InventoryWidgetInstance;
+
+	UPROPERTY()
+	UEquipmentWidget* EquipmentWidgetInstance;
 };

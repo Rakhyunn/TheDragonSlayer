@@ -39,6 +39,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* BTN_Inventory;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* BTN_Equipment;
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -57,6 +60,9 @@ public:
 	UFUNCTION()
 	void UpdateLevel(int32 newLevel);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	void OpenInventory();
+
+	UFUNCTION()
+	void OpenEquipment();
 };

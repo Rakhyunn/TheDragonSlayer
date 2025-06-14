@@ -1,6 +1,6 @@
 #include "InventoryWidget.h"
 #include "InventorySlotWidget.h"
-#include "Components/UniformGridPanel.h"
+#include "Components/WrapBox.h"
 #include "Components/Button.h"
 
 void UInventoryWidget::NativeConstruct()
@@ -30,28 +30,18 @@ void UInventoryWidget::OnCloseBtnCLicked()
 
 void UInventoryWidget::RefreshInventory()
 {
-    if (!inventory || !inventoryGrid || !slotWidgetClass) return;
-    // 기존 슬롯 위젯 제거
-    inventoryGrid->ClearChildren();
-    // 필터링된 슬롯 가져오기
+    if (!inventory || !WrapBox_Items || !slotWidgetClass) return;
+    WrapBox_Items->ClearChildren();
     TArray<FInventorySlot> filteredSlots = inventory->GetFilteredSlots(currentTab);
-    int32 col = 0;
-    int32 row = 0;
+    UE_LOG(LogTemp, Warning, TEXT("Slot: %d"), filteredSlots.Num());
     for (int32 i = 0; i < filteredSlots.Num(); i++)
     {
-        const FInventorySlot& slotData = filteredSlots[i];
-
-        UInventorySlotWidget* slotWidget = CreateWidget<UInventorySlotWidget>(this, slotWidgetClass);
-        if (slotWidget)
+        UInventorySlotWidget* slot = CreateWidget<UInventorySlotWidget>(this, slotWidgetClass);
+        if (slot)
         {
-            slotWidget->Init(slotData, inventory, i); // 슬롯 데이터 전달
-            inventoryGrid->AddChildToUniformGrid(slotWidget, row, col);
-            col++;
-            if (col >= 5) // 5개씩 한 줄에
-            {
-                col = 0;
-                row++;
-            }
+            slot->Init(filteredSlots[i], inventory);
+            UE_LOG(LogTemp, Warning, TEXT("%d"), i);
+            WrapBox_Items->AddChildToWrapBox(slot);
         }
     }
 }

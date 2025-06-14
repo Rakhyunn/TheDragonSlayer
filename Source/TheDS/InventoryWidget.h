@@ -22,7 +22,7 @@ protected:
 	class UButton* BTN_Close;
 
 	UPROPERTY(meta = (BindWidget))
-	class UUniformGridPanel* inventoryGrid;
+	class UWrapBox* WrapBox_Items;
 
 	UPROPERTY()
 	UInventoryComponent* inventory;

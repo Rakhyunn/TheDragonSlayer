@@ -12,12 +12,11 @@ void UInventorySlotWidget::NativeConstruct()
 	if (BTN_Item) BTN_Item->OnClicked.AddDynamic(this, &UInventorySlotWidget::OnItemClicked);
 }
 
-void UInventorySlotWidget::Init(const FInventorySlot& inSlotData, UInventoryComponent* inInventory, int32 inIndex)
+void UInventorySlotWidget::Init(const FInventorySlot& inSlotData, UInventoryComponent* inInventory)
 {
 	slotData = inSlotData;
-	slotData = inSlotData;
 	owningInventory = inInventory;
-	slotIndex = inIndex;
+	slotIndex = inSlotData.OriginalIndex;
 	if (!slotData.ItemData) return;
 	if (slotData.ItemData)
 	{
@@ -48,12 +47,5 @@ void UInventorySlotWidget::OnItemClicked()
 
 	ABaseCharacter* TargetCharacter = Cast<ABaseCharacter>(PC->GetPawn());
 	if (!TargetCharacter) return;
-	for (int32 i = 0; i < owningInventory->AllSlots.Num(); ++i)
-	{
-		if (owningInventory->AllSlots[i].ItemData == slotData.ItemData)
-		{
-			owningInventory->UseItem(i, TargetCharacter);
-			break;
-		}
-	}
+	owningInventory->UseItem(slotIndex, TargetCharacter);
 }

@@ -21,6 +21,10 @@ private:
 	UPROPERTY(EditAnywhere)
 	class UBaseItem* TestSwordDataAsset;
 	UPROPERTY(EditAnywhere)
+	class UBaseItem* TestShieldDataAsset;
+	UPROPERTY(EditAnywhere)
+	class UBaseItem* TestHeadDataAsset;
+	UPROPERTY(EditAnywhere)
 	class UBaseItem* TestPotionDataAsset;
 
 protected:
@@ -73,7 +77,10 @@ public:
 	class UBaseStatComponent* stat;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UInventoryComponent* inventoryComponent;
+	class UInventoryComponent* InventoryComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UEquipmentComponent* EquipmentComponent;
 
 public:
 	void ReceiveDamage(float damage);

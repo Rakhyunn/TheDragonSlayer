@@ -36,7 +36,7 @@ public:
 	virtual void NativeConstruct() override;
 
 	// 외부에서 슬롯 정보 설정
-	void Init(const FInventorySlot& inSlotData, UInventoryComponent* inInventory, int32 inIndex);
+	void Init(const FInventorySlot& inSlotData, UInventoryComponent* inInventory);
 
 	UFUNCTION()
 	void OnItemClicked();

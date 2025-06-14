@@ -4,6 +4,7 @@
 #include "BaseCharacter.h"
 #include "BaseStatComponent.h"
 #include "InventoryWidget.h"
+#include "EquipmentComponent.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -16,17 +17,29 @@ void UInventoryComponent::AddItem(UBaseItem* item, int32 quantity)
 	UE_LOG(LogTemp, Warning, TEXT("Get Item %s"), *item->itemName.ToString());
 	for (FInventorySlot& slot : AllSlots)
 	{
-		if (slot.ItemData == item && item->maxStack > 1)
+		if (slot.ItemData == item && item->maxStack > 1 && slot.Quantity < item->maxStack)
 		{
-			slot.Quantity += quantity;
-			return;
+			int32 spaceLeft = item->maxStack - slot.Quantity;
+			int32 toAdd = FMath::Min(quantity, spaceLeft);
+			slot.Quantity += toAdd;
+			quantity -= toAdd;
+			if (quantity <= 0)
+				break;
 		}
 	}
-	// »õ ½½·Ô Ãß°¡
-	FInventorySlot NewSlot;
-	NewSlot.ItemData = item;
-	NewSlot.Quantity = quantity;
-	AllSlots.Add(NewSlot);
+	while (quantity > 0)
+	{
+		int32 toAdd = FMath::Min(quantity, item->maxStack);
+		FInventorySlot NewSlot;
+		NewSlot.ItemData = item;
+		NewSlot.Quantity = toAdd;
+		AllSlots.Add(NewSlot);
+		quantity -= toAdd;
+	}
+	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
+	{
+		linkedInventoryWidget->RefreshInventory();
+	}
 }
 
 void UInventoryComponent::UseItem(int32 index, ABaseCharacter* target)
@@ -62,19 +75,7 @@ void UInventoryComponent::UseItem(int32 index, ABaseCharacter* target)
 	{
 		UItem_Equipment* equip = Cast<UItem_Equipment>(slot.ItemData);
 		if (!equip || slot.bEquipped) return;
-
-		switch (equip->equipType)
-		{
-		case EEquiptype::EQ_weapon:
-			target->ServerAddAttack(equip->attackPlus);
-			break;
-		case EEquiptype::EQ_armor:
-			target->ServerAddAttack(equip->defensePlus);
-			break;
-		case EEquiptype::EQ_head:
-			target->ServerAddAttack(equip->defensePlus);
-			break;
-		}
+		target->EquipmentComponent->Equip(equip, target);
 		slot.bEquipped = true;
 		AllSlots.RemoveAt(index);
 	}
@@ -87,11 +88,14 @@ void UInventoryComponent::UseItem(int32 index, ABaseCharacter* target)
 TArray<FInventorySlot> UInventoryComponent::GetFilteredSlots(EItemType filterType) const
 {
 	TArray<FInventorySlot> result;
-	for (const FInventorySlot& slot : AllSlots)
+	for (int32 i = 0; i < AllSlots.Num(); ++i)
 	{
+		const FInventorySlot& slot = AllSlots[i];
 		if (slot.ItemData && slot.ItemData->itemType == filterType)
 		{
-			result.Add(slot);
+			FInventorySlot copy = slot;
+			copy.OriginalIndex = i;
+			result.Add(copy);
 		}
 	}
 	return result;

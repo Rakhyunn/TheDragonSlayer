@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "BaseItem.h"
+#include "Item_Equipment.h"
 #include "InventoryComponent.generated.h"
 
 USTRUCT(BlueprintType)
@@ -18,6 +19,8 @@ struct FInventorySlot
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bEquipped = false;
+
+	int32 OriginalIndex = -1;
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
