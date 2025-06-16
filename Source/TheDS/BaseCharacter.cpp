@@ -40,7 +40,7 @@ void ABaseCharacter::PostInitializeComponents()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	UE_LOG(LogTemp, Error, TEXT("equipmentComponent is: %s"), EquipmentComponent ? TEXT("VALID") : TEXT("NULL"));
 	InventoryComponent->AddItem(TestSwordDataAsset, 1);
 	InventoryComponent->AddItem(TestShieldDataAsset, 1);
 	InventoryComponent->AddItem(TestHeadDataAsset, 1);

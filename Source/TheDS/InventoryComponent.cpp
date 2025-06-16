@@ -9,13 +9,15 @@
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	ConsumeSlots.SetNum(MaxSlotCount);
+	EquipmentSlots.SetNum(MaxSlotCount);
 }
 
 void UInventoryComponent::AddItem(UBaseItem* item, int32 quantity)
 {
 	if (!item || quantity <= 0) return;
-	UE_LOG(LogTemp, Warning, TEXT("Get Item %s"), *item->itemName.ToString());
-	for (FInventorySlot& slot : AllSlots)
+	TArray<FInventorySlot>& TargetSlots = (item->itemType == EItemType::IT_comsume) ? ConsumeSlots : EquipmentSlots;
+	for (FInventorySlot& slot : TargetSlots)
 	{
 		if (slot.ItemData == item && item->maxStack > 1 && slot.Quantity < item->maxStack)
 		{
@@ -27,14 +29,17 @@ void UInventoryComponent::AddItem(UBaseItem* item, int32 quantity)
 				break;
 		}
 	}
-	while (quantity > 0)
+	for (FInventorySlot& slot : TargetSlots)
 	{
-		int32 toAdd = FMath::Min(quantity, item->maxStack);
-		FInventorySlot NewSlot;
-		NewSlot.ItemData = item;
-		NewSlot.Quantity = toAdd;
-		AllSlots.Add(NewSlot);
-		quantity -= toAdd;
+		if (slot.ItemData == nullptr)
+		{
+			int32 toAdd = FMath::Min(quantity, item->maxStack);
+			slot.ItemData = item;
+			slot.Quantity = toAdd;
+			quantity -= toAdd;
+			if (quantity <= 0)
+				break;
+		}
 	}
 	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
 	{
@@ -42,16 +47,17 @@ void UInventoryComponent::AddItem(UBaseItem* item, int32 quantity)
 	}
 }
 
-void UInventoryComponent::UseItem(int32 index, ABaseCharacter* target)
+void UInventoryComponent::UseItem(EItemType type, int32 index, ABaseCharacter* target)
 {
-	if (!AllSlots.IsValidIndex(index) || !target) return;
-	UE_LOG(LogTemp, Warning, TEXT("Use Item"));
-	FInventorySlot& slot = AllSlots[index];
+	TArray<FInventorySlot>& TargetSlots = (type == EItemType::IT_comsume) ? ConsumeSlots : EquipmentSlots;
+	if (!TargetSlots.IsValidIndex(index) || !target) return;
+	FInventorySlot& slot = TargetSlots[index];
 	if (!slot.ItemData || slot.Quantity <= 0 || !slot.ItemData->bUsable) return;
-	if (slot.ItemData->itemType == EItemType::IT_comsume) 
+	if (type == EItemType::IT_comsume)
 	{
 		UItem_Potion* potion = Cast<UItem_Potion>(slot.ItemData);
 		if (!potion) return;
+
 		switch (potion->potionType)
 		{
 		case EPotionType::PO_hp:
@@ -65,19 +71,23 @@ void UInventoryComponent::UseItem(int32 index, ABaseCharacter* target)
 			target->ServerRestoreMP(potion->restoreMP);
 			break;
 		}
+
 		slot.Quantity--;
-		if (slot.Quantity <= 0)
-		{
-			AllSlots.RemoveAt(index);
-		}
 	}
-	else if (slot.ItemData->itemType == EItemType::IT_equipment) 
+	else if (type == EItemType::IT_equipment)
 	{
 		UItem_Equipment* equip = Cast<UItem_Equipment>(slot.ItemData);
 		if (!equip || slot.bEquipped) return;
+
 		target->EquipmentComponent->Equip(equip, target);
 		slot.bEquipped = true;
-		AllSlots.RemoveAt(index);
+		slot.Quantity--;
+	}
+	if (slot.Quantity <= 0)
+	{
+		slot.ItemData = nullptr;
+		slot.Quantity = 0;
+		slot.bEquipped = false;
 	}
 	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
 	{
@@ -85,18 +95,41 @@ void UInventoryComponent::UseItem(int32 index, ABaseCharacter* target)
 	}
 }
 
-TArray<FInventorySlot> UInventoryComponent::GetFilteredSlots(EItemType filterType) const
+void UInventoryComponent::SwapItem(EItemType type, int32 fromIndex, int32 toIndex)
 {
-	TArray<FInventorySlot> result;
-	for (int32 i = 0; i < AllSlots.Num(); ++i)
+	TArray<FInventorySlot>& TargetSlots = (type == EItemType::IT_comsume) ? ConsumeSlots : EquipmentSlots;
+	if (!TargetSlots.IsValidIndex(fromIndex) || !TargetSlots.IsValidIndex(toIndex))
 	{
-		const FInventorySlot& slot = AllSlots[i];
-		if (slot.ItemData && slot.ItemData->itemType == filterType)
-		{
-			FInventorySlot copy = slot;
-			copy.OriginalIndex = i;
-			result.Add(copy);
-		}
+		UE_LOG(LogTemp, Warning, TEXT("Invalid Indices"));
+		return;
 	}
-	return result;
+	if (fromIndex == toIndex) return;
+	TargetSlots.Swap(fromIndex, toIndex);
+
+	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
+	{
+		linkedInventoryWidget->RefreshInventory();
+	}
+}
+
+void UInventoryComponent::RemoveItem(EItemType type, int32 index)
+{
+	TArray<FInventorySlot>& Slots = (type == EItemType::IT_comsume) ? ConsumeSlots : EquipmentSlots;
+	if (!Slots.IsValidIndex(index)) return;
+
+	Slots[index].ItemData = nullptr;
+	Slots[index].Quantity = 0;
+	Slots[index].bEquipped = false;
+}
+
+const TArray<FInventorySlot>& UInventoryComponent::GetSlots(EItemType type) const
+{
+	if (type == EItemType::IT_comsume)
+	{
+		return ConsumeSlots;
+	}
+	else
+	{
+		return EquipmentSlots;
+	}
 }

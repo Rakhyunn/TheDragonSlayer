@@ -19,9 +19,6 @@ private:
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	UButton* BTN_Item;
-
-	UPROPERTY(meta = (BindWidget))
 	UImage* IMG_Icon;
 
 	UPROPERTY(meta = (BindWidget))
@@ -38,6 +35,10 @@ public:
 	// 외부에서 슬롯 정보 설정
 	void Init(const FInventorySlot& inSlotData, UInventoryComponent* inInventory);
 
-	UFUNCTION()
-	void OnItemClicked();
+	int32 GetSlotIndex() const;
+
+	virtual FReply NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 };

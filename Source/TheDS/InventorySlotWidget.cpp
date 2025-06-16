@@ -4,12 +4,12 @@
 #include "BaseItem.h"
 #include "Components/Button.h"
 #include "BaseCharacter.h"
+#include "ItemDragDropOperation.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 void UInventorySlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	if (BTN_Item) BTN_Item->OnClicked.AddDynamic(this, &UInventorySlotWidget::OnItemClicked);
 }
 
 void UInventorySlotWidget::Init(const FInventorySlot& inSlotData, UInventoryComponent* inInventory)
@@ -17,7 +17,13 @@ void UInventorySlotWidget::Init(const FInventorySlot& inSlotData, UInventoryComp
 	slotData = inSlotData;
 	owningInventory = inInventory;
 	slotIndex = inSlotData.OriginalIndex;
-	if (!slotData.ItemData) return;
+	if (!slotData.ItemData)
+	{
+		// ºó ½½·Ô Ã³¸®
+		IMG_Icon->SetVisibility(ESlateVisibility::Hidden);
+		TXT_Quantity->SetVisibility(ESlateVisibility::Hidden);
+		return;
+	}
 	if (slotData.ItemData)
 	{
 		if (IMG_Icon && slotData.ItemData->icon)
@@ -37,15 +43,62 @@ void UInventorySlotWidget::Init(const FInventorySlot& inSlotData, UInventoryComp
 	}
 }
 
-void UInventorySlotWidget::OnItemClicked()
+int32 UInventorySlotWidget::GetSlotIndex() const
 {
-	UE_LOG(LogTemp, Warning, TEXT("Item Selected"));
-	if (!owningInventory || slotIndex < 0) return;
+	return slotIndex;
+}
+
+FReply UInventorySlotWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseButtonDoubleClick(InGeometry, InMouseEvent);
+	if (!owningInventory || slotIndex < 0 || !slotData.ItemData) return FReply::Unhandled();
 
 	APlayerController* PC = GetOwningPlayer();
-	if (!PC) return;
+	if (!PC) return FReply::Unhandled();
 
 	ABaseCharacter* TargetCharacter = Cast<ABaseCharacter>(PC->GetPawn());
-	if (!TargetCharacter) return;
-	owningInventory->UseItem(slotIndex, TargetCharacter);
+	if (!TargetCharacter) return FReply::Unhandled();
+
+	owningInventory->UseItem(slotData.ItemData->itemType, slotIndex, TargetCharacter);
+	return FReply::Handled();
+}
+
+FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	FReply Reply = Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MouseButtonDown detected"));
+		Reply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
+	}
+	return Reply;
+}
+
+void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
+{
+	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
+	if (!slotData.ItemData) return;
+
+	UItemDragDropOperation* DragOperation = NewObject<UItemDragDropOperation>();
+	DragOperation->DefaultDragVisual = this; // or a new small icon widget
+	DragOperation->Pivot = EDragPivot::MouseDown;
+	DragOperation->SourceSlot = this;
+	DragOperation->DraggedItemData = slotData;
+
+	OutOperation = DragOperation;
+}
+
+bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+{
+	Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	UItemDragDropOperation* DragOp = Cast<UItemDragDropOperation>(InOperation);
+	if (!DragOp || !owningInventory || !DragOp->DraggedItemData.ItemData)
+		return false;
+	if (DragOp->SourceSlot == this)
+		return false;
+	owningInventory->SwapItem(
+		DragOp->DraggedItemData.ItemData->itemType,
+		DragOp->SourceSlot->GetSlotIndex(),
+		this->GetSlotIndex());
+	return true;
 }

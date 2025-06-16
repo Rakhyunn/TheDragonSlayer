@@ -32,17 +32,25 @@ void UInventoryWidget::RefreshInventory()
 {
     if (!inventory || !WrapBox_Items || !slotWidgetClass) return;
     WrapBox_Items->ClearChildren();
-    TArray<FInventorySlot> filteredSlots = inventory->GetFilteredSlots(currentTab);
-    UE_LOG(LogTemp, Warning, TEXT("Slot: %d"), filteredSlots.Num());
-    for (int32 i = 0; i < filteredSlots.Num(); i++)
+    const TArray<FInventorySlot>& Slots = inventory->GetSlots(currentTab);
+    for (int32 i = 0; i < Slots.Num(); i++)
     {
         UInventorySlotWidget* slot = CreateWidget<UInventorySlotWidget>(this, slotWidgetClass);
-        if (slot)
+        if (!slot) continue;
+        const FInventorySlot& slotData = Slots[i];
+        if (slotData.ItemData)
         {
-            slot->Init(filteredSlots[i], inventory);
-            UE_LOG(LogTemp, Warning, TEXT("%d"), i);
-            WrapBox_Items->AddChildToWrapBox(slot);
+            FInventorySlot slotCopy = slotData;
+            slotCopy.OriginalIndex = i; // 드래그/드롭 인덱스 유지
+            slot->Init(slotCopy, inventory);
         }
+        else
+        {
+            FInventorySlot emptySlot;
+            emptySlot.OriginalIndex = i; // 빈 슬롯에도 index 지정!
+            slot->Init(emptySlot, inventory);
+        }
+        WrapBox_Items->AddChildToWrapBox(slot);
     }
 }
 
