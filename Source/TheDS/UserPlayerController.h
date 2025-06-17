@@ -6,20 +6,43 @@
 
 class UPlayerInfoWidget;
 class UBaseStatComponent;
+class UInventoryWidget;
+class UEquipmentWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+	AUserPlayerController();
+
+	void ToggleInventory();
+
+	void ToggleEquipment();
 	
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void SetupInputComponent() override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UPlayerInfoWidget> PlayerInfoWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UInventoryWidget> InventoryWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UEquipmentWidget> EquipmentWidgetClass;
+
 private:
 	UPROPERTY()
-	UPlayerInfoWidget* PlayerInfoWidget;
+	UPlayerInfoWidget* PlayerInfoWidgetInstance;
+
+	UPROPERTY()
+	UInventoryWidget* InventoryWidgetInstance;
+
+	UPROPERTY()
+	UEquipmentWidget* EquipmentWidgetInstance;
 };

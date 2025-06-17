@@ -44,4 +44,6 @@ public:
 	void PlayAttackMontage();
 
 	FOnAttackHit OnAttackHit;
+
+	void StopMove();
 };

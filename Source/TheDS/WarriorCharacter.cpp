@@ -73,6 +73,7 @@ void AWarriorCharacter::ServerAttack_Implementation()
 		UE_LOG(LogTemp, Warning, TEXT("Warrior hit: %s"), *hitResult.GetActor()->GetName());
 		if (hitResult.GetActor()->ActorHasTag(TEXT("Enemy"))) {
 			ABaseEnemyCharacter* hitEnemy = Cast<ABaseEnemyCharacter>(hitResult.GetActor());
+			UE_LOG(LogTemp, Warning, TEXT("Attack: %f"), stat->GetAttack());
 			hitEnemy->ReceiveDamage(this, stat->GetAttack());
 		}
 	}
@@ -93,4 +94,10 @@ void AWarriorCharacter::MulticastAttack_Implementation()
 void AWarriorCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsAttacking = true;
+}
+
+void AWarriorCharacter::DontMove()
+{
+	Super::DontMove();
+	animInstance->StopMove();
 }

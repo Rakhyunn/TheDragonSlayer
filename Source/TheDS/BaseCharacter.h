@@ -17,6 +17,15 @@ private:
 	class USpringArmComponent* SpringArm;
 	UPROPERTY(VisibleAnywhere)
 	class UCameraComponent* Camera;
+	
+	UPROPERTY(EditAnywhere)
+	class UBaseItem* TestSwordDataAsset;
+	UPROPERTY(EditAnywhere)
+	class UBaseItem* TestShieldDataAsset;
+	UPROPERTY(EditAnywhere)
+	class UBaseItem* TestHeadDataAsset;
+	UPROPERTY(EditAnywhere)
+	class UBaseItem* TestPotionDataAsset;
 
 protected:
 	UPROPERTY(Replicated)
@@ -67,6 +76,26 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
 	class UBaseStatComponent* stat;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UInventoryComponent* InventoryComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UEquipmentComponent* EquipmentComponent;
+
 public:
 	void ReceiveDamage(float damage);
+	
+	virtual void DontMove();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRestoreHP(float Amount);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRestoreMP(float Amount);
+
+	UFUNCTION(Server, Reliable)
+	void ServerAddAttack(float Amount);
+
+	UFUNCTION(Server, Reliable)
+	void ServerAddDefense(float Amount);
 };

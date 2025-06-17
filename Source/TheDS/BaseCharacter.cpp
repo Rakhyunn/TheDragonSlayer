@@ -5,6 +5,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "BaseStatComponent.h"
+#include "InventoryComponent.h"
+#include "EquipmentComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -24,6 +26,9 @@ ABaseCharacter::ABaseCharacter()
 	Camera->bUsePawnControlRotation = false;
 
 	stat = CreateDefaultSubobject<UBaseStatComponent>(TEXT("StatComponent"));
+
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	EquipmentComponent = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComponent"));
 }
 
 void ABaseCharacter::PostInitializeComponents()
@@ -35,6 +40,11 @@ void ABaseCharacter::PostInitializeComponents()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	UE_LOG(LogTemp, Error, TEXT("equipmentComponent is: %s"), EquipmentComponent ? TEXT("VALID") : TEXT("NULL"));
+	InventoryComponent->AddItem(TestSwordDataAsset, 1);
+	InventoryComponent->AddItem(TestShieldDataAsset, 1);
+	InventoryComponent->AddItem(TestHeadDataAsset, 1);
+	InventoryComponent->AddItem(TestPotionDataAsset, 150);
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -137,4 +147,29 @@ void ABaseCharacter::ReceiveDamage(float damage)
 {
 	stat->GetDamage(damage);
 	UE_LOG(LogTemp, Warning, TEXT("Remain HP: %f"), stat->GetCurrentHP());
+}
+
+void ABaseCharacter::DontMove()
+{
+	bIsAttacking = false;
+}
+
+void ABaseCharacter::ServerRestoreHP_Implementation(float Amount)
+{
+	if (stat) stat->RestoreHP(Amount);
+}
+
+void ABaseCharacter::ServerRestoreMP_Implementation(float Amount)
+{
+	if (stat) stat->RestoreMP(Amount);
+}
+
+void ABaseCharacter::ServerAddAttack_Implementation(float Amount)
+{
+	if (stat) stat->AddAttack(Amount);
+}
+
+void ABaseCharacter::ServerAddDefense_Implementation(float Amount)
+{
+	if (stat) stat->AddDefense(Amount);
 }
