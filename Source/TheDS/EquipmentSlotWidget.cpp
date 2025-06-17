@@ -1,5 +1,6 @@
 #include "EquipmentSlotWidget.h"
 #include "Components/Image.h"
+#include "ItemToolTipWidget.h"
 
 void UEquipmentSlotWidget::Init(EEquiptype inSlotType, UItem_Equipment* equippedItem)
 {
@@ -31,4 +32,21 @@ FReply UEquipmentSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 		return FReply::Handled();
 	}
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+void UEquipmentSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+	if (!currentItem || !ToolTipWidgetClass) return;
+	UItemToolTipWidget* TooltipWidget = CreateWidget<UItemToolTipWidget>(GetWorld(), ToolTipWidgetClass);
+	if (!TooltipWidget) return;
+	TooltipWidget->InitTooltip(currentItem);
+	// UUserWidget은 ToolTipContent로 설정해야 한다.
+	SetToolTip(TooltipWidget);
+}
+
+void UEquipmentSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseLeave(InMouseEvent);
+	SetToolTip(nullptr);
 }

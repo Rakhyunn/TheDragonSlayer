@@ -24,6 +24,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	UTexture2D* icon;
 	UPROPERTY(EditAnywhere, Category = "Item")
+	FText itemDescription;
+	UPROPERTY(EditAnywhere, Category = "Item")
 	int32 maxStack = 1;
 	UPROPERTY(EditAnywhere, Category = "Item")
 	bool bUsable = false;

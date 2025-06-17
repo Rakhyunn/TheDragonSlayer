@@ -120,6 +120,11 @@ void UInventoryComponent::RemoveItem(EItemType type, int32 index)
 	Slots[index].ItemData = nullptr;
 	Slots[index].Quantity = 0;
 	Slots[index].bEquipped = false;
+
+	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
+	{
+		linkedInventoryWidget->RefreshInventory();
+	}
 }
 
 const TArray<FInventorySlot>& UInventoryComponent::GetSlots(EItemType type) const

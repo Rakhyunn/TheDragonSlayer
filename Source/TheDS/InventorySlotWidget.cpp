@@ -6,6 +6,8 @@
 #include "BaseCharacter.h"
 #include "ItemDragDropOperation.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "ItemToolTipWidget.h"
+#include "ItemSelectMenuWidget.h"
 
 void UInventorySlotWidget::NativeConstruct()
 {
@@ -71,6 +73,18 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 		UE_LOG(LogTemp, Warning, TEXT("MouseButtonDown detected"));
 		Reply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
 	}
+	else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton && slotData.ItemData)
+	{
+		UItemSelectMenuWidget* Menu = CreateWidget<UItemSelectMenuWidget>(GetWorld(), ItemSelectMenuWidgetClass);
+		if (Menu)
+		{
+			Menu->Setup(slotData, owningInventory);
+			Menu->AddToViewport();
+			// 위치 조정 (커서 위치에 띄우기)
+			Menu->SetPositionInViewport(InMouseEvent.GetScreenSpacePosition(), false);
+		}
+		return FReply::Handled();
+	}
 	return Reply;
 }
 
@@ -101,4 +115,21 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 		DragOp->SourceSlot->GetSlotIndex(),
 		this->GetSlotIndex());
 	return true;
+}
+
+void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+	if (!slotData.ItemData || !ToolTipWidgetClass) return;
+	UItemToolTipWidget* TooltipWidget = CreateWidget<UItemToolTipWidget>(GetWorld(), ToolTipWidgetClass);
+	if (!TooltipWidget) return;
+	TooltipWidget->InitTooltip(slotData.ItemData);
+	// UUserWidget은 ToolTipContent로 설정해야 한다.
+	SetToolTip(TooltipWidget);
+}
+
+void UInventorySlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseLeave(InMouseEvent);
+	SetToolTip(nullptr);
 }
