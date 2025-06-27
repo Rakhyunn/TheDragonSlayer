@@ -96,6 +96,29 @@ void UBaseStatComponent::AddDefense(float plusDefense)
 	OnRep_DefenseChanged();
 }
 
+void UBaseStatComponent::AddMoney(int32 money)
+{
+	currentMoney += money;
+	OnRep_MoneyChanged();
+}
+
+void UBaseStatComponent::SpendMoney(int32 money)
+{
+	if (currentMoney >= money)
+	{
+		currentMoney -= money;
+		OnRep_MoneyChanged();
+	}
+	else
+		return;
+}
+
+bool UBaseStatComponent::CheckMoney(int32 money)
+{
+	if (currentMoney >= money) return true;
+	else return false;
+}
+
 void UBaseStatComponent::OnRep_EXPChanged()
 {
 	// 경험치 UI 갱신
@@ -138,6 +161,11 @@ void UBaseStatComponent::OnRep_DefenseChanged()
 	OnDefenseChangedDelegate.Broadcast(defense);
 }
 
+void UBaseStatComponent::OnRep_MoneyChanged()
+{
+	OnMoneyChangedDelegate.Broadcast(currentMoney);
+}
+
 void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -148,6 +176,7 @@ void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(UBaseStatComponent, attack);
 	DOREPLIFETIME(UBaseStatComponent, magic);
 	DOREPLIFETIME(UBaseStatComponent, defense);
+	DOREPLIFETIME(UBaseStatComponent, currentMoney);
 }
 
 void UBaseStatComponent::BeginPlay()

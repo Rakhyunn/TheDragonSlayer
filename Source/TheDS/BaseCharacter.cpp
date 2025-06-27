@@ -173,3 +173,23 @@ void ABaseCharacter::ServerAddDefense_Implementation(float Amount)
 {
 	if (stat) stat->AddDefense(Amount);
 }
+
+void ABaseCharacter::ServerAddMoney_Implementation(int32 Amount)
+{
+	if (stat) stat->AddMoney(Amount);
+}
+
+void ABaseCharacter::ServerSpendMoney_Implementation(int32 Amount)
+{
+	if (stat)
+	{
+		if (stat->CheckMoney(Amount))
+		{
+			stat->SpendMoney(Amount);
+		}
+		else
+		{
+			//거래 실패(돈 부족 ui 출력?)
+		}
+	}
+}

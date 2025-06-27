@@ -98,4 +98,10 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerAddDefense(float Amount);
+
+	UFUNCTION(Server, Reliable)
+	void ServerAddMoney(int32 Amount);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSpendMoney(int32 Amount);
 };

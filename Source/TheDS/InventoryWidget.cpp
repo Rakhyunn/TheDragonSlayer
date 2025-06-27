@@ -2,6 +2,9 @@
 #include "InventorySlotWidget.h"
 #include "Components/WrapBox.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
+#include "BaseCharacter.h"
+#include "BaseStatComponent.h"
 
 void UInventoryWidget::NativeConstruct()
 {
@@ -9,6 +12,15 @@ void UInventoryWidget::NativeConstruct()
     if (BTN_Equipment) BTN_Equipment->OnClicked.AddDynamic(this, &UInventoryWidget::OnEquipmentBtnClicked);
     if (BTN_Consume) BTN_Consume->OnClicked.AddDynamic(this, &UInventoryWidget::OnConsumeBtnClicked);
     if (BTN_Close) BTN_Close->OnClicked.AddDynamic(this, &UInventoryWidget::OnCloseBtnCLicked);
+    player = Cast<ABaseCharacter>(GetOwningPlayerPawn());
+    if (player && player->stat)
+    {
+        if (!player->stat->OnMoneyChangedDelegate.IsBoundToObject(this))
+        {
+            player->stat->OnMoneyChangedDelegate.AddUObject(this, &UInventoryWidget::UpdateMoney);
+        }
+        UpdateMoney(player->stat->GetMoney()); // 초기화 시점 UI도 갱신
+    }
 }
 
 void UInventoryWidget::OnEquipmentBtnClicked()
@@ -26,6 +38,13 @@ void UInventoryWidget::OnConsumeBtnClicked()
 void UInventoryWidget::OnCloseBtnCLicked()
 {
     RemoveFromParent();
+}
+
+void UInventoryWidget::UpdateMoney(int32 newMoney)
+{
+    if (!TXT_Money)return;
+    if (!player || !player->stat) return;
+    TXT_Money->SetText(FText::AsNumber(player->stat->GetMoney()));
 }
 
 void UInventoryWidget::RefreshInventory()

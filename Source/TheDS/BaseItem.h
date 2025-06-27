@@ -29,4 +29,8 @@ public:
 	int32 maxStack = 1;
 	UPROPERTY(EditAnywhere, Category = "Item")
 	bool bUsable = false;
+	UPROPERTY(EditAnywhere, Category = "Item")
+	int32 purchaseMoney;
+	UPROPERTY(EditAnywhere, Category = "Item")
+	int32 saleMoney;
 };
