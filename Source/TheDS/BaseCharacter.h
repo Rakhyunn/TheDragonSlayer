@@ -104,4 +104,7 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSpendMoney(int32 Amount);
+
+	UFUNCTION()
+	void TryInteract();
 };

@@ -7,6 +7,8 @@
 #include "BaseStatComponent.h"
 #include "InventoryComponent.h"
 #include "EquipmentComponent.h"
+#include "BaseMerchantNPC.h"
+#include "kismet/GameplayStatics.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -69,6 +71,8 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Run", IE_Released, this, &ABaseCharacter::ServerStopRun);
 
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &ABaseCharacter::Attack);
+
+	PlayerInputComponent->BindAction("NPCMerchantInteract", IE_Pressed, this, &ABaseCharacter::TryInteract);
 }
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -191,5 +195,33 @@ void ABaseCharacter::ServerSpendMoney_Implementation(int32 Amount)
 		{
 			//거래 실패(돈 부족 ui 출력?)
 		}
+	}
+}
+
+void ABaseCharacter::TryInteract()
+{
+	TArray<AActor*> NearbyActors;
+	float Range = 300.f;
+	ABaseMerchantNPC* ClosestNPC = nullptr;
+	float MinDist = TNumericLimits<float>::Max();
+
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseMerchantNPC::StaticClass(), NearbyActors);
+
+	for (AActor* Actor : NearbyActors)
+	{
+		if (!Actor->ActorHasTag(TEXT("MerchantNPC"))) continue;
+		ABaseMerchantNPC* NPC = Cast<ABaseMerchantNPC>(Actor);
+		float Distance = FVector::Dist(GetActorLocation(), Actor->GetActorLocation());
+		if (NPC && Distance <= Range && Distance < MinDist)
+		{
+			ClosestNPC = NPC;
+			MinDist = Distance;
+		}
+	}
+
+	if (ClosestNPC)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		ClosestNPC->Interact(PC);
 	}
 }
