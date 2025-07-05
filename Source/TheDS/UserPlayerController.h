@@ -8,6 +8,7 @@ class UPlayerInfoWidget;
 class UBaseStatComponent;
 class UInventoryWidget;
 class UEquipmentWidget;
+class UNPCShopWidget
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -20,6 +21,8 @@ public:
 	void ToggleInventory();
 
 	void ToggleEquipment();
+
+	void OpenShop(class ABaseMerchantNPC* Merchant);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -36,6 +39,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UEquipmentWidget> EquipmentWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Merchant")
+	TSubclassOf<UNPCShopWidget> ShopWidgetClass;
+
 private:
 	UPROPERTY()
 	UPlayerInfoWidget* PlayerInfoWidgetInstance;
@@ -45,4 +51,7 @@ private:
 
 	UPROPERTY()
 	UEquipmentWidget* EquipmentWidgetInstance;
+
+	UPROPERTY()
+	UNPCShopWidget* ShopWidgetInstance;
 };

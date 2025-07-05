@@ -9,6 +9,8 @@
 #include "PlayerInfoWidget.h"
 #include "EquipmentComponent.h"
 #include "EquipmentWidget.h"
+#include "BaseMerchantNPC.h"
+#include "NPCShopWidget.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -98,5 +100,21 @@ void AUserPlayerController::ToggleEquipment()
 			EquipmentWidgetInstance->AddToViewport();
 			EquipmentWidgetInstance->RefreshEquipment();
 		}
+	}
+}
+
+void AUserPlayerController::OpenShop(ABaseMerchantNPC* Merchant)
+{
+	if (!ShopWidgetClass || !Merchant) return;
+
+	if (!ShopWidgetInstance)
+	{
+		ShopWidgetInstance = CreateWidget<UNPCShopWidget>(this, ShopWidgetClass);
+	}
+
+	if (ShopWidgetInstance && !ShopWidgetInstance->IsInViewport())
+	{
+		ShopWidgetInstance->InitShop(Merchant); // 아이템 설정 등
+		ShopWidgetInstance->AddToViewport();
 	}
 }
