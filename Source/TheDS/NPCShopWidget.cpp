@@ -3,6 +3,7 @@
 #include "BaseCharacter.h"
 #include "BaseItem.h"
 #include "BaseStatComponent.h"
+#include "ShopItemSlotWidget.h"
 #include "Components/Button.h"
 #include "Components/WrapBox.h"
 #include "Components/TextBlock.h"
@@ -23,16 +24,16 @@ void UNPCShopWidget::InitShop(ABaseMerchantNPC* merchant)
 
 void UNPCShopWidget::RefreshShopItems()
 {
-	//if (!WB_ShopItems || !MerchantRef || !ShopSlotWidgetClass) return;
+	if (!WB_ShopItems || !MerchantRef || !ShopSlotWidgetClass) return;
 	WB_ShopItems->ClearChildren();
 	for (UBaseItem* item : MerchantRef->GetItemsForSale())
 	{
-		//UShopItemSlotWidget* slot = CreateWidget< UShopItemSlotWidget>(this, ShopSlotWidgetClass);
-		//if (slot)
-		//{
-		//	slot->Init(item, PlayerRef, MerchantRef);
-		//	WB_ShopItems->AddChildToWrapBox(slot);
-		//}
+		UShopItemSlotWidget* slot = CreateWidget< UShopItemSlotWidget>(this, ShopSlotWidgetClass);
+		if (slot)
+		{
+			slot->Init(item, PlayerRef, MerchantRef);
+			WB_ShopItems->AddChildToWrapBox(slot);
+		}
 	}
 }
 

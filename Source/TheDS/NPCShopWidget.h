@@ -19,8 +19,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* BTN_Close;
 
-	//UPROPERTY(EditAnywhere, Category = "UI")
-	//TSubclassOf<class UShopItemSlotWidget> ShopSlotWidgetClass;
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UShopItemSlotWidget> ShopSlotWidgetClass;
 
 	UPROPERTY()
 	class ABaseMerchantNPC* MerchantRef;

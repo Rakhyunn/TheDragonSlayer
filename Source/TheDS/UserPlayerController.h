@@ -8,7 +8,7 @@ class UPlayerInfoWidget;
 class UBaseStatComponent;
 class UInventoryWidget;
 class UEquipmentWidget;
-class UNPCShopWidget
+class UNPCShopWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
