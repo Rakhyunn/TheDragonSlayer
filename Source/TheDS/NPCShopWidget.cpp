@@ -31,7 +31,7 @@ void UNPCShopWidget::RefreshShopItems()
 		UShopItemSlotWidget* slot = CreateWidget< UShopItemSlotWidget>(this, ShopSlotWidgetClass);
 		if (slot)
 		{
-			slot->Init(item, PlayerRef, MerchantRef);
+			slot->Init(item, PlayerRef, MerchantRef, this);
 			WB_ShopItems->AddChildToWrapBox(slot);
 		}
 	}

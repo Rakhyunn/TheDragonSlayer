@@ -4,6 +4,7 @@
 #include "BaseMerchantNPC.h"
 #include "InventoryComponent.h"
 #include "BaseStatComponent.h"
+#include "NPCShopWidget.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Components/EditableText.h"
@@ -20,11 +21,12 @@ void UShopItemSlotWidget::NativeConstruct()
 	}
 }
 
-void UShopItemSlotWidget::Init(UBaseItem* item, ABaseCharacter* player, ABaseMerchantNPC* merchant)
+void UShopItemSlotWidget::Init(UBaseItem* item, ABaseCharacter* player, ABaseMerchantNPC* merchant, UNPCShopWidget* shopWidget)
 {
 	slotItem = item;
 	playerRef = player;
 	merchantRef = merchant;
+	shopWidgetRef = shopWidget;
 	if (slotItem)
 	{
 		if (IMG_Icon)
@@ -44,7 +46,7 @@ void UShopItemSlotWidget::Init(UBaseItem* item, ABaseCharacter* player, ABaseMer
 
 void UShopItemSlotWidget::OnBuyButtonClicked()
 {
-	if (!playerRef || !slotItem) return;
+	if (!playerRef || !slotItem || !merchantRef) return;
 
 	int32 cost = slotItem->purchaseMoney;
 	int32 quantity = FCString::Atoi(*ET_Quantity->GetText().ToString());
@@ -55,6 +57,7 @@ void UShopItemSlotWidget::OnBuyButtonClicked()
 	{
 		playerRef->stat->AddMoney(-totalCost);
 		playerRef->InventoryComponent->AddItem(slotItem, quantity);
+		shopWidgetRef->UpdateMoney();
 		UE_LOG(LogTemp, Log, TEXT("아이템 구매: %s"), *slotItem->itemName.ToString());
 	}
 	else

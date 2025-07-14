@@ -16,6 +16,8 @@ private:
 
 	class ABaseMerchantNPC* merchantRef;
 
+	class UNPCShopWidget* shopWidgetRef;
+
 protected:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* IMG_Icon;
@@ -38,8 +40,9 @@ protected:
 public:
 	virtual void NativeConstruct() override;
 
-	void Init(class UBaseItem* item, class ABaseCharacter* player, class ABaseMerchantNPC* merchant);
+	void Init(class UBaseItem* item, class ABaseCharacter* player, class ABaseMerchantNPC* merchant, UNPCShopWidget* shopWidget);
 
+	UFUNCTION()
 	void OnBuyButtonClicked();
 
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
