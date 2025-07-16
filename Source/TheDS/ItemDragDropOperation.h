@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/DragDropOperation.h"
@@ -12,8 +12,8 @@ class THEDS_API UItemDragDropOperation : public UDragDropOperation
 	
 public:
     UPROPERTY()
-    class UInventorySlotWidget* SourceSlot;  // ¾îµğ¼­ ²ø¾ú´ÂÁö
+    class UInventorySlotWidget* SourceSlot;  // ì–´ë””ì„œ ëŒì—ˆëŠ”ì§€
 
     UPROPERTY()
-    FInventorySlot DraggedItemData;  // ¾ÆÀÌÅÛ Á¤º¸
+    FInventorySlot DraggedItemData;  // ì•„ì´í…œ ì •ë³´
 };

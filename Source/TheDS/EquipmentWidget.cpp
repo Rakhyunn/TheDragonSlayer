@@ -1,4 +1,4 @@
-#include "EquipmentWidget.h"
+ï»¿#include "EquipmentWidget.h"
 #include "Components/Button.h"
 #include "EquipmentComponent.h"
 #include "Item_Equipment.h"
@@ -17,7 +17,7 @@ void UEquipmentWidget::NativeConstruct()
 				if (equipment && ownerCharacter)
 				{
 					equipment->UnEquip(type, ownerCharacter);
-					this->RefreshEquipment(); // UI °»½Å
+					this->RefreshEquipment(); // UI ê°±ì‹ 
 				}
 			});
 	}

@@ -1,4 +1,4 @@
-#include "UserPlayerController.h"
+ï»¿#include "UserPlayerController.h"
 #include "PlayerInfoWidget.h"
 #include "BaseCharacter.h"
 #include "BaseStatComponent.h"
@@ -28,7 +28,7 @@ void AUserPlayerController::BeginPlay()
 		{
 			PlayerInfoWidgetInstance->AddToViewport();
 
-			// Ä³¸¯ÅÍ¿¡¼­ ½ºÅÈ ÄÄÆ÷³ÍÆ® °¡Á®¿Í ¹ÙÀÎµù
+			// ìºë¦­í„°ì—ì„œ ìŠ¤íƒ¯ ì»´í¬ë„ŒíŠ¸ ê°€ì ¸ì™€ ë°”ì¸ë”©
 			APawn* MyPawn = GetPawn();
 			ABaseCharacter* MyCharacter = Cast<ABaseCharacter>(MyPawn);
 			if (MyCharacter && MyCharacter->stat)
@@ -114,7 +114,7 @@ void AUserPlayerController::OpenShop(ABaseMerchantNPC* Merchant)
 
 	if (ShopWidgetInstance && !ShopWidgetInstance->IsInViewport())
 	{
-		ShopWidgetInstance->InitShop(Merchant); // ¾ÆÀÌÅÛ ¼³Á¤ µî
+		ShopWidgetInstance->InitShop(Merchant); // ì•„ì´í…œ ì„¤ì • ë“±
 		ShopWidgetInstance->AddToViewport();
 	}
 }

@@ -1,4 +1,4 @@
-#include "ShopItemSlotWidget.h"
+ï»¿#include "ShopItemSlotWidget.h"
 #include "BaseItem.h"
 #include "BaseCharacter.h"
 #include "BaseMerchantNPC.h"
@@ -51,19 +51,19 @@ void UShopItemSlotWidget::OnBuyButtonClicked()
 	int32 cost = slotItem->purchaseMoney;
 	int32 quantity = FCString::Atoi(*ET_Quantity->GetText().ToString());
 	if (quantity <= 0)
-		return;	// ÃßÈÄ¿¡ UI ÆË¾÷À¸·Î ±¸¸Å ½ÇÆĞ?
+		return;	// ì¶”í›„ì— UI íŒì—…ìœ¼ë¡œ êµ¬ë§¤ ì‹¤íŒ¨?
 	int32 totalCost = cost * quantity;
 	if (playerRef->stat->GetMoney() >= totalCost)
 	{
 		playerRef->stat->AddMoney(-totalCost);
 		playerRef->InventoryComponent->AddItem(slotItem, quantity);
 		shopWidgetRef->UpdateMoney();
-		UE_LOG(LogTemp, Log, TEXT("¾ÆÀÌÅÛ ±¸¸Å: %s"), *slotItem->itemName.ToString());
+		UE_LOG(LogTemp, Log, TEXT("ì•„ì´í…œ êµ¬ë§¤: %s"), *slotItem->itemName.ToString());
 	}
 	else
 	{
-		// ±¸¸Å ½ÇÆĞ UI ÆË¾÷?
-		UE_LOG(LogTemp, Warning, TEXT("¼ÒÁö±İ ºÎÁ·"));
+		// êµ¬ë§¤ ì‹¤íŒ¨ UI íŒì—…?
+		UE_LOG(LogTemp, Warning, TEXT("ì†Œì§€ê¸ˆ ë¶€ì¡±"));
 	}
 }
 

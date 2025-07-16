@@ -1,4 +1,4 @@
-#include "InventorySlotWidget.h"
+ï»¿#include "InventorySlotWidget.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "BaseItem.h"
@@ -21,7 +21,7 @@ void UInventorySlotWidget::Init(const FInventorySlot& inSlotData, UInventoryComp
 	slotIndex = inSlotData.OriginalIndex;
 	if (!slotData.ItemData)
 	{
-		// ºó ½½·Ô Ã³¸®
+		// ë¹ˆ ìŠ¬ë¡¯ ì²˜ë¦¬
 		IMG_Icon->SetVisibility(ESlateVisibility::Hidden);
 		TXT_Quantity->SetVisibility(ESlateVisibility::Hidden);
 		return;
@@ -32,12 +32,12 @@ void UInventorySlotWidget::Init(const FInventorySlot& inSlotData, UInventoryComp
 		{
 			IMG_Icon->SetBrushFromTexture(slotData.ItemData->icon);
 		}
-		// Àåºñ¸é ÅØ½ºÆ® ¼û±â±â
+		// ì¥ë¹„ë©´ í…ìŠ¤íŠ¸ ìˆ¨ê¸°ê¸°
 		if (slotData.ItemData->itemType == EItemType::IT_equipment)
 		{
 			if (TXT_Quantity) TXT_Quantity->SetVisibility(ESlateVisibility::Collapsed);
 		}
-		// ¼Òºñ ¾ÆÀÌÅÛ µîÀº ÅØ½ºÆ® Ç¥½Ã
+		// ì†Œë¹„ ì•„ì´í…œ ë“±ì€ í…ìŠ¤íŠ¸ í‘œì‹œ
 		else
 		{
 			if (TXT_Quantity) TXT_Quantity->SetText(FText::AsNumber(slotData.Quantity));
@@ -80,7 +80,7 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 		{
 			Menu->Setup(slotData, owningInventory);
 			Menu->AddToViewport();
-			// À§Ä¡ Á¶Á¤ (Ä¿¼­ À§Ä¡¿¡ ¶ç¿ì±â)
+			// ìœ„ì¹˜ ì¡°ì • (ì»¤ì„œ ìœ„ì¹˜ì— ë„ìš°ê¸°)
 			Menu->SetPositionInViewport(InMouseEvent.GetScreenSpacePosition(), false);
 		}
 		return FReply::Handled();
@@ -124,7 +124,7 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 	UItemToolTipWidget* TooltipWidget = CreateWidget<UItemToolTipWidget>(GetWorld(), ToolTipWidgetClass);
 	if (!TooltipWidget) return;
 	TooltipWidget->InitTooltip(slotData.ItemData);
-	// UUserWidgetÀº ToolTipContent·Î ¼³Á¤ÇØ¾ß ÇÑ´Ù.
+	// UUserWidgetì€ ToolTipContentë¡œ ì„¤ì •í•´ì•¼ í•œë‹¤.
 	SetToolTip(TooltipWidget);
 }
 

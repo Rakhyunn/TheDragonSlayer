@@ -1,4 +1,4 @@
-#include "NPCShopWidget.h"
+﻿#include "NPCShopWidget.h"
 #include "BaseMerchantNPC.h"
 #include "BaseCharacter.h"
 #include "BaseItem.h"

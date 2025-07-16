@@ -1,4 +1,4 @@
-#include "BaseEnemyCharacter.h"
+﻿#include "BaseEnemyCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "BaseStatComponent.h"

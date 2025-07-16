@@ -1,4 +1,4 @@
-#include "InventoryWidget.h"
+ï»¿#include "InventoryWidget.h"
 #include "InventorySlotWidget.h"
 #include "Components/WrapBox.h"
 #include "Components/Button.h"
@@ -19,7 +19,7 @@ void UInventoryWidget::NativeConstruct()
         {
             player->stat->OnMoneyChangedDelegate.AddUObject(this, &UInventoryWidget::UpdateMoney);
         }
-        UpdateMoney(player->stat->GetMoney()); // ÃÊ±âÈ­ ½ÃÁ¡ UIµµ °»½Å
+        UpdateMoney(player->stat->GetMoney()); // ì´ˆê¸°í™” ì‹œì  UIë„ ê°±ì‹ 
     }
 }
 
@@ -60,13 +60,13 @@ void UInventoryWidget::RefreshInventory()
         if (slotData.ItemData)
         {
             FInventorySlot slotCopy = slotData;
-            slotCopy.OriginalIndex = i; // µå·¡±×/µå·Ó ÀÎµ¦½º À¯Áö
+            slotCopy.OriginalIndex = i; // ë“œëž˜ê·¸/ë“œë¡­ ì¸ë±ìŠ¤ ìœ ì§€
             slot->Init(slotCopy, inventory);
         }
         else
         {
             FInventorySlot emptySlot;
-            emptySlot.OriginalIndex = i; // ºó ½½·Ô¿¡µµ index ÁöÁ¤!
+            emptySlot.OriginalIndex = i; // ë¹ˆ ìŠ¬ë¡¯ì—ë„ index ì§€ì •!
             slot->Init(emptySlot, inventory);
         }
         WrapBox_Items->AddChildToWrapBox(slot);

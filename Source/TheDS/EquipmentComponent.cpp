@@ -1,4 +1,4 @@
-#include "EquipmentComponent.h"
+﻿#include "EquipmentComponent.h"
 #include "BaseCharacter.h"
 #include "InventoryComponent.h"
 #include "EquipmentWidget.h"

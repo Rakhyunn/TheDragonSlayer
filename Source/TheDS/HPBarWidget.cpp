@@ -1,4 +1,4 @@
-#include "HPBarWidget.h"
+﻿#include "HPBarWidget.h"
 #include "Components/ProgressBar.h"
 #include "BaseStatComponent.h"
 
@@ -6,7 +6,7 @@ void UHPBarWidget::NativeConstruct()
 {
 	if (PB_HPBar)
 	{
-		PB_HPBar->SetPercent(1.0f); // �ʱⰪ
+		PB_HPBar->SetPercent(1.0f); // 초기값
 	}
 }
 

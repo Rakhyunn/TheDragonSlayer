@@ -1,4 +1,4 @@
-#include "BaseCharacter.h"
+ï»¿#include "BaseCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -59,7 +59,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	// °øÅë Á¶ÀÛ
+	// ê³µí†µ ì¡°ì‘
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseCharacter::MoveRight);
 
@@ -193,7 +193,7 @@ void ABaseCharacter::ServerSpendMoney_Implementation(int32 Amount)
 		}
 		else
 		{
-			//°Å·¡ ½ÇÆĞ(µ· ºÎÁ· ui Ãâ·Â?)
+			//ê±°ë˜ ì‹¤íŒ¨(ëˆ ë¶€ì¡± ui ì¶œë ¥?)
 		}
 	}
 }

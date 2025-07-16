@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
@@ -38,7 +38,7 @@ protected:
 public:
 	virtual void NativeConstruct() override;
 
-	// ¿ÜºÎ¿¡¼­ ½½·Ô Á¤º¸ ¼³Á¤
+	// ì™¸ë¶€ì—ì„œ ìŠ¬ë¡¯ ì •ë³´ ì„¤ì •
 	void Init(const FInventorySlot& inSlotData, UInventoryComponent* inInventory);
 
 	int32 GetSlotIndex() const;

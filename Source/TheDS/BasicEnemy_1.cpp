@@ -1,4 +1,4 @@
-#include "BasicEnemy_1.h"
+ï»¿#include "BasicEnemy_1.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -22,9 +22,9 @@ ABasicEnemy_1::ABasicEnemy_1()
 void ABasicEnemy_1::BeginPlay()
 {
 	Super::BeginPlay();
-	SetCharacterDefaults();		//ÀÌµ¿¼Óµµ, Á¡ÇÁ ¼³Á¤
-	AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance °¡Á®¿À±â
-	// ÇÔ¼ö µî·Ï
+	SetCharacterDefaults();		//ì´ë™ì†ë„, ì í”„ ì„¤ì •
+	AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance ê°€ì ¸ì˜¤ê¸°
+	// í•¨ìˆ˜ ë“±ë¡
 	AnimInstance->OnMontageEnded.AddDynamic(this, &ABasicEnemy_1::OnAttackMontageEnded);
 	AnimInstance->OnAttackHit.AddUObject(this, &ABasicEnemy_1::Attack);
 }
@@ -84,7 +84,7 @@ void ABasicEnemy_1::ServerAttack_Implementation()
 void ABasicEnemy_1::MulticastAttack_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack"));
-	// ´Ü¼ø ¾Ö´Ï¸ÅÀÌ¼Ç Àç»ı
+	// ë‹¨ìˆœ ì• ë‹ˆë§¤ì´ì…˜ ì¬ìƒ
 	if (AnimInstance)
 	{
 		bIsAttacking = false;
@@ -113,19 +113,19 @@ void ABasicEnemy_1::DropLoot()
 	FEnemyDropData* DropData = DropTable->FindRow<FEnemyDropData>(DropRowName, Context);
 	if (!DropData) return;
 
-	// ¾ÆÀÌÅÛ µå¶ø
+	// ì•„ì´í…œ ë“œë
 	for (const FDropItemInfo& ItemInfo : DropData->DropItems)
 	{
 		if (FMath::FRand() <= ItemInfo.DropRate && ItemInfo.Item)
 		{
-			// ¾ÆÀÌÅÛ ½ºÆù
+			// ì•„ì´í…œ ìŠ¤í°
 		}
 	}
 
-	// µ· µå¶ø
+	// ëˆ ë“œë
 	if (FMath::FRand() <= DropData->MoneyDropRate)
 	{
 		int32 money = FMath::RandRange(DropData->MinMoney, DropData->MaxMoney);
-		// µ· ½ºÆù
+		// ëˆ ìŠ¤í°
 	}
 }

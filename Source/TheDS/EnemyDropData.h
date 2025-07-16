@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
@@ -15,7 +15,7 @@ public:
 	UBaseItem* Item = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float DropRate = 1.0f;  // ÀÌ ¾ÆÀÌÅÛÀÌ µå¶øµÉ È®·ü (0~1)
+	float DropRate = 1.0f;  // ì´ ì•„ì´í…œì´ ë“œëë  í™•ë¥  (0~1)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Quantity = 1;
