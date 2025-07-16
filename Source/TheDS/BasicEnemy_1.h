@@ -33,4 +33,6 @@ private:
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 	virtual void Die(class ABaseCharacter* Causer) override;
+
+	virtual void DropLoot() override;
 };

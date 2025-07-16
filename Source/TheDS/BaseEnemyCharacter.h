@@ -36,8 +36,15 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	class UWidgetComponent* HPWidgetComponent;
+
 	UPROPERTY(BlueprintReadOnly)
 	class UHPBarWidget* HPBarWidget;
+
+	UPROPERTY(EditAnywhere, Category = "DropItem")
+	FName DropRowName;
+
+	UPROPERTY(EditAnywhere, Category = "DropItem")
+	UDataTable* DropTable;
 
 protected:
 	virtual void PostInitializeComponents() override;
@@ -52,6 +59,8 @@ protected:
 	virtual void SetCharacterDefaults();
 
 	virtual void Die(class ABaseCharacter* Causer) { };
+
+	virtual void DropLoot() { };
 
 public:
 	void ReceiveDamage(class ABaseCharacter* Causer, float Damage);

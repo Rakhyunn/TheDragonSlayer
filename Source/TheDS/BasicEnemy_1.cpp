@@ -5,6 +5,9 @@
 #include "CharacterAnimInstance.h"
 #include "BaseStatComponent.h"
 #include "BaseCharacter.h"
+#include "EnemyDropData.h"
+#include "DropItemActor.h"
+#include "DropMoneyActor.h"
 
 ABasicEnemy_1::ABasicEnemy_1()
 {
@@ -99,4 +102,30 @@ void ABasicEnemy_1::Die(ABaseCharacter* Causer)
 	Super::Die(Causer);
 	Causer->stat->AddExperience(stat->GetEnemyEXP());
 	SetLifeSpan(1.f);
+}
+
+void ABasicEnemy_1::DropLoot()
+{
+	Super::DropLoot();
+	if (!DropTable || DropRowName.IsNone()) return;
+
+	const FString Context = TEXT("DropLootLookup");
+	FEnemyDropData* DropData = DropTable->FindRow<FEnemyDropData>(DropRowName, Context);
+	if (!DropData) return;
+
+	// 아이템 드랍
+	for (const FDropItemInfo& ItemInfo : DropData->DropItems)
+	{
+		if (FMath::FRand() <= ItemInfo.DropRate && ItemInfo.Item)
+		{
+			// 아이템 스폰
+		}
+	}
+
+	// 돈 드랍
+	if (FMath::FRand() <= DropData->MoneyDropRate)
+	{
+		int32 money = FMath::RandRange(DropData->MinMoney, DropData->MaxMoney);
+		// 돈 스폰
+	}
 }
