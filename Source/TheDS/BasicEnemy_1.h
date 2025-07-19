@@ -16,6 +16,12 @@ private:
 	UPROPERTY()
 	class UCharacterAnimInstance* AnimInstance;
 
+	UPROPERTY(EditAnywhere, Category = "Drop")
+	TSubclassOf<class ADropItemActor> DropItemClass;
+
+	UPROPERTY(EditAnywhere, Category = "Drop")
+	TSubclassOf<class ADropMoneyActor> DropMoneyClass;
+
 private:
 	virtual void BeginPlay() override;
 

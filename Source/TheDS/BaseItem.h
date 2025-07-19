@@ -33,4 +33,6 @@ public:
 	int32 purchaseMoney;
 	UPROPERTY(EditAnywhere, Category = "Item")
 	int32 saleMoney;
+	UPROPERTY(EditAnywhere, Category = "Visual")
+	UStaticMesh* DroppedMesh;
 };

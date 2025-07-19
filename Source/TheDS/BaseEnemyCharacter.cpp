@@ -66,13 +66,17 @@ void ABaseEnemyCharacter::SetCharacterDefaults()
 	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
 }
 
+void ABaseEnemyCharacter::Die(ABaseCharacter* Causer)
+{
+	DropLoot();
+}
+
 void ABaseEnemyCharacter::ReceiveDamage(class ABaseCharacter* Causer, float Damage)
 {
 	stat->GetDamage(Damage);
 	UE_LOG(LogTemp, Warning, TEXT("Remain HP: %f"), stat->GetCurrentHP());
 	if (stat->GetCurrentHP() <= 0.f)
 	{
-		DropLoot();
 		Die(Causer);
 	}
 }

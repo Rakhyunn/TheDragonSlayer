@@ -58,7 +58,7 @@ protected:
 	// 이동속도, 점프 능력치 조정 함수
 	virtual void SetCharacterDefaults();
 
-	virtual void Die(class ABaseCharacter* Causer) { };
+	virtual void Die(class ABaseCharacter* Causer);
 
 	virtual void DropLoot() { };
 

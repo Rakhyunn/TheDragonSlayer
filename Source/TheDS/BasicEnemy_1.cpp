@@ -100,6 +100,7 @@ void ABasicEnemy_1::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupte
 void ABasicEnemy_1::Die(ABaseCharacter* Causer)
 {
 	Super::Die(Causer);
+	DropLoot();
 	Causer->stat->AddExperience(stat->GetEnemyEXP());
 	SetLifeSpan(1.f);
 }
@@ -119,6 +120,12 @@ void ABasicEnemy_1::DropLoot()
 		if (FMath::FRand() <= ItemInfo.DropRate && ItemInfo.Item)
 		{
 			// 아이템 스폰
+			FVector DropLocation = GetActorLocation() + UKismetMathLibrary::RandomUnitVector() * FMath::RandRange(30.f, 100.f);
+			ADropItemActor* DropItem = GetWorld()->SpawnActor<ADropItemActor>(DropItemClass, DropLocation, FRotator::ZeroRotator);
+			if (DropItem)
+			{
+				DropItem->Init(ItemInfo.Item, ItemInfo.Quantity);
+			}
 		}
 	}
 
@@ -127,5 +134,11 @@ void ABasicEnemy_1::DropLoot()
 	{
 		int32 money = FMath::RandRange(DropData->MinMoney, DropData->MaxMoney);
 		// 돈 스폰
+		FVector DropLocation = GetActorLocation() + UKismetMathLibrary::RandomUnitVector() * FMath::RandRange(30.f, 100.f);
+		ADropMoneyActor* DropMoney = GetWorld()->SpawnActor<ADropMoneyActor>(DropMoneyClass, DropLocation, FRotator::ZeroRotator);
+		if (DropMoney)
+		{
+			DropMoney->Init(money);
+		}
 	}
 }
