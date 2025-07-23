@@ -1,5 +1,6 @@
 ﻿#include "BaseMerchantNPC.h"
 #include "UserPlayerController.h"
+#include "BaseCharacter.h"
 
 ABaseMerchantNPC::ABaseMerchantNPC()
 {
@@ -12,10 +13,13 @@ void ABaseMerchantNPC::BeginPlay()
 	
 }
 
-void ABaseMerchantNPC::Interact(APlayerController* InteractingPlayer)
+void ABaseMerchantNPC::Interact(ABaseCharacter* Interactor)
 {
-	if (!InteractingPlayer) return;
-	AUserPlayerController* UserPlayer = Cast<AUserPlayerController>(InteractingPlayer);
-	if (!UserPlayer) return;
-	UserPlayer->OpenShop(this);
+	if (!Interactor) return;
+
+	AUserPlayerController* UserPlayer = Cast<AUserPlayerController>(Interactor->GetController());
+	if (UserPlayer)
+	{
+		UserPlayer->OpenShop(this);
+	}
 }

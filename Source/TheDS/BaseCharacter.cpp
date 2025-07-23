@@ -9,6 +9,7 @@
 #include "EquipmentComponent.h"
 #include "BaseMerchantNPC.h"
 #include "kismet/GameplayStatics.h"
+#include "InteractInterface.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -72,7 +73,8 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &ABaseCharacter::Attack);
 
-	PlayerInputComponent->BindAction("NPCMerchantInteract", IE_Pressed, this, &ABaseCharacter::TryInteract);
+	PlayerInputComponent->BindAction("PickUp", IE_Pressed, this, &ABaseCharacter::InteractPickUp);
+	PlayerInputComponent->BindAction("Talk", IE_Pressed, this, &ABaseCharacter::InteractMerchant);
 }
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -147,6 +149,16 @@ void ABaseCharacter::MulticastStopRun_Implementation()
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
 }
 
+void ABaseCharacter::InteractPickUp()
+{
+	TryInteract(EInteractionType::PickUp);
+}
+
+void ABaseCharacter::InteractMerchant()
+{
+	TryInteract(EInteractionType::Talk);
+}
+
 void ABaseCharacter::ReceiveDamage(float damage)
 {
 	stat->GetDamage(damage);
@@ -198,30 +210,40 @@ void ABaseCharacter::ServerSpendMoney_Implementation(int32 Amount)
 	}
 }
 
-void ABaseCharacter::TryInteract()
+void ABaseCharacter::TryInteract(EInteractionType InteractionType)
 {
 	TArray<AActor*> NearbyActors;
 	float Range = 300.f;
-	ABaseMerchantNPC* ClosestNPC = nullptr;
+	AActor* Closest = nullptr;
 	float MinDist = TNumericLimits<float>::Max();
 
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseMerchantNPC::StaticClass(), NearbyActors);
+	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UInteractInterface::StaticClass(), NearbyActors);
 
 	for (AActor* Actor : NearbyActors)
 	{
-		if (!Actor->ActorHasTag(TEXT("MerchantNPC"))) continue;
-		ABaseMerchantNPC* NPC = Cast<ABaseMerchantNPC>(Actor);
 		float Distance = FVector::Dist(GetActorLocation(), Actor->GetActorLocation());
-		if (NPC && Distance <= Range && Distance < MinDist)
+		if (Distance <= Range && Distance < MinDist)
 		{
-			ClosestNPC = NPC;
-			MinDist = Distance;
+			// 필터링
+			if (InteractionType == EInteractionType::PickUp && Actor->ActorHasTag("PickUp"))
+			{
+				Closest = Actor;
+				MinDist = Distance;
+			}
+			else if (InteractionType == EInteractionType::Talk && Actor->ActorHasTag("MerchantNPC"))
+			{
+				Closest = Actor;
+				MinDist = Distance;
+			}
 		}
 	}
 
-	if (ClosestNPC)
+	if (Closest)
 	{
-		APlayerController* PC = Cast<APlayerController>(GetController());
-		ClosestNPC->Interact(PC);
+		IInteractInterface* Interface = Cast<IInteractInterface>(Closest);
+		if (Interface)
+		{
+			Interface->Interact(this);
+		}
 	}
 }

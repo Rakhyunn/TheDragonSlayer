@@ -13,11 +13,12 @@ ADropItemActor::ADropItemActor()
 	RootComponent = Trigger;
 	Trigger->InitSphereRadius(80.f);
 	Trigger->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	Trigger->OnComponentBeginOverlap.AddDynamic(this, &ADropItemActor::OnOverlapBegin);
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(RootComponent);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Tags.Add(FName("PickUp"));
 }
 
 void ADropItemActor::BeginPlay()
@@ -43,12 +44,11 @@ void ADropItemActor::Init(UBaseItem* itemData, int32 quantity)
 	}
 }
 
-void ADropItemActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ADropItemActor::Interact(ABaseCharacter* Interactor)
 {
-	ABaseCharacter* Player = Cast<ABaseCharacter>(OtherActor);
-	if (Player && ItemData)
+	if (Interactor && ItemData)
 	{
-		Player->InventoryComponent->AddItem(ItemData, Quantity);
+		Interactor->InventoryComponent->AddItem(ItemData, Quantity);
 		Destroy();
 	}
 }

@@ -2,10 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "InteractInterface.h"
 #include "DropMoneyActor.generated.h"
 
 UCLASS()
-class THEDS_API ADropMoneyActor : public AActor
+class THEDS_API ADropMoneyActor : public AActor, public IInteractInterface
 {
 	GENERATED_BODY()
 	
@@ -34,8 +35,5 @@ public:
 	// 아이템 설정 함수
 	void Init(int32 money = 0);
 
-protected:
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void Interact(class ABaseCharacter* Interactor) override;
 };

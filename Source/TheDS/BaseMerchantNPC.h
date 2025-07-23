@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "InteractInterface.h"
 #include "BaseMerchantNPC.generated.h"
 
 UENUM(BlueprintType)
@@ -12,7 +13,7 @@ enum class EMerchantType : uint8
 };
 
 UCLASS()
-class THEDS_API ABaseMerchantNPC : public ACharacter
+class THEDS_API ABaseMerchantNPC : public ACharacter, public IInteractInterface
 {
 	GENERATED_BODY()
 
@@ -29,8 +30,7 @@ protected:
 	EMerchantType MerchantType;
 
 public:
-	UFUNCTION(BlueprintCallable)
-	virtual void Interact(APlayerController* InteractPlayer);
+	virtual void Interact(class ABaseCharacter* Interactor) override;
 
 	EMerchantType GetMerchantType() const { return MerchantType; }
 	const TArray<UBaseItem*>& GetItemsForSale() const { return ItemsForSale; }

@@ -4,6 +4,13 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class EInteractionType : uint8
+{
+	PickUp,
+	Talk
+};
+
 UCLASS()
 class THEDS_API ABaseCharacter : public ACharacter
 {
@@ -71,6 +78,10 @@ protected:
 
 	// 공격 함수 가상화 -> 상속받은 캐릭터에서 구현
 	virtual void Attack() { };
+	
+	// 상호작용 함수
+	void InteractPickUp();
+	void InteractMerchant();
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
@@ -106,5 +117,5 @@ public:
 	void ServerSpendMoney(int32 Amount);
 
 	UFUNCTION()
-	void TryInteract();
+	void TryInteract(EInteractionType InteractionType);
 };

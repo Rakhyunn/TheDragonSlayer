@@ -13,7 +13,6 @@ ADropMoneyActor::ADropMoneyActor()
 	RootComponent = Trigger;
 	Trigger->InitSphereRadius(80.f);
 	Trigger->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	Trigger->OnComponentBeginOverlap.AddDynamic(this, &ADropMoneyActor::OnOverlapBegin);
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(RootComponent);
@@ -23,6 +22,8 @@ ADropMoneyActor::ADropMoneyActor()
 	{
 		Mesh->SetStaticMesh(MeshAsset.Object);
 	}
+
+	Tags.Add(FName("PickUp"));
 }
 
 void ADropMoneyActor::BeginPlay()
@@ -43,12 +44,11 @@ void ADropMoneyActor::Init(int32 money)
 	MoneyAmount = money;
 }
 
-void ADropMoneyActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ADropMoneyActor::Interact(ABaseCharacter* Interactor)
 {
-	ABaseCharacter* Player = Cast<ABaseCharacter>(OtherActor);
-	if (Player)
+	if (Interactor && Interactor->stat)
 	{
-		Player->stat->AddMoney(MoneyAmount);
+		Interactor->stat->AddMoney(MoneyAmount);
 		Destroy();
 	}
 }
