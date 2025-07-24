@@ -29,16 +29,19 @@ void UInventoryComponent::AddItem(UBaseItem* item, int32 quantity)
 				break;
 		}
 	}
-	for (FInventorySlot& slot : TargetSlots)
+	if (quantity > 0)
 	{
-		if (slot.ItemData == nullptr)
+		for (FInventorySlot& slot : TargetSlots)
 		{
-			int32 toAdd = FMath::Min(quantity, item->maxStack);
-			slot.ItemData = item;
-			slot.Quantity = toAdd;
-			quantity -= toAdd;
-			if (quantity <= 0)
-				break;
+			if (slot.ItemData == nullptr)
+			{
+				int32 toAdd = FMath::Min(quantity, item->maxStack);
+				slot.ItemData = item;
+				slot.Quantity = toAdd;
+				quantity -= toAdd;
+				if (quantity <= 0)
+					break;
+			}
 		}
 	}
 	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
