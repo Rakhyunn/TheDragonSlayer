@@ -46,6 +46,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "DropItem")
 	UDataTable* DropTable;
 
+	UPROPERTY()
+	class AEnemySpawnManager* SpawnManager;
+
 protected:
 	virtual void PostInitializeComponents() override;
 

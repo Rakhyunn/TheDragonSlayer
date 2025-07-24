@@ -101,8 +101,6 @@ void ABasicEnemy_1::Die(ABaseCharacter* Causer)
 {
 	Super::Die(Causer);
 	DropLoot();
-	Causer->stat->AddExperience(stat->GetEnemyEXP());
-	SetLifeSpan(1.f);
 }
 
 void ABasicEnemy_1::DropLoot()

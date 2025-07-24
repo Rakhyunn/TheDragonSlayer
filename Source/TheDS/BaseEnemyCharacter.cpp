@@ -5,6 +5,8 @@
 #include "BaseCharacter.h"
 #include "HPBarWidget.h"
 #include "Components/WidgetComponent.h"
+#include "EnemySpawnManager.h"
+#include "Kismet/GameplayStatics.h"
 
 ABaseEnemyCharacter::ABaseEnemyCharacter()
 {
@@ -40,6 +42,16 @@ void ABaseEnemyCharacter::BeginPlay()
 		if (HPBarWidget)
 			HPBarWidget->BindHp(stat);
 	}
+
+	if (HasAuthority())
+	{
+		TArray<AActor*> Found;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemySpawnManager::StaticClass(), Found);
+		if (Found.Num() > 0)
+		{
+			SpawnManager = Cast<AEnemySpawnManager>(Found[0]);
+		}
+	}
 }
 
 void ABaseEnemyCharacter::Tick(float DeltaTime)
@@ -69,6 +81,15 @@ void ABaseEnemyCharacter::SetCharacterDefaults()
 void ABaseEnemyCharacter::Die(ABaseCharacter* Causer)
 {
 	DropLoot();
+	Causer->stat->AddExperience(stat->GetEnemyEXP());
+	if (HasAuthority())
+	{
+		if (SpawnManager)
+		{
+			SpawnManager->NotifyEnemyDied(GetClass());
+		}
+		Destroy();
+	}
 }
 
 void ABaseEnemyCharacter::ReceiveDamage(class ABaseCharacter* Causer, float Damage)
