@@ -1,10 +1,13 @@
-#include "BasicEnemy_1.h"
+ï»¿#include "BasicEnemy_1.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "CharacterAnimInstance.h"
 #include "BaseStatComponent.h"
 #include "BaseCharacter.h"
+#include "EnemyDropData.h"
+#include "DropItemActor.h"
+#include "DropMoneyActor.h"
 
 ABasicEnemy_1::ABasicEnemy_1()
 {
@@ -19,9 +22,9 @@ ABasicEnemy_1::ABasicEnemy_1()
 void ABasicEnemy_1::BeginPlay()
 {
 	Super::BeginPlay();
-	SetCharacterDefaults();		//ÀÌµ¿¼Óµµ, Á¡ÇÁ ¼³Á¤
-	AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance °¡Á®¿À±â
-	// ÇÔ¼ö µî·Ï
+	SetCharacterDefaults();		//ì´ë™ì†ë„, ì í”„ ì„¤ì •
+	AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance ê°€ì ¸ì˜¤ê¸°
+	// í•¨ìˆ˜ ë“±ë¡
 	AnimInstance->OnMontageEnded.AddDynamic(this, &ABasicEnemy_1::OnAttackMontageEnded);
 	AnimInstance->OnAttackHit.AddUObject(this, &ABasicEnemy_1::Attack);
 }
@@ -81,7 +84,7 @@ void ABasicEnemy_1::ServerAttack_Implementation()
 void ABasicEnemy_1::MulticastAttack_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack"));
-	// ´Ü¼ø ¾Ö´Ï¸ÅÀÌ¼Ç Àç»ı
+	// ë‹¨ìˆœ ì• ë‹ˆë§¤ì´ì…˜ ì¬ìƒ
 	if (AnimInstance)
 	{
 		bIsAttacking = false;
@@ -97,6 +100,43 @@ void ABasicEnemy_1::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupte
 void ABasicEnemy_1::Die(ABaseCharacter* Causer)
 {
 	Super::Die(Causer);
-	Causer->stat->AddExperience(stat->GetEnemyEXP());
-	SetLifeSpan(1.f);
+	DropLoot();
+}
+
+void ABasicEnemy_1::DropLoot()
+{
+	Super::DropLoot();
+	if (!DropTable || DropRowName.IsNone()) return;
+
+	const FString Context = TEXT("DropLootLookup");
+	FEnemyDropData* DropData = DropTable->FindRow<FEnemyDropData>(DropRowName, Context);
+	if (!DropData) return;
+
+	// ì•„ì´í…œ ë“œë
+	for (const FDropItemInfo& ItemInfo : DropData->DropItems)
+	{
+		if (FMath::FRand() <= ItemInfo.DropRate && ItemInfo.Item)
+		{
+			// ì•„ì´í…œ ìŠ¤í°
+			FVector DropLocation = GetActorLocation() + UKismetMathLibrary::RandomUnitVector() * FMath::RandRange(30.f, 100.f);
+			ADropItemActor* DropItem = GetWorld()->SpawnActor<ADropItemActor>(DropItemClass, DropLocation, FRotator::ZeroRotator);
+			if (DropItem)
+			{
+				DropItem->Init(ItemInfo.Item, ItemInfo.Quantity);
+			}
+		}
+	}
+
+	// ëˆ ë“œë
+	if (FMath::FRand() <= DropData->MoneyDropRate)
+	{
+		int32 money = FMath::RandRange(DropData->MinMoney, DropData->MaxMoney);
+		// ëˆ ìŠ¤í°
+		FVector DropLocation = GetActorLocation() + UKismetMathLibrary::RandomUnitVector() * FMath::RandRange(30.f, 100.f);
+		ADropMoneyActor* DropMoney = GetWorld()->SpawnActor<ADropMoneyActor>(DropMoneyClass, DropLocation, FRotator::ZeroRotator);
+		if (DropMoney)
+		{
+			DropMoney->Init(money);
+		}
+	}
 }

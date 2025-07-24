@@ -1,4 +1,4 @@
-#include "WarriorCharacter.h"
+ï»¿#include "WarriorCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -20,9 +20,9 @@ AWarriorCharacter::AWarriorCharacter()
 void AWarriorCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	SetCharacterDefaults();		//ÀÌµ¿¼Óµµ, Á¡ÇÁ ¼³Á¤
-	animInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance °¡Á®¿À±â
-	// ÇÔ¼ö µî·Ï
+	SetCharacterDefaults();		//ì´ë™ì†ë„, ì í”„ ì„¤ì •
+	animInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance ê°€ì ¸ì˜¤ê¸°
+	// í•¨ìˆ˜ ë“±ë¡
 	animInstance->OnMontageEnded.AddDynamic(this, &AWarriorCharacter::OnAttackMontageEnded);
 	animInstance->OnAttackHit.AddUObject(this, &AWarriorCharacter::Attack);
 }
@@ -83,7 +83,7 @@ void AWarriorCharacter::ServerAttack_Implementation()
 void AWarriorCharacter::MulticastAttack_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack"));
-	// ´Ü¼ø ¾Ö´Ï¸ÅÀÌ¼Ç Àç»ı
+	// ë‹¨ìˆœ ì• ë‹ˆë§¤ì´ì…˜ ì¬ìƒ
 	if (animInstance)
 	{
 		bIsAttacking = false;

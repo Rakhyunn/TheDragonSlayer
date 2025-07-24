@@ -1,4 +1,4 @@
-#include "CharacterAnimInstance.h"
+ï»¿#include "CharacterAnimInstance.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -32,7 +32,7 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (IsValid(Character))
 	{
-		// ¾Ö´Ï¸ÅÀÌ¼Ç º¯¼ö ¼³Á¤
+		// ì• ë‹ˆë§¤ì´ì…˜ ë³€ìˆ˜ ì„¤ì •
 		Velocity = MovementComponent->Velocity;
 		GroundSpeed = Velocity.Size2D();
 		ShouldMove = GroundSpeed > 3.0f;
@@ -41,13 +41,13 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 void UCharacterAnimInstance::AnimNotify_Hit()
 {
-	// Hit Notify µî·Ï
+	// Hit Notify ë“±ë¡
 	OnAttackHit.Broadcast();
 }
 
 void UCharacterAnimInstance::PlayAttackMontage()
 {
-	// ¸ùÅ¸Áö Àç»ı
+	// ëª½íƒ€ì§€ ì¬ìƒ
 	Montage_Play(AttackMontage, 1.f);
 }
 

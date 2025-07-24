@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "BaseEnemyCharacter.h"
@@ -16,21 +16,29 @@ private:
 	UPROPERTY()
 	class UCharacterAnimInstance* AnimInstance;
 
+	UPROPERTY(EditAnywhere, Category = "Drop")
+	TSubclassOf<class ADropItemActor> DropItemClass;
+
+	UPROPERTY(EditAnywhere, Category = "Drop")
+	TSubclassOf<class ADropMoneyActor> DropMoneyClass;
+
 private:
 	virtual void BeginPlay() override;
 
 	virtual void SetCharacterDefaults() override;
 
-	virtual void Attack() override;		// °ø°İ »ó¼Ó Á¤ÀÇ
+	virtual void Attack() override;		// ê³µê²© ìƒì† ì •ì˜
 
-	// ¼­¹ö, Å¬¶óÀÌ¾ğÆ® °ø°İ ºĞ¸®
+	// ì„œë²„, í´ë¼ì´ì–¸íŠ¸ ê³µê²© ë¶„ë¦¬
 	UFUNCTION(Server, Reliable)
 	void ServerAttack();
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastAttack();
-	// ¸ùÅ¸Áö Á¾·á ½Ã È£Ãâ
+	// ëª½íƒ€ì§€ ì¢…ë£Œ ì‹œ í˜¸ì¶œ
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 	virtual void Die(class ABaseCharacter* Causer) override;
+
+	virtual void DropLoot() override;
 };

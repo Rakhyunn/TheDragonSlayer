@@ -1,4 +1,4 @@
-#include "EquipmentSlotWidget.h"
+ï»¿#include "EquipmentSlotWidget.h"
 #include "Components/Image.h"
 #include "ItemToolTipWidget.h"
 
@@ -41,7 +41,7 @@ void UEquipmentSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 	UItemToolTipWidget* TooltipWidget = CreateWidget<UItemToolTipWidget>(GetWorld(), ToolTipWidgetClass);
 	if (!TooltipWidget) return;
 	TooltipWidget->InitTooltip(currentItem);
-	// UUserWidgetÀº ToolTipContent·Î ¼³Á¤ÇØ¾ß ÇÑ´Ù.
+	// UUserWidgetì€ ToolTipContentë¡œ ì„¤ì •í•´ì•¼ í•œë‹¤.
 	SetToolTip(TooltipWidget);
 }
 

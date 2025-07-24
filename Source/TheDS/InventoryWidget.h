@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UWrapBox* WrapBox_Items;
 
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TXT_Money;
+
 	UPROPERTY()
 	UInventoryComponent* inventory;
 
@@ -31,6 +34,9 @@ protected:
 	TSubclassOf<class UInventorySlotWidget> slotWidgetClass;
 
 	EItemType currentTab = EItemType::IT_comsume;
+
+	UPROPERTY()
+	class ABaseCharacter* player;
 
 public:
 	virtual void NativeConstruct() override;
@@ -43,6 +49,9 @@ public:
 
 	UFUNCTION()
 	void OnCloseBtnCLicked();
+
+	UFUNCTION()
+	void UpdateMoney(int32 newMoney);
 
 	void RefreshInventory();
 

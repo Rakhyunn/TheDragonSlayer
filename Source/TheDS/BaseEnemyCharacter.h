@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -13,10 +13,10 @@ public:
 	ABaseEnemyCharacter();
 
 public:
-	bool bIsAttacking = true;	// °ø°İ °¡´É ¿©ºÎ
+	bool bIsAttacking = true;	// ê³µê²© ê°€ëŠ¥ ì—¬ë¶€
 
 public:
-	// °ø°İ ÇÔ¼ö °¡»óÈ­ -> »ó¼Ó¹ŞÀº Ä³¸¯ÅÍ¿¡¼­ ±¸Çö
+	// ê³µê²© í•¨ìˆ˜ ê°€ìƒí™” -> ìƒì†ë°›ì€ ìºë¦­í„°ì—ì„œ êµ¬í˜„
 	virtual void Attack() { };
 
 protected:
@@ -36,8 +36,18 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	class UWidgetComponent* HPWidgetComponent;
+
 	UPROPERTY(BlueprintReadOnly)
 	class UHPBarWidget* HPBarWidget;
+
+	UPROPERTY(EditAnywhere, Category = "DropItem")
+	FName DropRowName;
+
+	UPROPERTY(EditAnywhere, Category = "DropItem")
+	UDataTable* DropTable;
+
+	UPROPERTY()
+	class AEnemySpawnManager* SpawnManager;
 
 protected:
 	virtual void PostInitializeComponents() override;
@@ -48,10 +58,12 @@ protected:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	// ÀÌµ¿¼Óµµ, Á¡ÇÁ ´É·ÂÄ¡ Á¶Á¤ ÇÔ¼ö
+	// ì´ë™ì†ë„, ì í”„ ëŠ¥ë ¥ì¹˜ ì¡°ì • í•¨ìˆ˜
 	virtual void SetCharacterDefaults();
 
-	virtual void Die(class ABaseCharacter* Causer) { };
+	virtual void Die(class ABaseCharacter* Causer);
+
+	virtual void DropLoot() { };
 
 public:
 	void ReceiveDamage(class ABaseCharacter* Causer, float Damage);

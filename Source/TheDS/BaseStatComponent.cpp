@@ -1,4 +1,4 @@
-#include "BaseStatComponent.h"
+ï»¿#include "BaseStatComponent.h"
 #include "Net/UnrealNetwork.h"
 
 UBaseStatComponent::UBaseStatComponent()
@@ -75,7 +75,7 @@ bool UBaseStatComponent::CanLevelUp()
 void UBaseStatComponent::LevelUp()
 {
 	SetLevel(level + 1);
-	UE_LOG(LogTemp, Log, TEXT("·¹º§ ¾÷! ÇöÀç ·¹º§: %d"), level);
+	UE_LOG(LogTemp, Log, TEXT("ë ˆë²¨ ì—…! í˜„ìž¬ ë ˆë²¨: %d"), level);
 }
 
 void UBaseStatComponent::AddAttack(float plusAttack)
@@ -96,30 +96,53 @@ void UBaseStatComponent::AddDefense(float plusDefense)
 	OnRep_DefenseChanged();
 }
 
+void UBaseStatComponent::AddMoney(int32 money)
+{
+	currentMoney += money;
+	OnRep_MoneyChanged();
+}
+
+void UBaseStatComponent::SpendMoney(int32 money)
+{
+	if (currentMoney >= money)
+	{
+		currentMoney -= money;
+		OnRep_MoneyChanged();
+	}
+	else
+		return;
+}
+
+bool UBaseStatComponent::CheckMoney(int32 money)
+{
+	if (currentMoney >= money) return true;
+	else return false;
+}
+
 void UBaseStatComponent::OnRep_EXPChanged()
 {
-	// °æÇèÄ¡ UI °»½Å
+	// ê²½í—˜ì¹˜ UI ê°±ì‹ 
 	float percent = currentEXP / maxEXP;
 	OnEXPChangedDelegate.Broadcast(percent);
 }
 
 void UBaseStatComponent::OnRep_HPChanged()
 {
-	// HP UI °»½Å
+	// HP UI ê°±ì‹ 
 	float percent = currentHP / maxHP;
 	OnHPChangedDelegate.Broadcast(percent);
 }
 
 void UBaseStatComponent::OnRep_MPChanged()
 {
-	// MP UI °»½Å
+	// MP UI ê°±ì‹ 
 	float percent = currentMP / maxMP;
 	OnMPChangedDelegate.Broadcast(percent);
 }
 
 void UBaseStatComponent::OnRep_LevelChanged()
 {
-	// Level UI °»½Å
+	// Level UI ê°±ì‹ 
 	OnLevelChangedDelegate.Broadcast(level);
 }
 
@@ -138,6 +161,11 @@ void UBaseStatComponent::OnRep_DefenseChanged()
 	OnDefenseChangedDelegate.Broadcast(defense);
 }
 
+void UBaseStatComponent::OnRep_MoneyChanged()
+{
+	OnMoneyChangedDelegate.Broadcast(currentMoney);
+}
+
 void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -148,6 +176,7 @@ void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(UBaseStatComponent, attack);
 	DOREPLIFETIME(UBaseStatComponent, magic);
 	DOREPLIFETIME(UBaseStatComponent, defense);
+	DOREPLIFETIME(UBaseStatComponent, currentMoney);
 }
 
 void UBaseStatComponent::BeginPlay()

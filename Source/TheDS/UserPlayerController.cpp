@@ -1,4 +1,4 @@
-#include "UserPlayerController.h"
+ï»¿#include "UserPlayerController.h"
 #include "PlayerInfoWidget.h"
 #include "BaseCharacter.h"
 #include "BaseStatComponent.h"
@@ -9,6 +9,8 @@
 #include "PlayerInfoWidget.h"
 #include "EquipmentComponent.h"
 #include "EquipmentWidget.h"
+#include "BaseMerchantNPC.h"
+#include "NPCShopWidget.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -26,7 +28,7 @@ void AUserPlayerController::BeginPlay()
 		{
 			PlayerInfoWidgetInstance->AddToViewport();
 
-			// Ä³¸¯ÅÍ¿¡¼­ ½ºÅÈ ÄÄÆ÷³ÍÆ® °¡Á®¿Í ¹ÙÀÎµù
+			// ìºë¦­í„°ì—ì„œ ìŠ¤íƒ¯ ì»´í¬ë„ŒíŠ¸ ê°€ì ¸ì™€ ë°”ì¸ë”©
 			APawn* MyPawn = GetPawn();
 			ABaseCharacter* MyCharacter = Cast<ABaseCharacter>(MyPawn);
 			if (MyCharacter && MyCharacter->stat)
@@ -98,5 +100,21 @@ void AUserPlayerController::ToggleEquipment()
 			EquipmentWidgetInstance->AddToViewport();
 			EquipmentWidgetInstance->RefreshEquipment();
 		}
+	}
+}
+
+void AUserPlayerController::OpenShop(ABaseMerchantNPC* Merchant)
+{
+	if (!ShopWidgetClass || !Merchant) return;
+
+	if (!ShopWidgetInstance)
+	{
+		ShopWidgetInstance = CreateWidget<UNPCShopWidget>(this, ShopWidgetClass);
+	}
+
+	if (ShopWidgetInstance && !ShopWidgetInstance->IsInViewport())
+	{
+		ShopWidgetInstance->InitShop(Merchant); // ì•„ì´í…œ ì„¤ì • ë“±
+		ShopWidgetInstance->AddToViewport();
 	}
 }

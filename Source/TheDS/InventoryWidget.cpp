@@ -1,7 +1,10 @@
-#include "InventoryWidget.h"
+ï»¿#include "InventoryWidget.h"
 #include "InventorySlotWidget.h"
 #include "Components/WrapBox.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
+#include "BaseCharacter.h"
+#include "BaseStatComponent.h"
 
 void UInventoryWidget::NativeConstruct()
 {
@@ -9,6 +12,15 @@ void UInventoryWidget::NativeConstruct()
     if (BTN_Equipment) BTN_Equipment->OnClicked.AddDynamic(this, &UInventoryWidget::OnEquipmentBtnClicked);
     if (BTN_Consume) BTN_Consume->OnClicked.AddDynamic(this, &UInventoryWidget::OnConsumeBtnClicked);
     if (BTN_Close) BTN_Close->OnClicked.AddDynamic(this, &UInventoryWidget::OnCloseBtnCLicked);
+    player = Cast<ABaseCharacter>(GetOwningPlayerPawn());
+    if (player && player->stat)
+    {
+        if (!player->stat->OnMoneyChangedDelegate.IsBoundToObject(this))
+        {
+            player->stat->OnMoneyChangedDelegate.AddUObject(this, &UInventoryWidget::UpdateMoney);
+        }
+        UpdateMoney(player->stat->GetMoney()); // ì´ˆê¸°í™” ì‹œì  UIë„ ê°±ì‹ 
+    }
 }
 
 void UInventoryWidget::OnEquipmentBtnClicked()
@@ -28,6 +40,13 @@ void UInventoryWidget::OnCloseBtnCLicked()
     RemoveFromParent();
 }
 
+void UInventoryWidget::UpdateMoney(int32 newMoney)
+{
+    if (!TXT_Money)return;
+    if (!player || !player->stat) return;
+    TXT_Money->SetText(FText::AsNumber(player->stat->GetMoney()));
+}
+
 void UInventoryWidget::RefreshInventory()
 {
     if (!inventory || !WrapBox_Items || !slotWidgetClass) return;
@@ -41,13 +60,13 @@ void UInventoryWidget::RefreshInventory()
         if (slotData.ItemData)
         {
             FInventorySlot slotCopy = slotData;
-            slotCopy.OriginalIndex = i; // µå·¡±×/µå·Ó ÀÎµ¦½º À¯Áö
+            slotCopy.OriginalIndex = i; // ë“œëž˜ê·¸/ë“œë¡­ ì¸ë±ìŠ¤ ìœ ì§€
             slot->Init(slotCopy, inventory);
         }
         else
         {
             FInventorySlot emptySlot;
-            emptySlot.OriginalIndex = i; // ºó ½½·Ô¿¡µµ index ÁöÁ¤!
+            emptySlot.OriginalIndex = i; // ë¹ˆ ìŠ¬ë¡¯ì—ë„ index ì§€ì •!
             slot->Init(emptySlot, inventory);
         }
         WrapBox_Items->AddChildToWrapBox(slot);

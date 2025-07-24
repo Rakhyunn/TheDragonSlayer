@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
@@ -12,6 +12,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnLevelChangedDelegate, int32);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAttackChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMagicChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnDefenseChangedDelegate, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMoneyChangedDelegate, int32);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class THEDS_API UBaseStatComponent : public UActorComponent
@@ -45,6 +46,7 @@ public:
     float GetMaxEXP() { return maxEXP; };
     float GetCurrentEXP() { return currentEXP; };
     float GetEnemyEXP() { return enemyEXP; };
+    int32 GetMoney() { return currentMoney; };
 
     void AddExperience(int32 amount);
     bool CanLevelUp();
@@ -52,6 +54,10 @@ public:
 
     void AddAttack(float plusAttack);
     void AddDefense(float plusDefense);
+
+    void AddMoney(int32 money);
+    void SpendMoney(int32 money);
+    bool CheckMoney(int32 money);
 
     UFUNCTION()
     void OnRep_EXPChanged();
@@ -73,6 +79,9 @@ public:
 
     UFUNCTION()
     void OnRep_DefenseChanged();
+
+    UFUNCTION()
+    void OnRep_MoneyChanged();
 
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -105,6 +114,9 @@ private:
 
     float enemyEXP = 10.f;
 
+    UPROPERTY(ReplicatedUsing = OnRep_MoneyChanged)
+    int32 currentMoney = 1000;
+
 public:
     FOnHPChangedDelegate OnHPChangedDelegate;
     FOnEXPChangedDelegate OnEXPChangedDelegate;
@@ -113,4 +125,5 @@ public:
     FOnAttackChangedDelegate OnAttackChangedDelegate;
     FOnMagicChangedDelegate OnMagicChangedDelegate;
     FOnDefenseChangedDelegate OnDefenseChangedDelegate;
+    FOnMoneyChangedDelegate OnMoneyChangedDelegate;
 };

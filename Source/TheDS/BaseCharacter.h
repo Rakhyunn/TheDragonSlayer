@@ -1,8 +1,15 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
+
+UENUM(BlueprintType)
+enum class EInteractionType : uint8
+{
+	PickUp,
+	Talk
+};
 
 UCLASS()
 class THEDS_API ABaseCharacter : public ACharacter
@@ -37,7 +44,7 @@ protected:
 	UPROPERTY(Replicated)
 	float jumpZVelocity;
 
-	bool bIsAttacking = true;	// °ø°İ °¡´É ¿©ºÎ
+	bool bIsAttacking = true;	// ê³µê²© ê°€ëŠ¥ ì—¬ë¶€
 	FTimerHandle AttackResetTimerHandle;
 
 protected:
@@ -51,15 +58,15 @@ protected:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	// ÀÌµ¿¼Óµµ, Á¡ÇÁ ´É·ÂÄ¡ Á¶Á¤ ÇÔ¼ö
+	// ì´ë™ì†ë„, ì í”„ ëŠ¥ë ¥ì¹˜ ì¡°ì • í•¨ìˆ˜
 	virtual void SetCharacterDefaults();
 
-	// °øÅë ÀÌµ¿ °ü·Ã ÇÔ¼ö
+	// ê³µí†µ ì´ë™ ê´€ë ¨ í•¨ìˆ˜
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void Turn(float Value);
 
-	// ´Ş¸®±â ÇÔ¼ö -> ¼­¹ö¿¡¼­ °ü¸®ÇØ µ¿±âÈ­µÉ ¼ö ÀÖµµ·Ï ÇÔ
+	// ë‹¬ë¦¬ê¸° í•¨ìˆ˜ -> ì„œë²„ì—ì„œ ê´€ë¦¬í•´ ë™ê¸°í™”ë  ìˆ˜ ìˆë„ë¡ í•¨
 	UFUNCTION(Server, Reliable)
 	void ServerStartRun();
 	UFUNCTION(Server, Reliable)
@@ -69,8 +76,12 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastStopRun();
 
-	// °ø°İ ÇÔ¼ö °¡»óÈ­ -> »ó¼Ó¹ŞÀº Ä³¸¯ÅÍ¿¡¼­ ±¸Çö
+	// ê³µê²© í•¨ìˆ˜ ê°€ìƒí™” -> ìƒì†ë°›ì€ ìºë¦­í„°ì—ì„œ êµ¬í˜„
 	virtual void Attack() { };
+	
+	// ìƒí˜¸ì‘ìš© í•¨ìˆ˜
+	void InteractPickUp();
+	void InteractMerchant();
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
@@ -98,4 +109,13 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerAddDefense(float Amount);
+
+	UFUNCTION(Server, Reliable)
+	void ServerAddMoney(int32 Amount);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSpendMoney(int32 Amount);
+
+	UFUNCTION()
+	void TryInteract(EInteractionType InteractionType);
 };
