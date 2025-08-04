@@ -1,0 +1,43 @@
+﻿#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/PlayerState.h"
+#include "PartyType.h"
+#include "TheDSPlayerState.generated.h"
+
+UCLASS()
+class THEDS_API ATheDSPlayerState : public APlayerState
+{
+	GENERATED_BODY()
+	
+private:
+	UPROPERTY(ReplicatedUsing = OnRep_PartyLeader)
+	APlayerState* PartyLeader;
+
+	UPROPERTY(ReplicatedUsing = OnRep_PartyMembers)
+	TArray<FPartyMember> PartyMembers;
+
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+public:
+	int32 GetLevel() const;
+
+	void SetPartyLeader(APlayerState* Leader);
+	APlayerState* GetPartyLeader() const;
+
+	// 현재 파티 리더인지 여부 확인
+	bool IsPartyLeader() const { return PartyLeader == this; }
+
+	// 현재 파티에 소속되어 있는지 여부 확인
+	bool IsInParty() const { return PartyLeader != nullptr; }
+
+	UFUNCTION()
+	void OnRep_PartyLeader();
+
+	UFUNCTION()
+	void OnRep_PartyMembers();
+
+	const TArray<FPartyMember>& GetReplicatedPartyMembers() const { return PartyMembers; }
+	void SetReplicatedPartyMembers(const TArray<FPartyMember>& Members);
+};

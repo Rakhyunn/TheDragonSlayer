@@ -9,6 +9,7 @@ class UBaseStatComponent;
 class UInventoryWidget;
 class UEquipmentWidget;
 class UNPCShopWidget;
+class UInvitePartyWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -42,6 +43,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Merchant")
 	TSubclassOf<UNPCShopWidget> ShopWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Party")
+	TSubclassOf<UInvitePartyWidget> InvitePartyWidgetClass;
+
 private:
 	UPROPERTY()
 	UPlayerInfoWidget* PlayerInfoWidgetInstance;
@@ -54,4 +58,27 @@ private:
 
 	UPROPERTY()
 	UNPCShopWidget* ShopWidgetInstance;
+
+public:
+	APlayerState* FindNearestPlayer();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRequestCreateParty();
+	UFUNCTION(Server, Reliable)
+	void ServerRequestInviteParty(APlayerState* Invitee);
+	UFUNCTION(Server, Reliable)
+	void ServerRequestLeaveParty();
+
+	void RequestCreateParty();
+	void RequestInviteParty(APlayerState* Invitee);
+	void RequestLeaveParty();
+
+	UFUNCTION(Client, Reliable)
+	void ClientShowPartyInvite(APlayerState* FromLeader);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRespondToInvite(bool bAccepted, APlayerState* FromLeader);
+
+	UFUNCTION(Client, Reliable)
+	void ClientUpdatePartyUI();
 };
