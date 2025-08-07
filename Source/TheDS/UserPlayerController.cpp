@@ -42,6 +42,17 @@ void AUserPlayerController::BeginPlay()
 			}
 		}
 	}
+
+	if (ChattingWidgetClass)
+	{
+		ChattingWidgetInstance = CreateWidget<UChattingWidget>(this, ChattingWidgetClass);
+		if (ChattingWidgetInstance)
+		{
+			ChattingWidgetInstance->AddToViewport();
+			ChattingWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+			ChattingWidgetInstance->SetPositionInViewport(FVector2D(100, 200));
+		}
+	}
 }
 
 void AUserPlayerController::SetupInputComponent()
@@ -49,6 +60,10 @@ void AUserPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 	InputComponent->BindAction("ToggleInventory", IE_Pressed, this, &AUserPlayerController::ToggleInventory);
 	InputComponent->BindAction("ToggleEquipment", IE_Pressed, this, &AUserPlayerController::ToggleEquipment);
+
+	InputComponent->BindAction("OpenChat", IE_Pressed, this, &AUserPlayerController::OpenChatInput);
+	InputComponent->BindAction("SwitchToGlobalChat", IE_Pressed, this, &AUserPlayerController::SwitchToGlobalChat);
+	InputComponent->BindAction("SwitchToPartyChat", IE_Pressed, this, &AUserPlayerController::SwitchToPartyChat);
 }
 
 void AUserPlayerController::ServerRequestCreateParty_Implementation()
@@ -139,6 +154,49 @@ void AUserPlayerController::RequestLeaveParty()
 	else
 	{
 		ServerRequestLeaveParty();
+	}
+}
+
+void AUserPlayerController::ServerSendChat_Implementation(const FString& Message, EChatChannel Channel)
+{
+	FChatMessage Chat;
+	Chat.Message = Message;
+	Chat.Channel = Channel;
+	Chat.Sender = GetPlayerState<ATheDSPlayerState>()->GetNickname();
+
+	if (Channel == EChatChannel::Global)
+	{
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (AUserPlayerController* PC = Cast<AUserPlayerController>(*It))
+			{
+				PC->ClientReceiveChat(Chat);
+			}
+		}
+	}
+	else if (Channel == EChatChannel::Party)
+	{
+		// 파티 멤버들만 전달
+		ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+		if (PS)
+		{
+			const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
+			for (const FPartyMember& Member : Members)
+			{
+				if (AUserPlayerController* PC = Cast<AUserPlayerController>(Member.Member->GetOwner()))
+				{
+					PC->ClientReceiveChat(Chat);
+				}
+			}
+		}
+	}
+}
+
+void AUserPlayerController::ClientReceiveChat_Implementation(const FChatMessage& Chat)
+{
+	if (ChattingWidgetInstance)
+	{
+		ChattingWidgetInstance->AddChat(Chat);
 	}
 }
 
@@ -251,5 +309,45 @@ void AUserPlayerController::OpenShop(ABaseMerchantNPC* Merchant)
 	{
 		ShopWidgetInstance->InitShop(Merchant); // 아이템 설정 등
 		ShopWidgetInstance->AddToViewport();
+	}
+}
+
+void AUserPlayerController::OpenChatInput()
+{
+	if (ChattingWidgetInstance)
+	{
+		ChattingWidgetInstance->ActivateChat();
+	}
+}
+
+void AUserPlayerController::SwitchToGlobalChat()
+{
+	if (ChattingWidgetInstance)
+	{
+		ChattingWidgetInstance->SetChannel(EChatChannel::Global);
+		ChattingWidgetInstance->ActivateChat();
+	}
+}
+
+void AUserPlayerController::SwitchToPartyChat()
+{
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (PS && !PS->IsInParty())
+	{
+		if (ChattingWidgetInstance)
+		{
+			FChatMessage ErrorMsg;
+			ErrorMsg.Sender = TEXT("시스템");
+			ErrorMsg.Message = TEXT("파티에 속해있지 않습니다.");
+			ErrorMsg.Channel = EChatChannel::Global;
+
+			ChattingWidgetInstance->AddChat(ErrorMsg);
+		}
+		return;
+	}
+	if (ChattingWidgetInstance)
+	{
+		ChattingWidgetInstance->SetChannel(EChatChannel::Party);
+		ChattingWidgetInstance->ActivateChat();
 	}
 }

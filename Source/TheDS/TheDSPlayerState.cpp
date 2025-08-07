@@ -60,4 +60,5 @@ void ATheDSPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ATheDSPlayerState, PartyLeader);
 	DOREPLIFETIME(ATheDSPlayerState, PartyMembers);
+	DOREPLIFETIME(ATheDSPlayerState, Nickname);
 }

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "ChattingWidget.h"
 #include "UserPlayerController.generated.h"
 
 class UPlayerInfoWidget;
@@ -24,6 +25,12 @@ public:
 	void ToggleEquipment();
 
 	void OpenShop(class ABaseMerchantNPC* Merchant);
+
+	void OpenChatInput();
+
+	void SwitchToGlobalChat();
+
+	void SwitchToPartyChat();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -46,6 +53,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Party")
 	TSubclassOf<UInvitePartyWidget> InvitePartyWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Chat")
+	TSubclassOf<UChattingWidget> ChattingWidgetClass;
+
 private:
 	UPROPERTY()
 	UPlayerInfoWidget* PlayerInfoWidgetInstance;
@@ -58,6 +68,9 @@ private:
 
 	UPROPERTY()
 	UNPCShopWidget* ShopWidgetInstance;
+
+	UPROPERTY()
+	UChattingWidget* ChattingWidgetInstance;
 
 public:
 	APlayerState* FindNearestPlayer();
@@ -81,4 +94,10 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientUpdatePartyUI();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSendChat(const FString& Message, EChatChannel Channel);
+
+	UFUNCTION(Client, Reliable)
+	void ClientReceiveChat(const FChatMessage& Chat);
 };

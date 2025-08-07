@@ -18,9 +18,16 @@ private:
 	TArray<FPartyMember> PartyMembers;
 
 protected:
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	FString Nickname;
+
+protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
+	FString GetNickname() const { return Nickname; }
+	void SetNickname(const FString& InNickname) { Nickname = InNickname; }
+
 	int32 GetLevel() const;
 
 	void SetPartyLeader(APlayerState* Leader);
