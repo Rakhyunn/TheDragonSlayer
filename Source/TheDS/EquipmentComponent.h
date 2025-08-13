@@ -14,16 +14,16 @@ class THEDS_API UEquipmentComponent : public UActorComponent
 
 public:
 	UPROPERTY()
-	TMap<EEquiptype, UItem_Equipment*> equippedItems;
+	TMap<EEquiptype, UItem_Equipment*> EquippedItems;
 
 	FOnEquipmentChanged OnEquipmentChanged;
 
 public:	
 	UEquipmentComponent();
 
-	void Equip(UItem_Equipment* newItem, class ABaseCharacter* ownerCharacter);
+	void Equip(UItem_Equipment* NewItem, class ABaseCharacter* OwnerCharacter);
 
-	void UnEquip(EEquiptype equipType, class ABaseCharacter* ownerCharacter);
+	void UnEquip(EEquiptype EquipType, class ABaseCharacter* OwnerCharacter);
 
-	UItem_Equipment* GetEquipped(EEquiptype type) const;
+	UItem_Equipment* GetEquipped(EEquiptype Type) const;
 };

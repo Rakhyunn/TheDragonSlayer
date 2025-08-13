@@ -36,7 +36,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// 아이템 설정 함수
-	void Init(class UBaseItem* itemData, int32 quantity = 1);
+	void Init(class UBaseItem* ItemData_, int32 Quantity_ = 1);
 
 	virtual void Interact(class ABaseCharacter* Interactor) override;
 };

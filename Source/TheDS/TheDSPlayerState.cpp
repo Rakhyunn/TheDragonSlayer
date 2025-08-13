@@ -9,9 +9,9 @@ int32 ATheDSPlayerState::GetLevel() const
 {
 	if (ABaseCharacter* Player = Cast<ABaseCharacter>(GetPawn()))
 	{
-		if (Player->stat)
+		if (Player->Stat)
 		{
-			return Player->stat->GetLevel();
+			return Player->Stat->GetLevel();
 		}
 	}
 	return 0;

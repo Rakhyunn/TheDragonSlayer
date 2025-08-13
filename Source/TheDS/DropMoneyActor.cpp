@@ -39,16 +39,16 @@ void ADropMoneyActor::Tick(float DeltaTime)
 
 }
 
-void ADropMoneyActor::Init(int32 money)
+void ADropMoneyActor::Init(int32 Money)
 {
-	MoneyAmount = money;
+	MoneyAmount = Money;
 }
 
 void ADropMoneyActor::Interact(ABaseCharacter* Interactor)
 {
-	if (Interactor && Interactor->stat)
+	if (Interactor && Interactor->Stat)
 	{
-		Interactor->stat->AddMoney(MoneyAmount);
+		Interactor->Stat->AddMoney(MoneyAmount);
 		Destroy();
 	}
 }

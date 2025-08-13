@@ -44,13 +44,13 @@ public:
 public:
 	UInventoryComponent();
 
-	void AddItem(UBaseItem* item, int32 quantity);
+	void AddItem(UBaseItem* Item, int32 Quantity);
 
-	void UseItem(EItemType type, int32 index, class ABaseCharacter* target);
+	void UseItem(EItemType Type, int32 Index, class ABaseCharacter* Target);
 
-	void SwapItem(EItemType type, int32 fromIndex, int32 toIndex);
+	void SwapItem(EItemType Type, int32 FromIndex, int32 ToIndex);
 
-	void RemoveItem(EItemType type, int32 index);
+	void RemoveItem(EItemType Type, int32 Index);
 
-	const TArray<FInventorySlot>& GetSlots(EItemType type) const;
+	const TArray<FInventorySlot>& GetSlots(EItemType Type) const;
 };

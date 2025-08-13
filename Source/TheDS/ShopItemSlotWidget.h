@@ -10,13 +10,13 @@ class THEDS_API UShopItemSlotWidget : public UUserWidget
 	GENERATED_BODY()
 
 private:
-	class UBaseItem* slotItem;
+	class UBaseItem* SlotItem;
 
-	class ABaseCharacter* playerRef;
+	class ABaseCharacter* PlayerRef;
 
-	class ABaseMerchantNPC* merchantRef;
+	class ABaseMerchantNPC* MerchantRef;
 
-	class UNPCShopWidget* shopWidgetRef;
+	class UNPCShopWidget* ShopWidgetRef;
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -40,7 +40,7 @@ protected:
 public:
 	virtual void NativeConstruct() override;
 
-	void Init(class UBaseItem* item, class ABaseCharacter* player, class ABaseMerchantNPC* merchant, UNPCShopWidget* shopWidget);
+	void Init(class UBaseItem* Item, class ABaseCharacter* Player, class ABaseMerchantNPC* Merchant, UNPCShopWidget* ShopWidget);
 
 	UFUNCTION()
 	void OnBuyButtonClicked();

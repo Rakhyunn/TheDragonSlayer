@@ -13,7 +13,7 @@ ABaseEnemyCharacter::ABaseEnemyCharacter()
  	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
-	stat = CreateDefaultSubobject<UBaseStatComponent>(TEXT("StatComponent"));
+	Stat = CreateDefaultSubobject<UBaseStatComponent>(TEXT("StatComponent"));
 
 	HPWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPWidgetComponent"));
 	HPWidgetComponent->SetupAttachment(GetMesh());
@@ -40,7 +40,7 @@ void ABaseEnemyCharacter::BeginPlay()
 	{
 		HPBarWidget = Cast<UHPBarWidget>(HPWidgetComponent->GetUserWidgetObject());
 		if (HPBarWidget)
-			HPBarWidget->BindHp(stat);
+			HPBarWidget->BindHp(Stat);
 	}
 
 	if (HasAuthority())
@@ -64,24 +64,24 @@ void ABaseEnemyCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ABaseEnemyCharacter, walkSpeed);
-	DOREPLIFETIME(ABaseEnemyCharacter, runSpeed);
+	DOREPLIFETIME(ABaseEnemyCharacter, WalkSpeed);
+	DOREPLIFETIME(ABaseEnemyCharacter, RunSpeed);
 }
 
 void ABaseEnemyCharacter::SetCharacterDefaults()
 {
-	walkSpeed = 500.f;
-	runSpeed = 800.f;
-	jumpZVelocity = 420.f;
+	WalkSpeed = 500.f;
+	RunSpeed = 800.f;
+	JumpZVelocity = 420.f;
 
-	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
-	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->JumpZVelocity = JumpZVelocity;
 }
 
 void ABaseEnemyCharacter::Die(ABaseCharacter* Causer)
 {
 	DropLoot();
-	Causer->stat->AddExperience(stat->GetEnemyEXP());
+	Causer->Stat->AddExperience(Stat->GetEnemyEXP());
 	if (HasAuthority())
 	{
 		if (SpawnManager)
@@ -94,9 +94,9 @@ void ABaseEnemyCharacter::Die(ABaseCharacter* Causer)
 
 void ABaseEnemyCharacter::ReceiveDamage(class ABaseCharacter* Causer, float Damage)
 {
-	stat->GetDamage(Damage);
-	UE_LOG(LogTemp, Warning, TEXT("Remain HP: %f"), stat->GetCurrentHP());
-	if (stat->GetCurrentHP() <= 0.f)
+	Stat->GetDamage(Damage);
+	UE_LOG(LogTemp, Warning, TEXT("Remain HP: %f"), Stat->GetCurrentHP());
+	if (Stat->GetCurrentHP() <= 0.f)
 	{
 		Die(Causer);
 	}

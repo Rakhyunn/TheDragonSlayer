@@ -15,7 +15,7 @@ class THEDS_API UInventorySlotWidget : public UUserWidget
 	GENERATED_BODY()
 	
 private:
-	FInventorySlot slotData;
+	FInventorySlot SlotData;
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -25,9 +25,9 @@ protected:
 	UTextBlock* TXT_Quantity;
 
 	UPROPERTY()
-	class UInventoryComponent* owningInventory;
+	class UInventoryComponent* OwningInventory;
 
-	int32 slotIndex = -1;
+	int32 SlotIndex = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UItemToolTipWidget> ToolTipWidgetClass;
@@ -39,7 +39,7 @@ public:
 	virtual void NativeConstruct() override;
 
 	// 외부에서 슬롯 정보 설정
-	void Init(const FInventorySlot& inSlotData, UInventoryComponent* inInventory);
+	void Init(const FInventorySlot& InSlotData, UInventoryComponent* InInventory);
 
 	int32 GetSlotIndex() const;
 

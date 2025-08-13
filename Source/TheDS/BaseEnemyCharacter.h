@@ -21,18 +21,18 @@ public:
 
 protected:
 	UPROPERTY(Replicated)
-	float walkSpeed;
+	float WalkSpeed;
 
 	UPROPERTY(Replicated)
-	float runSpeed;
+	float RunSpeed;
 
 	UPROPERTY(Replicated)
-	float jumpZVelocity;
+	float JumpZVelocity;
 
 	FTimerHandle AttackResetTimerHandle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
-	class UBaseStatComponent* stat;
+	class UBaseStatComponent* Stat;
 
 	UPROPERTY(BlueprintReadOnly)
 	class UWidgetComponent* HPWidgetComponent;

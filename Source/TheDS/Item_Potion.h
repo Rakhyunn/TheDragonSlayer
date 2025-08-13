@@ -19,11 +19,11 @@ class THEDS_API UItem_Potion : public UBaseItem
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Potion")
-	EPotionType potionType;
+	EPotionType PotionType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Potion")
-	float restoreHP;
+	float RestoreHP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Potion")
-	float restoreMP;
+	float RestoreMP;
 };

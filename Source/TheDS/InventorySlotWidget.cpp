@@ -14,46 +14,46 @@ void UInventorySlotWidget::NativeConstruct()
 	Super::NativeConstruct();
 }
 
-void UInventorySlotWidget::Init(const FInventorySlot& inSlotData, UInventoryComponent* inInventory)
+void UInventorySlotWidget::Init(const FInventorySlot& InSlotData, UInventoryComponent* InInventory)
 {
-	slotData = inSlotData;
-	owningInventory = inInventory;
-	slotIndex = inSlotData.OriginalIndex;
-	if (!slotData.ItemData)
+	SlotData = InSlotData;
+	OwningInventory = InInventory;
+	SlotIndex = InSlotData.OriginalIndex;
+	if (!SlotData.ItemData)
 	{
 		// 빈 슬롯 처리
 		IMG_Icon->SetVisibility(ESlateVisibility::Hidden);
 		TXT_Quantity->SetVisibility(ESlateVisibility::Hidden);
 		return;
 	}
-	if (slotData.ItemData)
+	if (SlotData.ItemData)
 	{
-		if (IMG_Icon && slotData.ItemData->icon)
+		if (IMG_Icon && SlotData.ItemData->Icon)
 		{
-			IMG_Icon->SetBrushFromTexture(slotData.ItemData->icon);
+			IMG_Icon->SetBrushFromTexture(SlotData.ItemData->Icon);
 		}
 		// 장비면 텍스트 숨기기
-		if (slotData.ItemData->itemType == EItemType::IT_equipment)
+		if (SlotData.ItemData->ItemType == EItemType::IT_equipment)
 		{
 			if (TXT_Quantity) TXT_Quantity->SetVisibility(ESlateVisibility::Collapsed);
 		}
 		// 소비 아이템 등은 텍스트 표시
 		else
 		{
-			if (TXT_Quantity) TXT_Quantity->SetText(FText::AsNumber(slotData.Quantity));
+			if (TXT_Quantity) TXT_Quantity->SetText(FText::AsNumber(SlotData.Quantity));
 		}
 	}
 }
 
 int32 UInventorySlotWidget::GetSlotIndex() const
 {
-	return slotIndex;
+	return SlotIndex;
 }
 
 FReply UInventorySlotWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseButtonDoubleClick(InGeometry, InMouseEvent);
-	if (!owningInventory || slotIndex < 0 || !slotData.ItemData) return FReply::Unhandled();
+	if (!OwningInventory || SlotIndex < 0 || !SlotData.ItemData) return FReply::Unhandled();
 
 	APlayerController* PC = GetOwningPlayer();
 	if (!PC) return FReply::Unhandled();
@@ -61,7 +61,7 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDoubleClick(const FGeometry& InG
 	ABaseCharacter* TargetCharacter = Cast<ABaseCharacter>(PC->GetPawn());
 	if (!TargetCharacter) return FReply::Unhandled();
 
-	owningInventory->UseItem(slotData.ItemData->itemType, slotIndex, TargetCharacter);
+	OwningInventory->UseItem(SlotData.ItemData->ItemType, SlotIndex, TargetCharacter);
 	return FReply::Handled();
 }
 
@@ -73,12 +73,12 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 		UE_LOG(LogTemp, Warning, TEXT("MouseButtonDown detected"));
 		Reply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
 	}
-	else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton && slotData.ItemData)
+	else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton && SlotData.ItemData)
 	{
 		UItemSelectMenuWidget* Menu = CreateWidget<UItemSelectMenuWidget>(GetWorld(), ItemSelectMenuWidgetClass);
 		if (Menu)
 		{
-			Menu->Setup(slotData, owningInventory);
+			Menu->Setup(SlotData, OwningInventory);
 			Menu->AddToViewport();
 			// 위치 조정 (커서 위치에 띄우기)
 			Menu->SetPositionInViewport(InMouseEvent.GetScreenSpacePosition(), false);
@@ -91,13 +91,13 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
-	if (!slotData.ItemData) return;
+	if (!SlotData.ItemData) return;
 
 	UItemDragDropOperation* DragOperation = NewObject<UItemDragDropOperation>();
 	DragOperation->DefaultDragVisual = this; // or a new small icon widget
 	DragOperation->Pivot = EDragPivot::MouseDown;
 	DragOperation->SourceSlot = this;
-	DragOperation->DraggedItemData = slotData;
+	DragOperation->DraggedItemData = SlotData;
 
 	OutOperation = DragOperation;
 }
@@ -106,12 +106,12 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 {
 	Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 	UItemDragDropOperation* DragOp = Cast<UItemDragDropOperation>(InOperation);
-	if (!DragOp || !owningInventory || !DragOp->DraggedItemData.ItemData)
+	if (!DragOp || !OwningInventory || !DragOp->DraggedItemData.ItemData)
 		return false;
 	if (DragOp->SourceSlot == this)
 		return false;
-	owningInventory->SwapItem(
-		DragOp->DraggedItemData.ItemData->itemType,
+	OwningInventory->SwapItem(
+		DragOp->DraggedItemData.ItemData->ItemType,
 		DragOp->SourceSlot->GetSlotIndex(),
 		this->GetSlotIndex());
 	return true;
@@ -120,10 +120,10 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-	if (!slotData.ItemData || !ToolTipWidgetClass) return;
+	if (!SlotData.ItemData || !ToolTipWidgetClass) return;
 	UItemToolTipWidget* TooltipWidget = CreateWidget<UItemToolTipWidget>(GetWorld(), ToolTipWidgetClass);
 	if (!TooltipWidget) return;
-	TooltipWidget->InitTooltip(slotData.ItemData);
+	TooltipWidget->InitTooltip(SlotData.ItemData);
 	// UUserWidget은 ToolTipContent로 설정해야 한다.
 	SetToolTip(TooltipWidget);
 }

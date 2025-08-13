@@ -21,44 +21,44 @@ void UShopItemSlotWidget::NativeConstruct()
 	}
 }
 
-void UShopItemSlotWidget::Init(UBaseItem* item, ABaseCharacter* player, ABaseMerchantNPC* merchant, UNPCShopWidget* shopWidget)
+void UShopItemSlotWidget::Init(UBaseItem* Item, ABaseCharacter* Player, ABaseMerchantNPC* Merchant, UNPCShopWidget* ShopWidget)
 {
-	slotItem = item;
-	playerRef = player;
-	merchantRef = merchant;
-	shopWidgetRef = shopWidget;
-	if (slotItem)
+	SlotItem = Item;
+	PlayerRef = Player;
+	MerchantRef = Merchant;
+	ShopWidgetRef = ShopWidget;
+	if (SlotItem)
 	{
 		if (IMG_Icon)
 		{
-			IMG_Icon->SetBrushFromTexture(slotItem->icon);
+			IMG_Icon->SetBrushFromTexture(SlotItem->Icon);
 		}
 		if (TXT_Name)
 		{
-			TXT_Name->SetText(slotItem->itemName);
+			TXT_Name->SetText(SlotItem->ItemName);
 		}
 		if (TXT_Price)
 		{
-			TXT_Price->SetText(FText::AsNumber(slotItem->purchaseMoney));
+			TXT_Price->SetText(FText::AsNumber(SlotItem->PurchaseMoney));
 		}
 	}
 }
 
 void UShopItemSlotWidget::OnBuyButtonClicked()
 {
-	if (!playerRef || !slotItem || !merchantRef) return;
+	if (!PlayerRef || !SlotItem || !MerchantRef) return;
 
-	int32 cost = slotItem->purchaseMoney;
-	int32 quantity = FCString::Atoi(*ET_Quantity->GetText().ToString());
-	if (quantity <= 0)
+	int32 Cost = SlotItem->PurchaseMoney;
+	int32 Quantity = FCString::Atoi(*ET_Quantity->GetText().ToString());
+	if (Quantity <= 0)
 		return;	// 추후에 UI 팝업으로 구매 실패?
-	int32 totalCost = cost * quantity;
-	if (playerRef->stat->GetMoney() >= totalCost)
+	int32 TotalCost = Cost * Quantity;
+	if (PlayerRef->Stat->GetMoney() >= TotalCost)
 	{
-		playerRef->stat->AddMoney(-totalCost);
-		playerRef->InventoryComponent->AddItem(slotItem, quantity);
-		shopWidgetRef->UpdateMoney();
-		UE_LOG(LogTemp, Log, TEXT("아이템 구매: %s"), *slotItem->itemName.ToString());
+		PlayerRef->Stat->AddMoney(-TotalCost);
+		PlayerRef->InventoryComponent->AddItem(SlotItem, Quantity);
+		ShopWidgetRef->UpdateMoney();
+		UE_LOG(LogTemp, Log, TEXT("아이템 구매: %s"), *SlotItem->ItemName.ToString());
 	}
 	else
 	{
@@ -70,10 +70,10 @@ void UShopItemSlotWidget::OnBuyButtonClicked()
 void UShopItemSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-	if (!slotItem || !ToolTipWidgetClass) return;
+	if (!SlotItem || !ToolTipWidgetClass) return;
 	UItemToolTipWidget* TooltipWidget = CreateWidget<UItemToolTipWidget>(GetWorld(), ToolTipWidgetClass);
 	if (!TooltipWidget) return;
-	TooltipWidget->InitTooltip(slotItem);
+	TooltipWidget->InitTooltip(SlotItem);
 	SetToolTip(TooltipWidget);
 }
 

@@ -31,7 +31,7 @@ private:
 public:
 	virtual void NativeConstruct() override;
 
-	void InitShop(class ABaseMerchantNPC* merchant);
+	void InitShop(class ABaseMerchantNPC* Merchant);
 
 	void RefreshShopItems();
 	

@@ -11,30 +11,30 @@ AWarriorCharacter::AWarriorCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
-	stat->SetLevel(1);
-	stat->SetAttack(100.f);
-	stat->SetMagic(10.f);
-	stat->SetDefense(20.f);
+	Stat->SetLevel(1);
+	Stat->SetAttack(100.f);
+	Stat->SetMagic(10.f);
+	Stat->SetDefense(20.f);
 }
 
 void AWarriorCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	SetCharacterDefaults();		//이동속도, 점프 설정
-	animInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance 가져오기
+	AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());	// AnimInstance 가져오기
 	// 함수 등록
-	animInstance->OnMontageEnded.AddDynamic(this, &AWarriorCharacter::OnAttackMontageEnded);
-	animInstance->OnAttackHit.AddUObject(this, &AWarriorCharacter::Attack);
+	AnimInstance->OnMontageEnded.AddDynamic(this, &AWarriorCharacter::OnAttackMontageEnded);
+	AnimInstance->OnAttackHit.AddUObject(this, &AWarriorCharacter::Attack);
 }
 
 void AWarriorCharacter::SetCharacterDefaults()
 {
-	walkSpeed = 600.f;
-	runSpeed = 900.f;
-	jumpZVelocity = 500.f;
+	WalkSpeed = 600.f;
+	RunSpeed = 900.f;
+	JumpZVelocity = 500.f;
 
-	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
-	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->JumpZVelocity = JumpZVelocity;
 }
 
 void AWarriorCharacter::Attack()
@@ -48,33 +48,33 @@ void AWarriorCharacter::Attack()
 void AWarriorCharacter::ServerAttack_Implementation()
 {
 	if (!HasAuthority()) return;
-	FHitResult hitResult;
-	FCollisionQueryParams params(NAME_None, false, this);
+	FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, this);
 
-	float attackRange = 100.f;
-	float attackRadius = 50.f;
+	float AttackRange = 100.f;
+	float AttackRadius = 50.f;
 
-	bool bHit = GetWorld()->SweepSingleByChannel(OUT hitResult,
-		GetActorLocation(), GetActorLocation() + GetActorForwardVector() * attackRange,
+	bool bHit = GetWorld()->SweepSingleByChannel(OUT HitResult,
+		GetActorLocation(), GetActorLocation() + GetActorForwardVector() * AttackRange,
 		FQuat::Identity,
 		ECollisionChannel::ECC_GameTraceChannel2,
-		FCollisionShape::MakeSphere(attackRadius), params);
+		FCollisionShape::MakeSphere(AttackRadius), Params);
 
-	FVector forward = GetActorForwardVector() * attackRange;
-	FVector center = GetActorLocation() + forward * 0.5f;
-	float halfHeight = attackRange * 0.5f + attackRadius;
-	FQuat rotation = FRotationMatrix::MakeFromZ(forward).ToQuat();
+	FVector Forward = GetActorForwardVector() * AttackRange;
+	FVector Center = GetActorLocation() + Forward * 0.5f;
+	float HalfHeight = AttackRange * 0.5f + AttackRadius;
+	FQuat Rotation = FRotationMatrix::MakeFromZ(Forward).ToQuat();
 
 	FColor DrawColor = bHit ? FColor::Green : FColor::Red;
 
-	DrawDebugCapsule(GetWorld(), center, halfHeight, attackRadius, rotation, DrawColor, false, 2.f);
-	if (bHit && hitResult.GetActor())
+	DrawDebugCapsule(GetWorld(), Center, HalfHeight, AttackRadius, Rotation, DrawColor, false, 2.f);
+	if (bHit && HitResult.GetActor())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Warrior hit: %s"), *hitResult.GetActor()->GetName());
-		if (hitResult.GetActor()->ActorHasTag(TEXT("Enemy"))) {
-			ABaseEnemyCharacter* hitEnemy = Cast<ABaseEnemyCharacter>(hitResult.GetActor());
-			UE_LOG(LogTemp, Warning, TEXT("Attack: %f"), stat->GetAttack());
-			hitEnemy->ReceiveDamage(this, stat->GetAttack());
+		UE_LOG(LogTemp, Warning, TEXT("Warrior hit: %s"), *HitResult.GetActor()->GetName());
+		if (HitResult.GetActor()->ActorHasTag(TEXT("Enemy"))) {
+			ABaseEnemyCharacter* HitEnemy = Cast<ABaseEnemyCharacter>(HitResult.GetActor());
+			UE_LOG(LogTemp, Warning, TEXT("Attack: %f"), Stat->GetAttack());
+			HitEnemy->ReceiveDamage(this, Stat->GetAttack());
 		}
 	}
 	MulticastAttack();
@@ -84,10 +84,10 @@ void AWarriorCharacter::MulticastAttack_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack"));
 	// 단순 애니매이션 재생
-	if (animInstance)
+	if (AnimInstance)
 	{
 		bIsAttacking = false;
-		animInstance->PlayAttackMontage();
+		AnimInstance->PlayAttackMontage();
 	}
 }
 
@@ -99,5 +99,5 @@ void AWarriorCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterr
 void AWarriorCharacter::DontMove()
 {
 	Super::DontMove();
-	animInstance->StopMove();
+	AnimInstance->StopMove();
 }

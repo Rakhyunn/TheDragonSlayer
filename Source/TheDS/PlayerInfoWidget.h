@@ -61,19 +61,19 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void BindInfo(class UBaseStatComponent* stat);
+	void BindInfo(class UBaseStatComponent* Stat);
 
 	UFUNCTION()
-	void UpdateHP(float percent);
+	void UpdateHP(float Percent);
 
 	UFUNCTION()
-	void UpdateMP(float percent);
+	void UpdateMP(float Percent);
 
 	UFUNCTION()
-	void UpdateEXP(float percent);
+	void UpdateEXP(float Percent);
 
 	UFUNCTION()
-	void UpdateLevel(int32 newLevel);
+	void UpdateLevel(int32 NewLevel);
 
 	UFUNCTION()
 	void OpenInventory();

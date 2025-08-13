@@ -8,51 +8,51 @@ UEquipmentComponent::UEquipmentComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UEquipmentComponent::Equip(UItem_Equipment* newItem, ABaseCharacter* ownerCharacter)
+void UEquipmentComponent::Equip(UItem_Equipment* NewItem, ABaseCharacter* OwnerCharacter)
 {
-	if (!newItem || !ownerCharacter) return;
-	EEquiptype type = newItem->equipType;
-	if (equippedItems.Contains(type))
+	if (!NewItem || !OwnerCharacter) return;
+	EEquiptype type = NewItem->EquipType;
+	if (EquippedItems.Contains(type))
 	{
-		UnEquip(type, ownerCharacter);
+		UnEquip(type, OwnerCharacter);
 	}
 	switch (type)
 	{
 	case EEquiptype::EQ_weapon:
-		ownerCharacter->ServerAddAttack(newItem->attackPlus);
+		OwnerCharacter->ServerAddAttack(NewItem->AttackPlus);
 		break;
 	case EEquiptype::EQ_armor:
-		ownerCharacter->ServerAddDefense(newItem->defensePlus);
+		OwnerCharacter->ServerAddDefense(NewItem->DefensePlus);
 		break;
 	case EEquiptype::EQ_head:
-		ownerCharacter->ServerAddDefense(newItem->defensePlus);
+		OwnerCharacter->ServerAddDefense(NewItem->DefensePlus);
 		break;
 	}
-	equippedItems.Add(type, newItem);
+	EquippedItems.Add(type, NewItem);
 	OnEquipmentChanged.Broadcast();
 }
 
-void UEquipmentComponent::UnEquip(EEquiptype equipType, ABaseCharacter* ownerCharacter)
+void UEquipmentComponent::UnEquip(EEquiptype EquipType, ABaseCharacter* OwnerCharacter)
 {
-	if (!equippedItems.Contains(equipType) || !ownerCharacter) return;
-	UItem_Equipment* equippedItem = equippedItems[equipType];
-	switch (equipType)
+	if (!EquippedItems.Contains(EquipType) || !OwnerCharacter) return;
+	UItem_Equipment* equippedItem = EquippedItems[EquipType];
+	switch (EquipType)
 	{
 	case EEquiptype::EQ_weapon:
-		ownerCharacter->ServerAddAttack(-equippedItem->attackPlus);
+		OwnerCharacter->ServerAddAttack(-equippedItem->AttackPlus);
 		break;
 	case EEquiptype::EQ_armor:
-		ownerCharacter->ServerAddDefense(-equippedItem->defensePlus);
+		OwnerCharacter->ServerAddDefense(-equippedItem->DefensePlus);
 		break;
 	case EEquiptype::EQ_head:
-		ownerCharacter->ServerAddDefense(-equippedItem->defensePlus);
+		OwnerCharacter->ServerAddDefense(-equippedItem->DefensePlus);
 		break;
 	}
-	equippedItems.Remove(equipType);
-	ownerCharacter->InventoryComponent->AddItem(equippedItem, 1);
+	EquippedItems.Remove(EquipType);
+	OwnerCharacter->InventoryComponent->AddItem(equippedItem, 1);
 }
 
-UItem_Equipment* UEquipmentComponent::GetEquipped(EEquiptype type) const
+UItem_Equipment* UEquipmentComponent::GetEquipped(EEquiptype Type) const
 {
-	return equippedItems.FindRef(type);
+	return EquippedItems.FindRef(Type);
 }

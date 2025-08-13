@@ -28,15 +28,15 @@ protected:
 	class UTextBlock* TXT_Money;
 
 	UPROPERTY()
-	UInventoryComponent* inventory;
+	UInventoryComponent* Inventory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<class UInventorySlotWidget> slotWidgetClass;
+	TSubclassOf<class UInventorySlotWidget> SlotWidgetClass;
 
-	EItemType currentTab = EItemType::IT_comsume;
+	EItemType CurrentTab = EItemType::IT_comsume;
 
 	UPROPERTY()
-	class ABaseCharacter* player;
+	class ABaseCharacter* Player;
 
 public:
 	virtual void NativeConstruct() override;
@@ -51,9 +51,9 @@ public:
 	void OnCloseBtnCLicked();
 
 	UFUNCTION()
-	void UpdateMoney(int32 newMoney);
+	void UpdateMoney(int32 NewMoney);
 
 	void RefreshInventory();
 
-	void SetInventoryReference(UInventoryComponent* ref);
+	void SetInventoryReference(UInventoryComponent* Ref);
 };

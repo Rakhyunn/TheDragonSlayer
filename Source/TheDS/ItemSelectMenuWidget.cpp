@@ -25,7 +25,7 @@ void UItemSelectMenuWidget::OnUseClicked()
 		ABaseCharacter* player = Cast<ABaseCharacter>(PC->GetPawn());
 		if (player)
 		{
-			OwningInventory->UseItem(ContextSlot.ItemData->itemType, ContextSlot.OriginalIndex, player);
+			OwningInventory->UseItem(ContextSlot.ItemData->ItemType, ContextSlot.OriginalIndex, player);
 		}
 	}
 	RemoveFromParent();
@@ -36,7 +36,7 @@ void UItemSelectMenuWidget::OnDropClicked()
 	UE_LOG(LogTemp, Warning, TEXT("Drop Clicked"));
 	if (OwningInventory)
 	{
-		OwningInventory->RemoveItem(ContextSlot.ItemData->itemType, ContextSlot.OriginalIndex);
+		OwningInventory->RemoveItem(ContextSlot.ItemData->ItemType, ContextSlot.OriginalIndex);
 	}
 	RemoveFromParent();
 }

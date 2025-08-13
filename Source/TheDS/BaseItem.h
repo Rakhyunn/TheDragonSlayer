@@ -18,21 +18,21 @@ class THEDS_API UBaseItem : public UDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Item")
-	EItemType itemType;
+	EItemType ItemType;
 	UPROPERTY(EditAnywhere, Category = "Item")
-	FText itemName;
+	FText ItemName;
 	UPROPERTY(EditAnywhere, Category = "Item")
-	UTexture2D* icon;
+	UTexture2D* Icon;
 	UPROPERTY(EditAnywhere, Category = "Item")
-	FText itemDescription;
+	FText ItemDescription;
 	UPROPERTY(EditAnywhere, Category = "Item")
-	int32 maxStack = 1;
+	int32 MaxStack = 1;
 	UPROPERTY(EditAnywhere, Category = "Item")
 	bool bUsable = false;
 	UPROPERTY(EditAnywhere, Category = "Item")
-	int32 purchaseMoney;
+	int32 PurchaseMoney;
 	UPROPERTY(EditAnywhere, Category = "Item")
-	int32 saleMoney;
+	int32 SaleMoney;
 	UPROPERTY(EditAnywhere, Category = "Visual")
 	UStaticMesh* DroppedMesh;
 };

@@ -2,16 +2,16 @@
 #include "Components/Image.h"
 #include "ItemToolTipWidget.h"
 
-void UEquipmentSlotWidget::Init(EEquiptype inSlotType, UItem_Equipment* equippedItem)
+void UEquipmentSlotWidget::Init(EEquiptype InSlotType, UItem_Equipment* EquippedItem)
 {
-	slotType = inSlotType;
-	currentItem = equippedItem;
+	SlotType = InSlotType;
+	CurrentItem = EquippedItem;
 
 	if (IMG_ItemIcon && IMG_BasicIcon)
 	{
-		if (equippedItem && equippedItem->icon)
+		if (EquippedItem && EquippedItem->Icon)
 		{
-			IMG_ItemIcon->SetBrushFromTexture(equippedItem->icon);
+			IMG_ItemIcon->SetBrushFromTexture(EquippedItem->Icon);
 			IMG_ItemIcon->SetBrushTintColor(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 			IMG_BasicIcon->SetBrushTintColor(FLinearColor(1.0f, 1.0f, 1.0f, 0.0f));
 		}
@@ -28,7 +28,7 @@ FReply UEquipmentSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 {
 	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
-		OnUnEquipRequested.Broadcast(slotType);
+		OnUnEquipRequested.Broadcast(SlotType);
 		return FReply::Handled();
 	}
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
@@ -37,10 +37,10 @@ FReply UEquipmentSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 void UEquipmentSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
-	if (!currentItem || !ToolTipWidgetClass) return;
+	if (!CurrentItem || !ToolTipWidgetClass) return;
 	UItemToolTipWidget* TooltipWidget = CreateWidget<UItemToolTipWidget>(GetWorld(), ToolTipWidgetClass);
 	if (!TooltipWidget) return;
-	TooltipWidget->InitTooltip(currentItem);
+	TooltipWidget->InitTooltip(CurrentItem);
 	// UUserWidget은 ToolTipContent로 설정해야 한다.
 	SetToolTip(TooltipWidget);
 }

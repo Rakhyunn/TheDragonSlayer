@@ -36,13 +36,13 @@ private:
 
 protected:
 	UPROPERTY(Replicated)
-	float walkSpeed;
+	float WalkSpeed;
 
 	UPROPERTY(Replicated)
-	float runSpeed;
+	float RunSpeed;
 
 	UPROPERTY(Replicated)
-	float jumpZVelocity;
+	float JumpZVelocity;
 
 	bool bIsAttacking = true;	// 공격 가능 여부
 	FTimerHandle AttackResetTimerHandle;
@@ -85,7 +85,7 @@ protected:
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
-	class UBaseStatComponent* stat;
+	class UBaseStatComponent* Stat;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UInventoryComponent* InventoryComponent;
@@ -94,7 +94,7 @@ public:
 	class UEquipmentComponent* EquipmentComponent;
 
 public:
-	void ReceiveDamage(float damage);
+	void ReceiveDamage(float Damage);
 	
 	virtual void DontMove();
 

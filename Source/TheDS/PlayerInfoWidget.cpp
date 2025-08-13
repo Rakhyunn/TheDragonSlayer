@@ -23,52 +23,52 @@ void UPlayerInfoWidget::NativeConstruct()
 	if (BTN_LeaveParty) BTN_LeaveParty->OnClicked.AddDynamic(this, &UPlayerInfoWidget::OnLeavePartyClicked);
 }
 
-void UPlayerInfoWidget::BindInfo(UBaseStatComponent* stat)
+void UPlayerInfoWidget::BindInfo(UBaseStatComponent* Stat)
 {
-	if (!IsValid(stat)) return;
-	currentStat = stat;
-	stat->OnHPChangedDelegate.AddUObject(this, &UPlayerInfoWidget::UpdateHP);
-	stat->OnMPChangedDelegate.AddUObject(this, &UPlayerInfoWidget::UpdateMP);
-	stat->OnEXPChangedDelegate.AddUObject(this, &UPlayerInfoWidget::UpdateEXP);
-	stat->OnLevelChangedDelegate.AddUObject(this, &UPlayerInfoWidget::UpdateLevel);
+	if (!IsValid(Stat)) return;
+	currentStat = Stat;
+	Stat->OnHPChangedDelegate.AddUObject(this, &UPlayerInfoWidget::UpdateHP);
+	Stat->OnMPChangedDelegate.AddUObject(this, &UPlayerInfoWidget::UpdateMP);
+	Stat->OnEXPChangedDelegate.AddUObject(this, &UPlayerInfoWidget::UpdateEXP);
+	Stat->OnLevelChangedDelegate.AddUObject(this, &UPlayerInfoWidget::UpdateLevel);
 
-	float initHP = stat->GetMaxHP() > 0 ? stat->GetCurrentHP() / stat->GetMaxHP() : 0.f;
-	float initMP = stat->GetMaxMP() > 0 ? stat->GetCurrentMP() / stat->GetMaxMP() : 0.f;
-	float initEXP = stat->GetMaxEXP() > 0 ? stat->GetCurrentEXP() / stat->GetMaxEXP() : 0.f;
-	int32 initLevel = stat->GetLevel();
+	float InitHP = Stat->GetMaxHP() > 0 ? Stat->GetCurrentHP() / Stat->GetMaxHP() : 0.f;
+	float InitMP = Stat->GetMaxMP() > 0 ? Stat->GetCurrentMP() / Stat->GetMaxMP() : 0.f;
+	float InitEXP = Stat->GetMaxEXP() > 0 ? Stat->GetCurrentEXP() / Stat->GetMaxEXP() : 0.f;
+	int32 InitLevel = Stat->GetLevel();
 
-	UpdateHP(initHP);
-	UpdateMP(initMP);
-	UpdateEXP(initEXP);
-	UpdateLevel(initLevel);
+	UpdateHP(InitHP);
+	UpdateMP(InitMP);
+	UpdateEXP(InitEXP);
+	UpdateLevel(InitLevel);
 }
 
-void UPlayerInfoWidget::UpdateHP(float percent)
+void UPlayerInfoWidget::UpdateHP(float Percent)
 {
 	if (!PB_HP || !TXT_CurHP || !TXT_MaxHP) return;
-	PB_HP->SetPercent(percent);
+	PB_HP->SetPercent(Percent);
 	TXT_CurHP->SetText(FText::AsNumber(FMath::FloorToInt(currentStat->GetCurrentHP())));
 	TXT_MaxHP->SetText(FText::AsNumber(FMath::FloorToInt(currentStat->GetMaxHP())));
 }
 
-void UPlayerInfoWidget::UpdateMP(float percent)
+void UPlayerInfoWidget::UpdateMP(float Percent)
 {
 	if (!PB_MP || !TXT_CurMP || !TXT_MaxMP) return;
-	PB_MP->SetPercent(percent);
+	PB_MP->SetPercent(Percent);
 	TXT_CurMP->SetText(FText::AsNumber(FMath::FloorToInt(currentStat->GetCurrentMP())));
 	TXT_MaxMP->SetText(FText::AsNumber(FMath::FloorToInt(currentStat->GetMaxMP())));
 }
 
-void UPlayerInfoWidget::UpdateEXP(float percent)
+void UPlayerInfoWidget::UpdateEXP(float Percent)
 {
 	if (!PB_EXP || !TXT_CurExp || !TXT_MaxExp) return;
 	UE_LOG(LogTemp, Warning, TEXT("EXP: %f"), currentStat->GetCurrentEXP() / currentStat->GetMaxEXP());
-	PB_EXP->SetPercent(percent);
+	PB_EXP->SetPercent(Percent);
 	TXT_CurExp->SetText(FText::AsNumber(FMath::FloorToInt(currentStat->GetCurrentEXP())));
 	TXT_MaxExp->SetText(FText::AsNumber(FMath::FloorToInt(currentStat->GetMaxEXP())));
 }
 
-void UPlayerInfoWidget::UpdateLevel(int32 newLevel)
+void UPlayerInfoWidget::UpdateLevel(int32 NewLevel)
 {
 	if (!TXT_Level) return;
 	TXT_Level->SetText(FText::AsNumber(currentStat->GetLevel()));
