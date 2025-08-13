@@ -13,33 +13,33 @@ UInventoryComponent::UInventoryComponent()
 	EquipmentSlots.SetNum(MaxSlotCount);
 }
 
-void UInventoryComponent::AddItem(UBaseItem* item, int32 quantity)
+void UInventoryComponent::AddItem(UBaseItem* Item, int32 Quantity)
 {
-	if (!item || quantity <= 0) return;
-	TArray<FInventorySlot>& TargetSlots = (item->itemType == EItemType::IT_comsume) ? ConsumeSlots : EquipmentSlots;
-	for (FInventorySlot& slot : TargetSlots)
+	if (!Item || Quantity <= 0) return;
+	TArray<FInventorySlot>& TargetSlots = (Item->ItemType == EItemType::IT_comsume) ? ConsumeSlots : EquipmentSlots;
+	for (FInventorySlot& Slot : TargetSlots)
 	{
-		if (slot.ItemData == item && item->maxStack > 1 && slot.Quantity < item->maxStack)
+		if (Slot.ItemData == Item && Item->MaxStack > 1 && Slot.Quantity < Item->MaxStack)
 		{
-			int32 spaceLeft = item->maxStack - slot.Quantity;
-			int32 toAdd = FMath::Min(quantity, spaceLeft);
-			slot.Quantity += toAdd;
-			quantity -= toAdd;
-			if (quantity <= 0)
+			int32 spaceLeft = Item->MaxStack - Slot.Quantity;
+			int32 toAdd = FMath::Min(Quantity, spaceLeft);
+			Slot.Quantity += toAdd;
+			Quantity -= toAdd;
+			if (Quantity <= 0)
 				break;
 		}
 	}
-	if (quantity > 0)
+	if (Quantity > 0)
 	{
-		for (FInventorySlot& slot : TargetSlots)
+		for (FInventorySlot& Slot : TargetSlots)
 		{
-			if (slot.ItemData == nullptr)
+			if (Slot.ItemData == nullptr)
 			{
-				int32 toAdd = FMath::Min(quantity, item->maxStack);
-				slot.ItemData = item;
-				slot.Quantity = toAdd;
-				quantity -= toAdd;
-				if (quantity <= 0)
+				int32 toAdd = FMath::Min(Quantity, Item->MaxStack);
+				Slot.ItemData = Item;
+				Slot.Quantity = toAdd;
+				Quantity -= toAdd;
+				if (Quantity <= 0)
 					break;
 			}
 		}
@@ -50,47 +50,47 @@ void UInventoryComponent::AddItem(UBaseItem* item, int32 quantity)
 	}
 }
 
-void UInventoryComponent::UseItem(EItemType type, int32 index, ABaseCharacter* target)
+void UInventoryComponent::UseItem(EItemType Type, int32 Index, ABaseCharacter* Target)
 {
-	TArray<FInventorySlot>& TargetSlots = (type == EItemType::IT_comsume) ? ConsumeSlots : EquipmentSlots;
-	if (!TargetSlots.IsValidIndex(index) || !target) return;
-	FInventorySlot& slot = TargetSlots[index];
-	if (!slot.ItemData || slot.Quantity <= 0 || !slot.ItemData->bUsable) return;
-	if (type == EItemType::IT_comsume)
+	TArray<FInventorySlot>& TargetSlots = (Type == EItemType::IT_comsume) ? ConsumeSlots : EquipmentSlots;
+	if (!TargetSlots.IsValidIndex(Index) || !Target) return;
+	FInventorySlot& Slot = TargetSlots[Index];
+	if (!Slot.ItemData || Slot.Quantity <= 0 || !Slot.ItemData->bUsable) return;
+	if (Type == EItemType::IT_comsume)
 	{
-		UItem_Potion* potion = Cast<UItem_Potion>(slot.ItemData);
-		if (!potion) return;
+		UItem_Potion* Potion = Cast<UItem_Potion>(Slot.ItemData);
+		if (!Potion) return;
 
-		switch (potion->potionType)
+		switch (Potion->PotionType)
 		{
 		case EPotionType::PO_hp:
-			target->ServerRestoreHP(potion->restoreHP);
+			Target->ServerRestoreHP(Potion->RestoreHP);
 			break;
 		case EPotionType::PO_mp:
-			target->ServerRestoreMP(potion->restoreMP);
+			Target->ServerRestoreMP(Potion->RestoreMP);
 			break;
 		case EPotionType::PO_all:
-			target->ServerRestoreHP(potion->restoreHP);
-			target->ServerRestoreMP(potion->restoreMP);
+			Target->ServerRestoreHP(Potion->RestoreHP);
+			Target->ServerRestoreMP(Potion->RestoreMP);
 			break;
 		}
 
-		slot.Quantity--;
+		Slot.Quantity--;
 	}
-	else if (type == EItemType::IT_equipment)
+	else if (Type == EItemType::IT_equipment)
 	{
-		UItem_Equipment* equip = Cast<UItem_Equipment>(slot.ItemData);
-		if (!equip || slot.bEquipped) return;
+		UItem_Equipment* Equip = Cast<UItem_Equipment>(Slot.ItemData);
+		if (!Equip || Slot.bEquipped) return;
 
-		target->EquipmentComponent->Equip(equip, target);
-		slot.bEquipped = true;
-		slot.Quantity--;
+		Target->EquipmentComponent->Equip(Equip, Target);
+		Slot.bEquipped = true;
+		Slot.Quantity--;
 	}
-	if (slot.Quantity <= 0)
+	if (Slot.Quantity <= 0)
 	{
-		slot.ItemData = nullptr;
-		slot.Quantity = 0;
-		slot.bEquipped = false;
+		Slot.ItemData = nullptr;
+		Slot.Quantity = 0;
+		Slot.bEquipped = false;
 	}
 	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
 	{

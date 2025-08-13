@@ -28,7 +28,7 @@ ABaseCharacter::ABaseCharacter()
 	Camera->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
 	Camera->bUsePawnControlRotation = false;
 
-	stat = CreateDefaultSubobject<UBaseStatComponent>(TEXT("StatComponent"));
+	Stat = CreateDefaultSubobject<UBaseStatComponent>(TEXT("StatComponent"));
 
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 	EquipmentComponent = CreateDefaultSubobject<UEquipmentComponent>(TEXT("EquipmentComponent"));
@@ -81,18 +81,18 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ABaseCharacter, walkSpeed);
-	DOREPLIFETIME(ABaseCharacter, runSpeed);
+	DOREPLIFETIME(ABaseCharacter, WalkSpeed);
+	DOREPLIFETIME(ABaseCharacter, RunSpeed);
 }
 
 void ABaseCharacter::SetCharacterDefaults()
 {
-	walkSpeed = 500.f;
-	runSpeed = 800.f;
-	jumpZVelocity = 420.f;
+	WalkSpeed = 500.f;
+	RunSpeed = 800.f;
+	JumpZVelocity = 420.f;
 
-	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
-	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->JumpZVelocity = JumpZVelocity;
 }
 
 void ABaseCharacter::MoveForward(float Value)
@@ -141,12 +141,12 @@ void ABaseCharacter::ServerStopRun_Implementation()
 
 void ABaseCharacter::MulticastStartRun_Implementation()
 {
-	GetCharacterMovement()->MaxWalkSpeed = runSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
 }
 
 void ABaseCharacter::MulticastStopRun_Implementation()
 {
-	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void ABaseCharacter::InteractPickUp()
@@ -161,8 +161,8 @@ void ABaseCharacter::InteractMerchant()
 
 void ABaseCharacter::ReceiveDamage(float damage)
 {
-	stat->GetDamage(damage);
-	UE_LOG(LogTemp, Warning, TEXT("Remain HP: %f"), stat->GetCurrentHP());
+	Stat->GetDamage(damage);
+	UE_LOG(LogTemp, Warning, TEXT("Remain HP: %f"), Stat->GetCurrentHP());
 }
 
 void ABaseCharacter::DontMove()
@@ -172,36 +172,36 @@ void ABaseCharacter::DontMove()
 
 void ABaseCharacter::ServerRestoreHP_Implementation(float Amount)
 {
-	if (stat) stat->RestoreHP(Amount);
+	if (Stat) Stat->RestoreHP(Amount);
 }
 
 void ABaseCharacter::ServerRestoreMP_Implementation(float Amount)
 {
-	if (stat) stat->RestoreMP(Amount);
+	if (Stat) Stat->RestoreMP(Amount);
 }
 
 void ABaseCharacter::ServerAddAttack_Implementation(float Amount)
 {
-	if (stat) stat->AddAttack(Amount);
+	if (Stat) Stat->AddAttack(Amount);
 }
 
 void ABaseCharacter::ServerAddDefense_Implementation(float Amount)
 {
-	if (stat) stat->AddDefense(Amount);
+	if (Stat) Stat->AddDefense(Amount);
 }
 
 void ABaseCharacter::ServerAddMoney_Implementation(int32 Amount)
 {
-	if (stat) stat->AddMoney(Amount);
+	if (Stat) Stat->AddMoney(Amount);
 }
 
 void ABaseCharacter::ServerSpendMoney_Implementation(int32 Amount)
 {
-	if (stat)
+	if (Stat)
 	{
-		if (stat->CheckMoney(Amount))
+		if (Stat->CheckMoney(Amount))
 		{
-			stat->SpendMoney(Amount);
+			Stat->SpendMoney(Amount);
 		}
 		else
 		{

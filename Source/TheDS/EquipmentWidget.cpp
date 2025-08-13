@@ -14,9 +14,9 @@ void UEquipmentWidget::NativeConstruct()
 	{
 		Slot_Weapon->OnUnEquipRequested.AddLambda([this](EEquiptype type)
 			{
-				if (equipment && ownerCharacter)
+				if (Equipment && OwnerCharacter)
 				{
-					equipment->UnEquip(type, ownerCharacter);
+					Equipment->UnEquip(type, OwnerCharacter);
 					this->RefreshEquipment(); // UI 갱신
 				}
 			});
@@ -25,9 +25,9 @@ void UEquipmentWidget::NativeConstruct()
 	{
 		Slot_Armor->OnUnEquipRequested.AddLambda([this](EEquiptype type)
 			{
-				if (equipment && ownerCharacter)
+				if (Equipment && OwnerCharacter)
 				{
-					equipment->UnEquip(type, ownerCharacter);
+					Equipment->UnEquip(type, OwnerCharacter);
 					this->RefreshEquipment();
 				}
 			});
@@ -36,14 +36,14 @@ void UEquipmentWidget::NativeConstruct()
 	{
 		Slot_Head->OnUnEquipRequested.AddLambda([this](EEquiptype type)
 			{
-				if (equipment && ownerCharacter)
+				if (Equipment && OwnerCharacter)
 				{
-					equipment->UnEquip(type, ownerCharacter);
+					Equipment->UnEquip(type, OwnerCharacter);
 					this->RefreshEquipment();
 				}
 			});
 	}
-	if (equipment) equipment->OnEquipmentChanged.AddUObject(this, &UEquipmentWidget::RefreshEquipment);
+	if (Equipment) Equipment->OnEquipmentChanged.AddUObject(this, &UEquipmentWidget::RefreshEquipment);
 }
 
 void UEquipmentWidget::OnCloseBtnCLicked()
@@ -51,17 +51,17 @@ void UEquipmentWidget::OnCloseBtnCLicked()
 	RemoveFromParent();
 }
 
-void UEquipmentWidget::SetEquipmentReference(UEquipmentComponent* ref, ABaseCharacter* owner)
+void UEquipmentWidget::SetEquipmentReference(UEquipmentComponent* Ref, ABaseCharacter* Owner)
 {
-	equipment = ref;
-	ownerCharacter = owner;
+	Equipment = Ref;
+	OwnerCharacter = Owner;
 }
 
 void UEquipmentWidget::RefreshEquipment()
 {
-	if (!equipment) return;
+	if (!Equipment) return;
 
-	Slot_Weapon->Init(EEquiptype::EQ_weapon, equipment->GetEquipped(EEquiptype::EQ_weapon));
-	Slot_Armor->Init(EEquiptype::EQ_armor, equipment->GetEquipped(EEquiptype::EQ_armor));
-	Slot_Head->Init(EEquiptype::EQ_head, equipment->GetEquipped(EEquiptype::EQ_head));
+	Slot_Weapon->Init(EEquiptype::EQ_weapon, Equipment->GetEquipped(EEquiptype::EQ_weapon));
+	Slot_Armor->Init(EEquiptype::EQ_armor, Equipment->GetEquipped(EEquiptype::EQ_armor));
+	Slot_Head->Init(EEquiptype::EQ_head, Equipment->GetEquipped(EEquiptype::EQ_head));
 }

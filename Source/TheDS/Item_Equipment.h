@@ -19,11 +19,11 @@ class THEDS_API UItem_Equipment : public UBaseItem
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
-	EEquiptype equipType;
+	EEquiptype EquipType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
-	float attackPlus;
+	float AttackPlus;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment")
-	float defensePlus;
+	float DefensePlus;
 };

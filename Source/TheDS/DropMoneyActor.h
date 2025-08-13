@@ -33,7 +33,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// 아이템 설정 함수
-	void Init(int32 money = 0);
+	void Init(int32 Money = 0);
 
 	virtual void Interact(class ABaseCharacter* Interactor) override;
 };

@@ -22,42 +22,42 @@ class THEDS_API UBaseStatComponent : public UActorComponent
 public:
     UBaseStatComponent();
 
-    void SetLevel(int32 newLevel);
-    void SetHP(float newHP) { maxHP = newHP; };
-    void SetMP(float newMP) { maxMP = newMP; };
-    void SetAttack(float newAttack) { attack = newAttack; };
-    void SetMagic(float newMagic) { magic = newMagic; };
-    void SetDefense(float newDefense) { defense = newDefense; };
-    void SetExp(float newExp) { maxEXP = newExp; };
-    void SetEnemyExp(float newExp) { enemyEXP = newExp; };
+    void SetLevel(int32 NewLevel);
+    void SetHP(float NewHP) { MaxHP = NewHP; };
+    void SetMP(float NewMP) { MaxMP = NewMP; };
+    void SetAttack(float NewAttack) { Attack = NewAttack; };
+    void SetMagic(float NewMagic) { Magic = NewMagic; };
+    void SetDefense(float newDefense) { Defense = newDefense; };
+    void SetExp(float NewExp) { MaxEXP = NewExp; };
+    void SetEnemyExp(float NewExp) { EnemyEXP = NewExp; };
 
-    void GetDamage(float damageAmount);
-    void RestoreHP(float amount);
-    void RestoreMP(float amount);
+    void GetDamage(float DamageAmount);
+    void RestoreHP(float Amount);
+    void RestoreMP(float Amount);
 
-    float GetMaxHP() { return maxHP; };
-    float GetCurrentHP() { return currentHP; };
-    float GetMaxMP() { return maxMP; };
-    float GetCurrentMP() { return currentMP; };
-    float GetAttack() { return attack; };
-    float GetMagic() { return magic; };
-    float GetDefense() { return defense; };
-    int32 GetLevel() { return level; };
-    float GetMaxEXP() { return maxEXP; };
-    float GetCurrentEXP() { return currentEXP; };
-    float GetEnemyEXP() { return enemyEXP; };
-    int32 GetMoney() { return currentMoney; };
+    float GetMaxHP() { return MaxHP; };
+    float GetCurrentHP() { return CurrentHP; };
+    float GetMaxMP() { return MaxMP; };
+    float GetCurrentMP() { return CurrentMP; };
+    float GetAttack() { return Attack; };
+    float GetMagic() { return Magic; };
+    float GetDefense() { return Defense; };
+    int32 GetLevel() { return Level; };
+    float GetMaxEXP() { return MaxEXP; };
+    float GetCurrentEXP() { return CurrentEXP; };
+    float GetEnemyEXP() { return EnemyEXP; };
+    int32 GetMoney() { return CurrentMoney; };
 
-    void AddExperience(int32 amount);
+    void AddExperience(int32 Amount);
     bool CanLevelUp();
     void LevelUp();
 
-    void AddAttack(float plusAttack);
-    void AddDefense(float plusDefense);
+    void AddAttack(float PlusAttack);
+    void AddDefense(float PlusDefense);
 
-    void AddMoney(int32 money);
-    void SpendMoney(int32 money);
-    bool CheckMoney(int32 money);
+    void AddMoney(int32 Money);
+    void SpendMoney(int32 Money);
+    bool CheckMoney(int32 Money);
 
     UFUNCTION()
     void OnRep_EXPChanged();
@@ -90,32 +90,31 @@ protected:
 
 private:
     UPROPERTY(ReplicatedUsing = OnRep_LevelChanged)
-    int32 level = 1;
+    int32 Level = 1;
 
-    float maxHP = 100.f;
+    float MaxHP = 100.f;
     UPROPERTY(ReplicatedUsing = OnRep_HPChanged)
-    float currentHP;
+    float CurrentHP;
 
-    float maxMP = 50.f;
+    float MaxMP = 50.f;
     UPROPERTY(ReplicatedUsing = OnRep_MPChanged)
-    float currentMP;
+    float CurrentMP;
 
     UPROPERTY(ReplicatedUsing = OnRep_AttackChanged)
-    float attack = 10.f;
+    float Attack = 10.f;
     UPROPERTY(ReplicatedUsing = OnRep_MagicChanged)
-    float magic = 10.f;
+    float Magic = 10.f;
     UPROPERTY(ReplicatedUsing = OnRep_DefenseChanged)
-    float defense = 5.f;
+    float Defense = 5.f;
 
-    float maxEXP = 100.f;
-
+    float MaxEXP = 100.f;
     UPROPERTY(ReplicatedUsing = OnRep_EXPChanged)
-    float currentEXP = 0.f;
+    float CurrentEXP = 0.f;
 
-    float enemyEXP = 10.f;
+    float EnemyEXP = 10.f;
 
     UPROPERTY(ReplicatedUsing = OnRep_MoneyChanged)
-    int32 currentMoney = 1000;
+    int32 CurrentMoney = 1000;
 
 public:
     FOnHPChangedDelegate OnHPChangedDelegate;

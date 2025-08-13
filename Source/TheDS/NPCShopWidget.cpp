@@ -14,9 +14,9 @@ void UNPCShopWidget::NativeConstruct()
 	if (BTN_Close) BTN_Close->OnClicked.AddDynamic(this, &UNPCShopWidget::OnCloseBtnCLicked);
 }
 
-void UNPCShopWidget::InitShop(ABaseMerchantNPC* merchant)
+void UNPCShopWidget::InitShop(ABaseMerchantNPC* Merchant)
 {
-	MerchantRef = merchant;
+	MerchantRef = Merchant;
 	PlayerRef = Cast<ABaseCharacter>(GetOwningPlayerPawn());
 	RefreshShopItems();
 	UpdateMoney();
@@ -26,22 +26,22 @@ void UNPCShopWidget::RefreshShopItems()
 {
 	if (!WB_ShopItems || !MerchantRef || !ShopSlotWidgetClass) return;
 	WB_ShopItems->ClearChildren();
-	for (UBaseItem* item : MerchantRef->GetItemsForSale())
+	for (UBaseItem* Item : MerchantRef->GetItemsForSale())
 	{
-		UShopItemSlotWidget* slot = CreateWidget< UShopItemSlotWidget>(this, ShopSlotWidgetClass);
-		if (slot)
+		UShopItemSlotWidget* Slot_ = CreateWidget< UShopItemSlotWidget>(this, ShopSlotWidgetClass);
+		if (Slot_)
 		{
-			slot->Init(item, PlayerRef, MerchantRef, this);
-			WB_ShopItems->AddChildToWrapBox(slot);
+			Slot_->Init(Item, PlayerRef, MerchantRef, this);
+			WB_ShopItems->AddChildToWrapBox(Slot_);
 		}
 	}
 }
 
 void UNPCShopWidget::UpdateMoney()
 {
-	if (PlayerRef && PlayerRef->stat && TXT_PlayerMoney)
+	if (PlayerRef && PlayerRef->Stat && TXT_PlayerMoney)
 	{
-		TXT_PlayerMoney->SetText(FText::AsNumber(PlayerRef->stat->GetMoney()));
+		TXT_PlayerMoney->SetText(FText::AsNumber(PlayerRef->Stat->GetMoney()));
 	}
 }
 

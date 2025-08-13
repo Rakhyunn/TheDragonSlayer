@@ -34,10 +34,10 @@ void ADropItemActor::Tick(float DeltaTime)
 
 }
 
-void ADropItemActor::Init(UBaseItem* itemData, int32 quantity)
+void ADropItemActor::Init(UBaseItem* ItemData_, int32 Quantity_)
 {
-	ItemData = itemData;
-	Quantity = quantity;
+	ItemData = ItemData_;
+	Quantity = Quantity_;
 	if (ItemData && ItemData->DroppedMesh)
 	{
 		Mesh->SetStaticMesh(ItemData->DroppedMesh);

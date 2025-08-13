@@ -42,27 +42,54 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* BTN_Equipment;
 
+	UPROPERTY(meta = (BindWidget))
+	class UVerticalBox* VB_PartyContainer;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UPartySlotWidget> PartySlotClass;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* BTN_CreateParty;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* BTN_InviteParty;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* BTN_LeaveParty;
+
 protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void BindInfo(class UBaseStatComponent* stat);
+	void BindInfo(class UBaseStatComponent* Stat);
 
 	UFUNCTION()
-	void UpdateHP(float percent);
+	void UpdateHP(float Percent);
 
 	UFUNCTION()
-	void UpdateMP(float percent);
+	void UpdateMP(float Percent);
 
 	UFUNCTION()
-	void UpdateEXP(float percent);
+	void UpdateEXP(float Percent);
 
 	UFUNCTION()
-	void UpdateLevel(int32 newLevel);
+	void UpdateLevel(int32 NewLevel);
 
 	UFUNCTION()
 	void OpenInventory();
 
 	UFUNCTION()
 	void OpenEquipment();
+
+	UFUNCTION()
+	void UpdateParty();
+
+	UFUNCTION()
+	void OnCreatePartyClicked();
+
+	UFUNCTION()
+	void OnInviteClicked();
+
+	UFUNCTION()
+	void OnLeavePartyClicked();
 };

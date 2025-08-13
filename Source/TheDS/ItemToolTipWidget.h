@@ -20,5 +20,5 @@ public:
 	class UTextBlock* TXT_Description;
 
 public:
-	void InitTooltip(class UBaseItem* itemData);
+	void InitTooltip(class UBaseItem* ItemData);
 };

@@ -9,17 +9,17 @@ UBaseStatComponent::UBaseStatComponent()
 
 void UBaseStatComponent::SetLevel(int32 newLevel)
 {
-	level = newLevel;
-	maxHP = maxHP + (level * 20.f);
-	maxMP = maxMP + (level * 10.f);
-	attack = attack + (level * 5.f);
-	magic = magic + (level * 5.f);
-	defense = defense + (level * 3.f);
-	maxEXP = maxEXP + (level * 50.f);
+	Level = newLevel;
+	MaxHP = MaxHP + (Level * 20.f);
+	MaxMP = MaxMP + (Level * 10.f);
+	Attack = Attack + (Level * 5.f);
+	Magic = Magic + (Level * 5.f);
+	Defense = Defense + (Level * 3.f);
+	MaxEXP = MaxEXP + (Level * 50.f);
 
-	currentHP = maxHP;
-	currentMP = maxMP;
-	currentEXP = 0.f;
+	CurrentHP = MaxHP;
+	CurrentMP = MaxMP;
+	CurrentEXP = 0.f;
 	OnRep_EXPChanged();
 	OnRep_HPChanged();
 	OnRep_MPChanged();
@@ -29,37 +29,37 @@ void UBaseStatComponent::SetLevel(int32 newLevel)
 	OnRep_DefenseChanged();
 }
 
-void UBaseStatComponent::GetDamage(float damageAmount)
+void UBaseStatComponent::GetDamage(float DamageAmount)
 {
-	float ActualDamage = damageAmount - defense;
+	float ActualDamage = DamageAmount - Defense;
 	ActualDamage = FMath::Max(ActualDamage, 1.f);
-	currentHP = FMath::Clamp(currentHP - ActualDamage, 0.f, maxHP);
+	CurrentHP = FMath::Clamp(CurrentHP - ActualDamage, 0.f, MaxHP);
 	OnRep_HPChanged();
 }
 
-void UBaseStatComponent::RestoreHP(float amount)
+void UBaseStatComponent::RestoreHP(float Amount)
 {
-	currentHP = FMath::Min(currentHP + amount, maxHP);
-	UE_LOG(LogTemp, Warning, TEXT("HP: %f"), currentHP);
+	CurrentHP = FMath::Min(CurrentHP + Amount, MaxHP);
+	UE_LOG(LogTemp, Warning, TEXT("HP: %f"), CurrentHP);
 	OnRep_HPChanged();
 }
 
-void UBaseStatComponent::RestoreMP(float amount)
+void UBaseStatComponent::RestoreMP(float Amount)
 {
-	currentMP = FMath::Min(currentMP + amount, maxMP);
-	UE_LOG(LogTemp, Warning, TEXT("MP: %f"), currentMP);
+	CurrentMP = FMath::Min(CurrentMP + Amount, MaxMP);
+	UE_LOG(LogTemp, Warning, TEXT("MP: %f"), CurrentMP);
 	OnRep_MPChanged();
 }
 
-void UBaseStatComponent::AddExperience(int32 amount)
+void UBaseStatComponent::AddExperience(int32 Amount)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Get EXP: %d"), amount);
-	currentEXP += amount;
+	UE_LOG(LogTemp, Warning, TEXT("Get EXP: %d"), Amount);
+	CurrentEXP += Amount;
 	if (CanLevelUp()) 
 	{
-		if (level >= 15)
+		if (Level >= 15)
 		{
-			currentEXP = maxEXP;
+			CurrentEXP = MaxEXP;
 			return;
 		}
 		LevelUp();
@@ -69,114 +69,114 @@ void UBaseStatComponent::AddExperience(int32 amount)
 
 bool UBaseStatComponent::CanLevelUp()
 {
-	return maxEXP <= currentEXP;
+	return MaxEXP <= CurrentEXP;
 }
 
 void UBaseStatComponent::LevelUp()
 {
-	SetLevel(level + 1);
-	UE_LOG(LogTemp, Log, TEXT("레벨 업! 현재 레벨: %d"), level);
+	SetLevel(Level + 1);
+	UE_LOG(LogTemp, Log, TEXT("레벨 업! 현재 레벨: %d"), Level);
 }
 
-void UBaseStatComponent::AddAttack(float plusAttack)
+void UBaseStatComponent::AddAttack(float PlusAttack)
 {
-	if (attack + plusAttack <= 0)
-		attack = 0;
+	if (Attack + PlusAttack <= 0)
+		Attack = 0;
 	else
-		attack += plusAttack;
+		Attack += PlusAttack;
 	OnRep_AttackChanged();
 }
 
-void UBaseStatComponent::AddDefense(float plusDefense)
+void UBaseStatComponent::AddDefense(float PlusDefense)
 {
-	if (defense + plusDefense <= 0)
-		defense = 0;
+	if (Defense + PlusDefense <= 0)
+		Defense = 0;
 	else
-		defense += plusDefense;
+		Defense += PlusDefense;
 	OnRep_DefenseChanged();
 }
 
-void UBaseStatComponent::AddMoney(int32 money)
+void UBaseStatComponent::AddMoney(int32 Money)
 {
-	currentMoney += money;
+	CurrentMoney += Money;
 	OnRep_MoneyChanged();
 }
 
-void UBaseStatComponent::SpendMoney(int32 money)
+void UBaseStatComponent::SpendMoney(int32 Money)
 {
-	if (currentMoney >= money)
+	if (CurrentMoney >= Money)
 	{
-		currentMoney -= money;
+		CurrentMoney -= Money;
 		OnRep_MoneyChanged();
 	}
 	else
 		return;
 }
 
-bool UBaseStatComponent::CheckMoney(int32 money)
+bool UBaseStatComponent::CheckMoney(int32 Money)
 {
-	if (currentMoney >= money) return true;
+	if (CurrentMoney >= Money) return true;
 	else return false;
 }
 
 void UBaseStatComponent::OnRep_EXPChanged()
 {
 	// 경험치 UI 갱신
-	float percent = currentEXP / maxEXP;
-	OnEXPChangedDelegate.Broadcast(percent);
+	float Percent = CurrentEXP / MaxEXP;
+	OnEXPChangedDelegate.Broadcast(Percent);
 }
 
 void UBaseStatComponent::OnRep_HPChanged()
 {
 	// HP UI 갱신
-	float percent = currentHP / maxHP;
-	OnHPChangedDelegate.Broadcast(percent);
+	float Percent = CurrentHP / MaxHP;
+	OnHPChangedDelegate.Broadcast(Percent);
 }
 
 void UBaseStatComponent::OnRep_MPChanged()
 {
 	// MP UI 갱신
-	float percent = currentMP / maxMP;
-	OnMPChangedDelegate.Broadcast(percent);
+	float Percent = CurrentMP / MaxMP;
+	OnMPChangedDelegate.Broadcast(Percent);
 }
 
 void UBaseStatComponent::OnRep_LevelChanged()
 {
 	// Level UI 갱신
-	OnLevelChangedDelegate.Broadcast(level);
+	OnLevelChangedDelegate.Broadcast(Level);
 }
 
 void UBaseStatComponent::OnRep_AttackChanged()
 {
-	OnAttackChangedDelegate.Broadcast(attack);
+	OnAttackChangedDelegate.Broadcast(Attack);
 }
 
 void UBaseStatComponent::OnRep_MagicChanged()
 {
-	OnMagicChangedDelegate.Broadcast(magic);
+	OnMagicChangedDelegate.Broadcast(Magic);
 }
 
 void UBaseStatComponent::OnRep_DefenseChanged()
 {
-	OnDefenseChangedDelegate.Broadcast(defense);
+	OnDefenseChangedDelegate.Broadcast(Defense);
 }
 
 void UBaseStatComponent::OnRep_MoneyChanged()
 {
-	OnMoneyChangedDelegate.Broadcast(currentMoney);
+	OnMoneyChangedDelegate.Broadcast(CurrentMoney);
 }
 
 void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UBaseStatComponent, level);
-	DOREPLIFETIME(UBaseStatComponent, currentHP);
-	DOREPLIFETIME(UBaseStatComponent, currentMP);
-	DOREPLIFETIME(UBaseStatComponent, currentEXP);
-	DOREPLIFETIME(UBaseStatComponent, attack);
-	DOREPLIFETIME(UBaseStatComponent, magic);
-	DOREPLIFETIME(UBaseStatComponent, defense);
-	DOREPLIFETIME(UBaseStatComponent, currentMoney);
+	DOREPLIFETIME(UBaseStatComponent, Level);
+	DOREPLIFETIME(UBaseStatComponent, CurrentHP);
+	DOREPLIFETIME(UBaseStatComponent, CurrentMP);
+	DOREPLIFETIME(UBaseStatComponent, CurrentEXP);
+	DOREPLIFETIME(UBaseStatComponent, Attack);
+	DOREPLIFETIME(UBaseStatComponent, Magic);
+	DOREPLIFETIME(UBaseStatComponent, Defense);
+	DOREPLIFETIME(UBaseStatComponent, CurrentMoney);
 }
 
 void UBaseStatComponent::BeginPlay()

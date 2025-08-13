@@ -10,22 +10,22 @@ void UHPBarWidget::NativeConstruct()
 	}
 }
 
-void UHPBarWidget::BindHp(UBaseStatComponent* stat)
+void UHPBarWidget::BindHp(UBaseStatComponent* Stat)
 {
-	if (!IsValid(stat)) return;
-	currentStat = stat;
-	stat->OnHPChangedDelegate.AddUObject(this, &UHPBarWidget::UpdateHP);
-	float InitPercent = stat->GetCurrentHP() / stat->GetMaxHP();
+	if (!IsValid(Stat)) return;
+	CurrentStat = Stat;
+	Stat->OnHPChangedDelegate.AddUObject(this, &UHPBarWidget::UpdateHP);
+	float InitPercent = Stat->GetCurrentHP() / Stat->GetMaxHP();
 	UpdateHP(InitPercent);
 }
 
-void UHPBarWidget::UpdateHP(float percent)
+void UHPBarWidget::UpdateHP(float Percent)
 {
 	if (!PB_HPBar) return;
-	UE_LOG(LogTemp, Warning, TEXT("Percent: %f"), currentStat->GetCurrentHP() / currentStat->GetMaxHP());
+	UE_LOG(LogTemp, Warning, TEXT("Percent: %f"), CurrentStat->GetCurrentHP() / CurrentStat->GetMaxHP());
 	if (PB_HPBar)
 	{
-		PB_HPBar->SetPercent(percent);
+		PB_HPBar->SetPercent(Percent);
 	}
 	else
 	{

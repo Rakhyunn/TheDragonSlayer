@@ -10,7 +10,7 @@ class THEDS_API UHPBarWidget : public UUserWidget
 	GENERATED_BODY()
 	
 private:
-	TWeakObjectPtr<class UBaseStatComponent> currentStat;
+	TWeakObjectPtr<class UBaseStatComponent> CurrentStat;
 
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* PB_HPBar;
@@ -19,8 +19,8 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void BindHp(class UBaseStatComponent* stat);
+	void BindHp(class UBaseStatComponent* Stat);
 
 	UFUNCTION()
-	void UpdateHP(float percent);
+	void UpdateHP(float Percent);
 };

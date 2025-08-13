@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "ChattingWidget.h"
 #include "UserPlayerController.generated.h"
 
 class UPlayerInfoWidget;
@@ -9,6 +10,7 @@ class UBaseStatComponent;
 class UInventoryWidget;
 class UEquipmentWidget;
 class UNPCShopWidget;
+class UInvitePartyWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -23,6 +25,12 @@ public:
 	void ToggleEquipment();
 
 	void OpenShop(class ABaseMerchantNPC* Merchant);
+
+	void OpenChatInput();
+
+	void SwitchToGlobalChat();
+
+	void SwitchToPartyChat();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -42,6 +50,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Merchant")
 	TSubclassOf<UNPCShopWidget> ShopWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Party")
+	TSubclassOf<UInvitePartyWidget> InvitePartyWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Chat")
+	TSubclassOf<UChattingWidget> ChattingWidgetClass;
+
 private:
 	UPROPERTY()
 	UPlayerInfoWidget* PlayerInfoWidgetInstance;
@@ -54,4 +68,36 @@ private:
 
 	UPROPERTY()
 	UNPCShopWidget* ShopWidgetInstance;
+
+	UPROPERTY()
+	UChattingWidget* ChattingWidgetInstance;
+
+public:
+	APlayerState* FindNearestPlayer();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRequestCreateParty();
+	UFUNCTION(Server, Reliable)
+	void ServerRequestInviteParty(APlayerState* Invitee);
+	UFUNCTION(Server, Reliable)
+	void ServerRequestLeaveParty();
+
+	void RequestCreateParty();
+	void RequestInviteParty(APlayerState* Invitee);
+	void RequestLeaveParty();
+
+	UFUNCTION(Client, Reliable)
+	void ClientShowPartyInvite(APlayerState* FromLeader);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRespondToInvite(bool bAccepted, APlayerState* FromLeader);
+
+	UFUNCTION(Client, Reliable)
+	void ClientUpdatePartyUI();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSendChat(const FString& Message, EChatChannel Channel);
+
+	UFUNCTION(Client, Reliable)
+	void ClientReceiveChat(const FChatMessage& Chat);
 };

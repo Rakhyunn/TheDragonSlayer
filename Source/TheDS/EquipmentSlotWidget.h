@@ -13,7 +13,7 @@ class THEDS_API UEquipmentSlotWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	void Init(EEquiptype inSlotType, UItem_Equipment* equippedItem);
+	void Init(EEquiptype InSlotType, UItem_Equipment* EquippedItem);
 
 	FOnUnEquipRequested OnUnEquipRequested;
 
@@ -33,6 +33,6 @@ protected:
 	TSubclassOf<class UItemToolTipWidget> ToolTipWidgetClass;
 
 private:
-	EEquiptype slotType;
-	UItem_Equipment* currentItem;
+	EEquiptype SlotType;
+	UItem_Equipment* CurrentItem;
 };

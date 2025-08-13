@@ -23,10 +23,10 @@ protected:
 	class UEquipmentSlotWidget* Slot_Head;
 
 	UPROPERTY()
-	class UEquipmentComponent* equipment;
+	class UEquipmentComponent* Equipment;
 
 	UPROPERTY()
-	class ABaseCharacter* ownerCharacter;
+	class ABaseCharacter* OwnerCharacter;
 
 public:
 	virtual void NativeConstruct() override;
@@ -34,7 +34,7 @@ public:
 	UFUNCTION()
 	void OnCloseBtnCLicked();
 
-	void SetEquipmentReference(class UEquipmentComponent* ref, ABaseCharacter* owner);
+	void SetEquipmentReference(class UEquipmentComponent* Ref, ABaseCharacter* Owner);
 
 	void RefreshEquipment();
 };
