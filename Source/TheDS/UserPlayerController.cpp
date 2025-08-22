@@ -15,6 +15,9 @@
 #include "TheDSPlayerState.h"
 #include "Engine/World.h"
 #include "InvitePartyWidget.h"
+#include "PortalActor.h"
+#include "Engine/LevelStreaming.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -176,6 +179,52 @@ void AUserPlayerController::SwitchToPartyChat()
 	{
 		ChattingWidgetInstance->SetChannel(EChatChannel::Party);
 		ChattingWidgetInstance->ActivateChat();
+	}
+}
+
+void AUserPlayerController::UsePortal(APortalActor* Portal)
+{
+	if (!Portal) return;
+
+	switch (Portal->GetPortalType())
+	{
+	case EPortalType::Village:
+	case EPortalType::MonsterField:
+		if (!Portal->GetTargetMap().IsNone())
+		{
+			ServerLoadAndWarp(Portal->GetTargetMap(), Portal->GetTargetTransform(), false);
+		}
+		break;
+	case EPortalType::RaidField:
+		ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+		if (!PS || !PS->IsInParty())
+		{
+			if (ChattingWidgetInstance)
+			{
+				FChatMessage ErrorMsg;
+				ErrorMsg.Sender = TEXT("시스템");
+				ErrorMsg.Message = TEXT("파티에 속해있지 않습니다.");
+				ErrorMsg.Channel = EChatChannel::Global;
+
+				ChattingWidgetInstance->AddChat(ErrorMsg);
+			}
+			return;
+		}
+		else if (!PS->IsPartyLeader())
+		{
+			if (ChattingWidgetInstance)
+			{
+				FChatMessage ErrorMsg;
+				ErrorMsg.Sender = TEXT("시스템");
+				ErrorMsg.Message = TEXT("파티장이 아닙니다.");
+				ErrorMsg.Channel = EChatChannel::Global;
+
+				ChattingWidgetInstance->AddChat(ErrorMsg);
+			}
+			return;
+		}
+		ClientShowRaidConfirm(Portal->GetTargetMap(), Portal->GetTargetTransform());
+		break;
 	}
 }
 
@@ -350,4 +399,90 @@ void AUserPlayerController::ClientReceiveChat_Implementation(const FChatMessage&
 	{
 		ChattingWidgetInstance->AddChat(Chat);
 	}
+}
+
+void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FTransform Spawn, bool bIsRaid)
+{
+	if (LevelName.IsNone()) return;
+
+	// 서버도 해당 서브레벨 로드/가시화
+	FLatentActionInfo Latent; 
+	Latent.CallbackTarget = this;
+	UGameplayStatics::LoadStreamLevel(this, LevelName, true, false, Latent);
+
+	// 서버에서 레벨 로딩 완료 대기 후, (파티면) 전원 텔레포트 / (개별이면) 자신만 텔레포트
+	GetWorldTimerManager().SetTimer(PortalWarpTimer, [this, LevelName, Spawn, bIsRaid]()
+		{
+			if (ULevelStreaming* S = UGameplayStatics::GetStreamingLevel(this, LevelName))
+			{
+				if (S->IsLevelLoaded() && S->IsLevelVisible())
+				{
+					auto TeleportOne = [&](AUserPlayerController* PC)
+						{
+							if (!PC) return;
+							if (APawn* P = PC->GetPawn())
+							{
+								if (ACharacter* C = Cast<ACharacter>(P))
+								{
+									// 텔레포트 안정화
+									C->GetCharacterMovement()->StopMovementImmediately();
+									C->TeleportTo(Spawn.GetLocation(), Spawn.GetRotation().Rotator());
+									C->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+									C->ForceNetUpdate(); // 즉시 복제
+								}
+								else
+								{
+									P->TeleportTo(Spawn.GetLocation(), Spawn.GetRotation().Rotator());
+									P->ForceNetUpdate();
+								}
+							}
+						};
+
+					if (bIsRaid)
+					{
+						if (ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>())
+						{
+							const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
+							for (const FPartyMember& M : Members)
+							{
+								if (AUserPlayerController* PC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+								{
+									TeleportOne(PC);
+								}
+							}
+						}
+					}
+					else
+					{
+						TeleportOne(this);
+					}
+					// 모든 클라에게도 해당 서브레벨 로드/가시화 지시 (클라는 텔레포트 하지 않음!)
+					MulticastLoadAndWarp(LevelName);
+					GetWorldTimerManager().ClearTimer(PortalWarpTimer);
+				}
+			}
+		}, 0.05f, true);
+}
+
+void AUserPlayerController::MulticastLoadAndWarp_Implementation(FName LevelName)
+{
+	FLatentActionInfo Latent; 
+	Latent.CallbackTarget = this;
+	UGameplayStatics::LoadStreamLevel(this, LevelName, true, false, Latent);
+}
+
+void AUserPlayerController::ClientShowRaidConfirm_Implementation(FName LevelName, FTransform Spawn)
+{
+	// "레이드 입장?" Yes/No UI 출력
+	// Yes일 떄
+	ServerRaidConfirmResult(/*bAccept*/true, LevelName, Spawn);
+	// No일 때
+	// Server_RaidConfirmResult(false, LevelName, Spawn);
+}
+
+void AUserPlayerController::ServerRaidConfirmResult_Implementation(bool bAccept, FName LevelName, FTransform Spawn)
+{
+	if (!bAccept) return;
+	// 서버에서 파티 멤버 모두에게 적용
+	ServerLoadAndWarp(LevelName, Spawn, true);
 }

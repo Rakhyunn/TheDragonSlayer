@@ -75,6 +75,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed, this, &ABaseCharacter::InteractPickUp);
 	PlayerInputComponent->BindAction("Talk", IE_Pressed, this, &ABaseCharacter::InteractMerchant);
+	PlayerInputComponent->BindAction("UsePortal", IE_Pressed, this, &ABaseCharacter::InteractPortal);
 }
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -159,6 +160,11 @@ void ABaseCharacter::InteractMerchant()
 	TryInteract(EInteractionType::Talk);
 }
 
+void ABaseCharacter::InteractPortal()
+{
+	TryInteract(EInteractionType::Portal);
+}
+
 void ABaseCharacter::ReceiveDamage(float damage)
 {
 	Stat->GetDamage(damage);
@@ -231,6 +237,11 @@ void ABaseCharacter::TryInteract(EInteractionType InteractionType)
 				MinDist = Distance;
 			}
 			else if (InteractionType == EInteractionType::Talk && Actor->ActorHasTag("MerchantNPC"))
+			{
+				Closest = Actor;
+				MinDist = Distance;
+			}
+			else if (InteractionType == EInteractionType::Portal && Actor->ActorHasTag("Portal"))
 			{
 				Closest = Actor;
 				MinDist = Distance;

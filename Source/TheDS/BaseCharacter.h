@@ -8,7 +8,8 @@ UENUM(BlueprintType)
 enum class EInteractionType : uint8
 {
 	PickUp,
-	Talk
+	Talk,
+	Portal
 };
 
 UCLASS()
@@ -82,6 +83,7 @@ protected:
 	// 상호작용 함수
 	void InteractPickUp();
 	void InteractMerchant();
+	void InteractPortal();
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")

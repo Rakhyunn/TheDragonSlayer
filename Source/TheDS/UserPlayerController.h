@@ -31,6 +31,8 @@ public:
 	void SwitchToGlobalChat();
 
 	void SwitchToPartyChat();
+
+	void UsePortal(class APortalActor* Portal);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -72,6 +74,8 @@ private:
 	UPROPERTY()
 	UChattingWidget* ChattingWidgetInstance;
 
+	FTimerHandle PortalWarpTimer;
+
 public:
 	APlayerState* FindNearestPlayer();
 
@@ -100,4 +104,16 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientReceiveChat(const FChatMessage& Chat);
+
+	UFUNCTION(Server, Reliable)
+	void ServerLoadAndWarp(FName LevelName, FTransform Spawn, bool bIsRaid);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastLoadAndWarp(FName LevelName);
+
+	UFUNCTION(Client, Reliable)
+	void ClientShowRaidConfirm(FName LevelName, FTransform Spawn);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRaidConfirmResult(bool bAccept, FName LevelName, FTransform Spawn);
 };
