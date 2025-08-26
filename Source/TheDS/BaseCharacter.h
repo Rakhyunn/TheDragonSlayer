@@ -120,4 +120,10 @@ public:
 
 	UFUNCTION()
 	void TryInteract(EInteractionType InteractionType);
+
+	UFUNCTION(Server, Reliable)
+	void ServerTryPickup();
+
+	UFUNCTION()
+	void ServerDie();
 };

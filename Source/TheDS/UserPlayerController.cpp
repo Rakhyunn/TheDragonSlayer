@@ -18,6 +18,8 @@
 #include "PortalActor.h"
 #include "Engine/LevelStreaming.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "RespawnDataAsset.h"
+#include "EnemySpawnManager.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -56,6 +58,8 @@ void AUserPlayerController::BeginPlay()
 			ChattingWidgetInstance->SetPositionInViewport(FVector2D(100, 200));
 		}
 	}
+
+	CurrentLevel = GetLevel()->GetFName();
 }
 
 void AUserPlayerController::SetupInputComponent()
@@ -137,7 +141,7 @@ void AUserPlayerController::OpenShop(ABaseMerchantNPC* Merchant)
 
 	if (ShopWidgetInstance && !ShopWidgetInstance->IsInViewport())
 	{
-		ShopWidgetInstance->InitShop(Merchant); // 아이템 설정 등
+		ShopWidgetInstance->InitShop(Merchant);
 		ShopWidgetInstance->AddToViewport();
 	}
 }
@@ -185,18 +189,25 @@ void AUserPlayerController::SwitchToPartyChat()
 void AUserPlayerController::UsePortal(APortalActor* Portal)
 {
 	if (!Portal) return;
-
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	
 	switch (Portal->GetPortalType())
 	{
 	case EPortalType::Village:
+		if (PS) PS->SetLastVillage(Portal->GetTargetMap(), Portal->GetTargetTransform());
+		if (!Portal->GetTargetMap().IsNone())
+		{
+			ServerLoadAndWarp(Portal->GetTargetMap(), Portal->GetTargetTransform(), false);
+		}
+		break;
 	case EPortalType::MonsterField:
+		if (PS) PS->SetLastField(Portal->GetTargetMap());
 		if (!Portal->GetTargetMap().IsNone())
 		{
 			ServerLoadAndWarp(Portal->GetTargetMap(), Portal->GetTargetTransform(), false);
 		}
 		break;
 	case EPortalType::RaidField:
-		ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
 		if (!PS || !PS->IsInParty())
 		{
 			if (ChattingWidgetInstance)
@@ -226,6 +237,28 @@ void AUserPlayerController::UsePortal(APortalActor* Portal)
 		ClientShowRaidConfirm(Portal->GetTargetMap(), Portal->GetTargetTransform());
 		break;
 	}
+}
+
+bool AUserPlayerController::FindRespawnMap(ATheDSPlayerState* PS, FName& FindVillage, FTransform& FindSpawn) const
+{
+	if (!PS) return false;
+
+	if (PS->GetLastVillage() != NAME_None)
+	{
+		FindVillage = PS->GetLastVillage();
+		FindSpawn = PS->GetLastVillageSpawn();
+		return true;
+	}
+	if (RespawnData && PS->GetLastField() != NAME_None)
+	{
+		if (RespawnData->FindVillageByField(PS->GetLastField(), FindVillage, FindSpawn))
+		{
+			return true;
+		}
+	}
+	FindVillage = FName("Village_2");
+	FindSpawn = FTransform(FRotator::ZeroRotator, FVector(-1350.f, 3170.f, 200.f));
+	return true;
 }
 
 void AUserPlayerController::ServerRequestCreateParty_Implementation()
@@ -325,7 +358,7 @@ void AUserPlayerController::ClientShowPartyInvite_Implementation(APlayerState* F
 	UInvitePartyWidget* InviteWidget = CreateWidget<UInvitePartyWidget>(this, InvitePartyWidgetClass);
 	if (InviteWidget)
 	{
-		InviteWidget->Init(FromLeader); // FromLeader 정보 UI에 표시
+		InviteWidget->Init(FromLeader);
 		InviteWidget->AddToViewport();
 	}
 }
@@ -337,12 +370,11 @@ void AUserPlayerController::ServerRespondToInvite_Implementation(bool bAccepted,
 	{
 		if (APartyState* PartyState = GetWorld()->GetGameState<APartyState>())
 		{
-			PartyState->AcceptInvite(PlayerState, FromLeader); // 리더 기준으로 자신 추가
+			PartyState->AcceptInvite(PlayerState, FromLeader); // 리더 기준으로 추가
 		}
 	}
 	else
 	{
-		// 거절 시 행동 필요하면 여기에
 		UE_LOG(LogTemp, Warning, TEXT("%s declined the party invite from %s"),
 			*PlayerState->GetPlayerName(),
 			*FromLeader->GetPlayerName());
@@ -405,12 +437,10 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 {
 	if (LevelName.IsNone()) return;
 
-	// 서버도 해당 서브레벨 로드/가시화
 	FLatentActionInfo Latent; 
 	Latent.CallbackTarget = this;
 	UGameplayStatics::LoadStreamLevel(this, LevelName, true, false, Latent);
 
-	// 서버에서 레벨 로딩 완료 대기 후, (파티면) 전원 텔레포트 / (개별이면) 자신만 텔레포트
 	GetWorldTimerManager().SetTimer(PortalWarpTimer, [this, LevelName, Spawn, bIsRaid]()
 		{
 			if (ULevelStreaming* S = UGameplayStatics::GetStreamingLevel(this, LevelName))
@@ -428,7 +458,7 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 									C->GetCharacterMovement()->StopMovementImmediately();
 									C->TeleportTo(Spawn.GetLocation(), Spawn.GetRotation().Rotator());
 									C->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-									C->ForceNetUpdate(); // 즉시 복제
+									C->ForceNetUpdate();
 								}
 								else
 								{
@@ -448,6 +478,7 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 								if (AUserPlayerController* PC = Cast<AUserPlayerController>(M.Member->GetOwner()))
 								{
 									TeleportOne(PC);
+									PC->ClientSetVisibleLevel(LevelName);
 								}
 							}
 						}
@@ -455,9 +486,8 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 					else
 					{
 						TeleportOne(this);
+						ClientSetVisibleLevel(LevelName);
 					}
-					// 모든 클라에게도 해당 서브레벨 로드/가시화 지시 (클라는 텔레포트 하지 않음!)
-					MulticastLoadAndWarp(LevelName);
 					GetWorldTimerManager().ClearTimer(PortalWarpTimer);
 				}
 			}
@@ -471,18 +501,31 @@ void AUserPlayerController::MulticastLoadAndWarp_Implementation(FName LevelName)
 	UGameplayStatics::LoadStreamLevel(this, LevelName, true, false, Latent);
 }
 
+void AUserPlayerController::ClientSetVisibleLevel_Implementation(FName NewLevelName)
+{
+	FLatentActionInfo Latent;
+	Latent.CallbackTarget = this;
+	if (!CurrentLevel.IsNone())
+	{
+		UGameplayStatics::UnloadStreamLevel(this, CurrentLevel, Latent, false);
+	}
+	if (!NewLevelName.IsNone())
+	{
+		UGameplayStatics::LoadStreamLevel(this, NewLevelName, true, false, Latent);
+		CurrentLevel = NewLevelName;
+	}
+}
+
 void AUserPlayerController::ClientShowRaidConfirm_Implementation(FName LevelName, FTransform Spawn)
 {
-	// "레이드 입장?" Yes/No UI 출력
+	// 레이드 입장? Yes/No UI 출력
 	// Yes일 떄
-	ServerRaidConfirmResult(/*bAccept*/true, LevelName, Spawn);
-	// No일 때
-	// Server_RaidConfirmResult(false, LevelName, Spawn);
+	ServerRaidConfirmResult(true, LevelName, Spawn);
 }
 
 void AUserPlayerController::ServerRaidConfirmResult_Implementation(bool bAccept, FName LevelName, FTransform Spawn)
 {
 	if (!bAccept) return;
-	// 서버에서 파티 멤버 모두에게 적용
+	// 서버에서 파티 멤버에게 적용
 	ServerLoadAndWarp(LevelName, Spawn, true);
 }

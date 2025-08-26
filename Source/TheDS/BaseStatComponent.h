@@ -13,6 +13,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnAttackChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMagicChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnDefenseChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMoneyChangedDelegate, int32);
+DECLARE_MULTICAST_DELEGATE(FOnDiedDelegate);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class THEDS_API UBaseStatComponent : public UActorComponent
@@ -34,6 +35,7 @@ public:
     void GetDamage(float DamageAmount);
     void RestoreHP(float Amount);
     void RestoreMP(float Amount);
+    void FullRestore();
 
     float GetMaxHP() { return MaxHP; };
     float GetCurrentHP() { return CurrentHP; };
@@ -51,6 +53,7 @@ public:
     void AddExperience(int32 Amount);
     bool CanLevelUp();
     void LevelUp();
+    void ApplyDiedPenalty();
 
     void AddAttack(float PlusAttack);
     void AddDefense(float PlusDefense);
@@ -125,4 +128,5 @@ public:
     FOnMagicChangedDelegate OnMagicChangedDelegate;
     FOnDefenseChangedDelegate OnDefenseChangedDelegate;
     FOnMoneyChangedDelegate OnMoneyChangedDelegate;
+    FOnDiedDelegate OnDiedDelegate;
 };

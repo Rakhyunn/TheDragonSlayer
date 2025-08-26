@@ -45,6 +45,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 public:
 	// 적 사망 시 호출
 	void NotifyEnemyDied(TSubclassOf<ABaseEnemyCharacter> EnemyClass);
@@ -53,4 +55,23 @@ public:
 	void CheckAndRespawnAllEnemies();
 
 	void SpawnEnemy(const FEnemySpawnData& Config);
+
+private:
+	FTimerHandle VisibilityTickHandle;
+
+	bool bSpawning = false;
+
+private:
+	void TickLevelVisibility();
+
+	void TrySpawnTick();
+
+	void StopRespawnTimer();
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void ActivateSpawning();
+
+	UFUNCTION(BlueprintCallable)
+	void DeactivateSpawning();
 };

@@ -17,11 +17,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* Mesh;
 
+	UPROPERTY(ReplicatedUsing = OnRep_Setup)
+	TSoftObjectPtr<UStaticMesh> RepMesh;
+
 	UPROPERTY()
 	class UBaseItem* ItemData;
 
 	UPROPERTY()
 	int32 Quantity;
+
+	UPROPERTY(Replicated)
+	int32 RepQuantity = 1;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Drop")
 	float LifeTime = 30.f; // 자동 소멸 시간
@@ -32,6 +38,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
@@ -39,4 +47,7 @@ public:
 	void Init(class UBaseItem* ItemData_, int32 Quantity_ = 1);
 
 	virtual void Interact(class ABaseCharacter* Interactor) override;
+
+	UFUNCTION()
+	void OnRep_Setup();
 };

@@ -35,6 +35,10 @@ void UBaseStatComponent::GetDamage(float DamageAmount)
 	ActualDamage = FMath::Max(ActualDamage, 1.f);
 	CurrentHP = FMath::Clamp(CurrentHP - ActualDamage, 0.f, MaxHP);
 	OnRep_HPChanged();
+	if (CurrentHP <= 0.f)
+	{
+		OnDiedDelegate.Broadcast();
+	}
 }
 
 void UBaseStatComponent::RestoreHP(float Amount)
@@ -48,6 +52,14 @@ void UBaseStatComponent::RestoreMP(float Amount)
 {
 	CurrentMP = FMath::Min(CurrentMP + Amount, MaxMP);
 	UE_LOG(LogTemp, Warning, TEXT("MP: %f"), CurrentMP);
+	OnRep_MPChanged();
+}
+
+void UBaseStatComponent::FullRestore()
+{
+	CurrentHP = MaxHP;
+	CurrentMP = MaxMP;
+	OnRep_HPChanged();
 	OnRep_MPChanged();
 }
 
@@ -76,6 +88,13 @@ void UBaseStatComponent::LevelUp()
 {
 	SetLevel(Level + 1);
 	UE_LOG(LogTemp, Log, TEXT("레벨 업! 현재 레벨: %d"), Level);
+}
+
+void UBaseStatComponent::ApplyDiedPenalty()
+{
+	float Loss = CurrentEXP * 0.1;
+	CurrentEXP = FMath::Max(0.f, CurrentEXP - Loss);
+	OnRep_EXPChanged();
 }
 
 void UBaseStatComponent::AddAttack(float PlusAttack)

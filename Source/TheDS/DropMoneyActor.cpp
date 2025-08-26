@@ -8,6 +8,9 @@
 ADropMoneyActor::ADropMoneyActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
+	bOnlyRelevantToOwner = true;
+	bNetUseOwnerRelevancy = true;
 
 	Trigger = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger"));
 	RootComponent = Trigger;
@@ -46,6 +49,7 @@ void ADropMoneyActor::Init(int32 Money)
 
 void ADropMoneyActor::Interact(ABaseCharacter* Interactor)
 {
+	if (!HasAuthority()) return;
 	if (Interactor && Interactor->Stat)
 	{
 		Interactor->Stat->AddMoney(MoneyAmount);
