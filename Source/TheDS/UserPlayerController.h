@@ -11,6 +11,8 @@ class UInventoryWidget;
 class UEquipmentWidget;
 class UNPCShopWidget;
 class UInvitePartyWidget;
+class URespawnDataAsset;
+class ATheDSPlayerState;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -31,6 +33,10 @@ public:
 	void SwitchToGlobalChat();
 
 	void SwitchToPartyChat();
+
+	void UsePortal(class APortalActor* Portal);
+
+	bool FindRespawnMap(ATheDSPlayerState* PS, FName& FindVillage, FTransform& FindSpawn) const;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -56,6 +62,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Chat")
 	TSubclassOf<UChattingWidget> ChattingWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Respawn")
+	TObjectPtr<URespawnDataAsset> RespawnData;
+
 private:
 	UPROPERTY()
 	UPlayerInfoWidget* PlayerInfoWidgetInstance;
@@ -71,6 +80,10 @@ private:
 
 	UPROPERTY()
 	UChattingWidget* ChattingWidgetInstance;
+
+	FTimerHandle PortalWarpTimer;
+
+	FName CurrentLevel;
 
 public:
 	APlayerState* FindNearestPlayer();
@@ -100,4 +113,19 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientReceiveChat(const FChatMessage& Chat);
+
+	UFUNCTION(Server, Reliable)
+	void ServerLoadAndWarp(FName LevelName, FTransform Spawn, bool bIsRaid);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastLoadAndWarp(FName LevelName);
+
+	UFUNCTION(Client, Reliable)
+	void ClientSetVisibleLevel(FName NewLevelName);
+
+	UFUNCTION(Client, Reliable)
+	void ClientShowRaidConfirm(FName LevelName, FTransform Spawn);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRaidConfirmResult(bool bAccept, FName LevelName, FTransform Spawn);
 };

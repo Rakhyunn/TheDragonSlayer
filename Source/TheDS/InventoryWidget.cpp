@@ -78,6 +78,6 @@ void UInventoryWidget::SetInventoryReference(UInventoryComponent* Ref)
     Inventory = Ref;
     if (Inventory)
     {
-        Inventory->linkedInventoryWidget = this;
+        Inventory->LinkedInventoryWidget = this;
     }
 }

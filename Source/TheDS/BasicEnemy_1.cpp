@@ -100,18 +100,20 @@ void ABasicEnemy_1::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupte
 void ABasicEnemy_1::Die(ABaseCharacter* Causer)
 {
 	Super::Die(Causer);
-	DropLoot();
 }
 
 void ABasicEnemy_1::DropLoot()
 {
 	Super::DropLoot();
+	if (!HasAuthority()) return;
 	if (!DropTable || DropRowName.IsNone()) return;
 
 	const FString Context = TEXT("DropLootLookup");
 	FEnemyDropData* DropData = DropTable->FindRow<FEnemyDropData>(DropRowName, Context);
 	if (!DropData) return;
 
+	FActorSpawnParameters Params;
+	Params.Owner = LastKillerPC;
 	// 아이템 드랍
 	for (const FDropItemInfo& ItemInfo : DropData->DropItems)
 	{
@@ -119,7 +121,7 @@ void ABasicEnemy_1::DropLoot()
 		{
 			// 아이템 스폰
 			FVector DropLocation = GetActorLocation() + UKismetMathLibrary::RandomUnitVector() * FMath::RandRange(30.f, 100.f);
-			ADropItemActor* DropItem = GetWorld()->SpawnActor<ADropItemActor>(DropItemClass, DropLocation, FRotator::ZeroRotator);
+			ADropItemActor* DropItem = GetWorld()->SpawnActor<ADropItemActor>(DropItemClass, DropLocation, FRotator::ZeroRotator, Params);
 			if (DropItem)
 			{
 				DropItem->Init(ItemInfo.Item, ItemInfo.Quantity);
@@ -133,7 +135,7 @@ void ABasicEnemy_1::DropLoot()
 		int32 money = FMath::RandRange(DropData->MinMoney, DropData->MaxMoney);
 		// 돈 스폰
 		FVector DropLocation = GetActorLocation() + UKismetMathLibrary::RandomUnitVector() * FMath::RandRange(30.f, 100.f);
-		ADropMoneyActor* DropMoney = GetWorld()->SpawnActor<ADropMoneyActor>(DropMoneyClass, DropLocation, FRotator::ZeroRotator);
+		ADropMoneyActor* DropMoney = GetWorld()->SpawnActor<ADropMoneyActor>(DropMoneyClass, DropLocation, FRotator::ZeroRotator, Params);
 		if (DropMoney)
 		{
 			DropMoney->Init(money);

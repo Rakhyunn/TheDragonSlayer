@@ -5,10 +5,12 @@
 #include "BaseStatComponent.h"
 #include "InventoryWidget.h"
 #include "EquipmentComponent.h"
+#include "Net/UnrealNetwork.h"
 
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 	ConsumeSlots.SetNum(MaxSlotCount);
 	EquipmentSlots.SetNum(MaxSlotCount);
 }
@@ -44,9 +46,9 @@ void UInventoryComponent::AddItem(UBaseItem* Item, int32 Quantity)
 			}
 		}
 	}
-	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
+	if (LinkedInventoryWidget && LinkedInventoryWidget->IsInViewport())
 	{
-		linkedInventoryWidget->RefreshInventory();
+		LinkedInventoryWidget->RefreshInventory();
 	}
 }
 
@@ -92,9 +94,9 @@ void UInventoryComponent::UseItem(EItemType Type, int32 Index, ABaseCharacter* T
 		Slot.Quantity = 0;
 		Slot.bEquipped = false;
 	}
-	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
+	if (LinkedInventoryWidget && LinkedInventoryWidget->IsInViewport())
 	{
-		linkedInventoryWidget->RefreshInventory();
+		LinkedInventoryWidget->RefreshInventory();
 	}
 }
 
@@ -106,12 +108,46 @@ void UInventoryComponent::SwapItem(EItemType type, int32 fromIndex, int32 toInde
 		UE_LOG(LogTemp, Warning, TEXT("Invalid Indices"));
 		return;
 	}
-	if (fromIndex == toIndex) return;
-	TargetSlots.Swap(fromIndex, toIndex);
+	FInventorySlot& From = TargetSlots[fromIndex];
+	FInventorySlot& To = TargetSlots[toIndex];
+	if (!From.ItemData || From.Quantity <= 0) return;
 
-	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
+	if (To.ItemData && To.ItemData == From.ItemData && From.ItemData->MaxStack > 1)
 	{
-		linkedInventoryWidget->RefreshInventory();
+		const int32 MaxStack = From.ItemData->MaxStack;
+		const int32 Space = MaxStack - To.Quantity;
+		if (Space > 0)
+		{
+			const int32 Moved = FMath::Min(Space, From.Quantity);
+			To.Quantity += Moved;
+			From.Quantity -= Moved;
+			if (From.Quantity <= 0)
+			{
+				From.ItemData = nullptr;
+				From.Quantity = 0;
+				From.bEquipped = false;
+			}
+			if (LinkedInventoryWidget && LinkedInventoryWidget->IsInViewport())
+			{
+				LinkedInventoryWidget->RefreshInventory();
+			}
+			return;
+		}
+	}
+	if (!To.ItemData)
+	{
+		To = From;
+		From.ItemData = nullptr;
+		From.Quantity = 0;
+		From.bEquipped = false;
+	}
+	else
+	{
+		TargetSlots.Swap(fromIndex, toIndex);
+	}
+	if (LinkedInventoryWidget && LinkedInventoryWidget->IsInViewport())
+	{
+		LinkedInventoryWidget->RefreshInventory();
 	}
 }
 
@@ -124,9 +160,9 @@ void UInventoryComponent::RemoveItem(EItemType type, int32 index)
 	Slots[index].Quantity = 0;
 	Slots[index].bEquipped = false;
 
-	if (linkedInventoryWidget && linkedInventoryWidget->IsInViewport())
+	if (LinkedInventoryWidget && LinkedInventoryWidget->IsInViewport())
 	{
-		linkedInventoryWidget->RefreshInventory();
+		LinkedInventoryWidget->RefreshInventory();
 	}
 }
 
@@ -140,4 +176,27 @@ const TArray<FInventorySlot>& UInventoryComponent::GetSlots(EItemType type) cons
 	{
 		return EquipmentSlots;
 	}
+}
+
+void UInventoryComponent::OnRep_ConsumeSlots()
+{
+	if (LinkedInventoryWidget && LinkedInventoryWidget->IsInViewport())
+	{
+		LinkedInventoryWidget->RefreshInventory();
+	}
+}
+
+void UInventoryComponent::OnRep_EquipmentSlots()
+{
+	if (LinkedInventoryWidget && LinkedInventoryWidget->IsInViewport())
+	{
+		LinkedInventoryWidget->RefreshInventory();
+	}
+}
+
+void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(UInventoryComponent, ConsumeSlots, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UInventoryComponent, EquipmentSlots, COND_OwnerOnly)
 }

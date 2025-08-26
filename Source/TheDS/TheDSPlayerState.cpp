@@ -49,6 +49,17 @@ void ATheDSPlayerState::OnRep_PartyMembers()
 	}
 }
 
+void ATheDSPlayerState::SetLastVillage(FName Village, const FTransform& Spawn)
+{
+	LastVisitedVillage = Village;
+	LastVillageSpawn = Spawn;
+}
+
+void ATheDSPlayerState::SetLastField(FName Field)
+{
+	LastVisitedField = Field;
+}
+
 void ATheDSPlayerState::SetReplicatedPartyMembers(const TArray<FPartyMember>& Members)
 {
 	PartyMembers = Members;
@@ -61,4 +72,7 @@ void ATheDSPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ATheDSPlayerState, PartyLeader);
 	DOREPLIFETIME(ATheDSPlayerState, PartyMembers);
 	DOREPLIFETIME(ATheDSPlayerState, Nickname);
+	DOREPLIFETIME(ATheDSPlayerState, LastVisitedVillage);
+	DOREPLIFETIME(ATheDSPlayerState, LastVillageSpawn);
+	DOREPLIFETIME(ATheDSPlayerState, LastVisitedField);
 }

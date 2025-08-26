@@ -80,15 +80,19 @@ void ABaseEnemyCharacter::SetCharacterDefaults()
 
 void ABaseEnemyCharacter::Die(ABaseCharacter* Causer)
 {
-	DropLoot();
-	Causer->Stat->AddExperience(Stat->GetEnemyEXP());
 	if (HasAuthority())
 	{
-		if (SpawnManager)
+		LastKillerPC = Causer ? Cast<APlayerController>(Causer->GetController()) : nullptr;
+		DropLoot();
+		Causer->Stat->AddExperience(Stat->GetEnemyEXP());
+		if (HasAuthority())
 		{
-			SpawnManager->NotifyEnemyDied(GetClass());
+			if (SpawnManager)
+			{
+				SpawnManager->NotifyEnemyDied(GetClass());
+			}
+			Destroy();
 		}
-		Destroy();
 	}
 }
 

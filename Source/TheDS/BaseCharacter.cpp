@@ -10,6 +10,8 @@
 #include "BaseMerchantNPC.h"
 #include "kismet/GameplayStatics.h"
 #include "InteractInterface.h"
+#include "UserPlayerController.h"
+#include "TheDSPlayerState.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -43,11 +45,14 @@ void ABaseCharacter::PostInitializeComponents()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Error, TEXT("equipmentComponent is: %s"), EquipmentComponent ? TEXT("VALID") : TEXT("NULL"));
-	InventoryComponent->AddItem(TestSwordDataAsset, 1);
-	InventoryComponent->AddItem(TestShieldDataAsset, 1);
-	InventoryComponent->AddItem(TestHeadDataAsset, 1);
-	InventoryComponent->AddItem(TestPotionDataAsset, 150);
+	if (HasAuthority() && Stat)
+	{
+		InventoryComponent->AddItem(TestSwordDataAsset, 1);
+		InventoryComponent->AddItem(TestShieldDataAsset, 1);
+		InventoryComponent->AddItem(TestHeadDataAsset, 1);
+		InventoryComponent->AddItem(TestPotionDataAsset, 150);
+		Stat->OnDiedDelegate.AddUObject(this, &ABaseCharacter::ServerDie);
+	}
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -75,6 +80,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed, this, &ABaseCharacter::InteractPickUp);
 	PlayerInputComponent->BindAction("Talk", IE_Pressed, this, &ABaseCharacter::InteractMerchant);
+	PlayerInputComponent->BindAction("UsePortal", IE_Pressed, this, &ABaseCharacter::InteractPortal);
 }
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -151,12 +157,17 @@ void ABaseCharacter::MulticastStopRun_Implementation()
 
 void ABaseCharacter::InteractPickUp()
 {
-	TryInteract(EInteractionType::PickUp);
+	ServerTryPickup();
 }
 
 void ABaseCharacter::InteractMerchant()
 {
 	TryInteract(EInteractionType::Talk);
+}
+
+void ABaseCharacter::InteractPortal()
+{
+	TryInteract(EInteractionType::Portal);
 }
 
 void ABaseCharacter::ReceiveDamage(float damage)
@@ -235,6 +246,11 @@ void ABaseCharacter::TryInteract(EInteractionType InteractionType)
 				Closest = Actor;
 				MinDist = Distance;
 			}
+			else if (InteractionType == EInteractionType::Portal && Actor->ActorHasTag("Portal"))
+			{
+				Closest = Actor;
+				MinDist = Distance;
+			}
 		}
 	}
 
@@ -245,5 +261,35 @@ void ABaseCharacter::TryInteract(EInteractionType InteractionType)
 		{
 			Interface->Interact(this);
 		}
+	}
+}
+
+void ABaseCharacter::ServerTryPickup_Implementation()
+{
+	if (!HasAuthority()) return;
+
+	TryInteract(EInteractionType::PickUp);
+}
+
+void ABaseCharacter::ServerDie()
+{
+	if (!HasAuthority() || !Stat) return;
+
+	Stat->ApplyDiedPenalty();
+	Stat->FullRestore();
+
+	AUserPlayerController* PC = Cast<AUserPlayerController>(Controller);
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (!PC || !PS) return;
+
+	FName TargetMap;
+	FTransform TargetSpawn;
+	if (PC->FindRespawnMap(PS, TargetMap, TargetSpawn))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Player Dead And Respawn"));
+		UE_LOG(LogTemp, Error, TEXT("Respawn to %s at %s"),
+			*TargetMap.ToString(),
+			*TargetSpawn.GetLocation().ToString());
+		PC->ServerLoadAndWarp(TargetMap, TargetSpawn, false);
 	}
 }

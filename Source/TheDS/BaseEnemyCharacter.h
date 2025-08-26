@@ -49,6 +49,9 @@ protected:
 	UPROPERTY()
 	class AEnemySpawnManager* SpawnManager;
 
+	UPROPERTY()
+	APlayerController* LastKillerPC = nullptr;
+
 protected:
 	virtual void PostInitializeComponents() override;
 

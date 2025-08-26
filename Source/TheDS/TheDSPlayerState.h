@@ -21,6 +21,15 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	FString Nickname;
 
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	FName LastVisitedVillage = NAME_None;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	FTransform LastVillageSpawn;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	FName LastVisitedField = NAME_None;
+
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -45,6 +54,16 @@ public:
 	UFUNCTION()
 	void OnRep_PartyMembers();
 
+	UFUNCTION()
+	void SetLastVillage(FName Village, const FTransform& Spawn);
+
+	UFUNCTION()
+	void SetLastField(FName Field);
+
 	const TArray<FPartyMember>& GetReplicatedPartyMembers() const { return PartyMembers; }
 	void SetReplicatedPartyMembers(const TArray<FPartyMember>& Members);
+
+	const FName& GetLastVillage() const { return LastVisitedVillage; }
+	const FName& GetLastField() const { return LastVisitedField; }
+	const FTransform& GetLastVillageSpawn() const { return LastVillageSpawn; }
 };
