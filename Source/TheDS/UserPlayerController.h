@@ -13,6 +13,7 @@ class UNPCShopWidget;
 class UInvitePartyWidget;
 class URespawnDataAsset;
 class ATheDSPlayerState;
+class URaidConfirmWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -37,6 +38,8 @@ public:
 	void UsePortal(class APortalActor* Portal);
 
 	bool FindRespawnMap(ATheDSPlayerState* PS, FName& FindVillage, FTransform& FindSpawn) const;
+
+	bool AreAllPartyMembersInVillage(FName RequiredVillage) const;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -64,6 +67,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Respawn")
 	TObjectPtr<URespawnDataAsset> RespawnData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Raid")
+	TSubclassOf<URaidConfirmWidget> RaidConfirmWidgetClass;
 
 private:
 	UPROPERTY()
@@ -115,17 +121,26 @@ public:
 	void ClientReceiveChat(const FChatMessage& Chat);
 
 	UFUNCTION(Server, Reliable)
-	void ServerLoadAndWarp(FName LevelName, FTransform Spawn, bool bIsRaid);
+	void ServerSystemChat(const FChatMessage& Chat);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastLoadAndWarp(FName LevelName);
+	UFUNCTION(Server, Reliable) 
+	void ServerSetLastVillage(FName Village, FTransform Spawn);
+
+	UFUNCTION(Server, Reliable) 
+	void ServerSetLastField(FName Field);
+
+	UFUNCTION(Server, Reliable)
+	void ServerLoadAndWarp(FName LevelName, FTransform Spawn, bool bIsRaid);
 
 	UFUNCTION(Client, Reliable)
 	void ClientSetVisibleLevel(FName NewLevelName);
 
+	UFUNCTION(Server, Reliable)
+	void ServerShowRaidConfirm(FName LevelName, FTransform Spawn, FName RequiredVillage);
+
 	UFUNCTION(Client, Reliable)
-	void ClientShowRaidConfirm(FName LevelName, FTransform Spawn);
+	void ClientShowRaidConfirm(FName LevelName, FTransform Spawn, FName RequiredVillage);
 
 	UFUNCTION(Server, Reliable)
-	void ServerRaidConfirmResult(bool bAccept, FName LevelName, FTransform Spawn);
+	void ServerRaidConfirmResult(bool bAccept, FName LevelName, FTransform Spawn, FName RequiredVillage);
 };
