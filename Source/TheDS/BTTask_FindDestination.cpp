@@ -19,7 +19,7 @@ EBTNodeResult::Type UBTTask_FindDestination::ExecuteTask(UBehaviorTreeComponent&
 		if (NavSystem)
 		{
 			FNavLocation RandomLocation;
-			if (NavSystem->GetRandomReachablePointInRadius(Pawn->GetActorLocation(), 1000.f, RandomLocation))
+			if (NavSystem->GetRandomReachablePointInRadius(Pawn->GetActorLocation(), PatrolRadius, RandomLocation))
 			{
 				OwnerComp.GetBlackboardComponent()->SetValueAsVector(FName("Destination"), RandomLocation);
 				return EBTNodeResult::Succeeded;

@@ -56,6 +56,7 @@ public:
     void ApplyDiedPenalty();
 
     void AddAttack(float PlusAttack);
+    void AddMagic(float PlusMagic);
     void AddDefense(float PlusDefense);
 
     void AddMoney(int32 Money);

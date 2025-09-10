@@ -7,6 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "EnemySpawnManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "BossBase.h"
 
 ABaseEnemyCharacter::ABaseEnemyCharacter()
 {
@@ -100,6 +101,13 @@ void ABaseEnemyCharacter::ReceiveDamage(class ABaseCharacter* Causer, float Dama
 {
 	Stat->GetDamage(Damage);
 	UE_LOG(LogTemp, Warning, TEXT("Remain HP: %f"), Stat->GetCurrentHP());
+
+	if (ABossBase* Boss = Cast<ABossBase>(this))
+	{
+		AController* AttackController = Causer ? Causer->GetController() : nullptr;
+		Boss->ServerReportThreat(AttackController, Damage);
+	}
+
 	if (Stat->GetCurrentHP() <= 0.f)
 	{
 		Die(Causer);

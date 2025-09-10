@@ -31,9 +31,6 @@ protected:
 
 	FTimerHandle AttackResetTimerHandle;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
-	class UBaseStatComponent* Stat;
-
 	UPROPERTY(BlueprintReadOnly)
 	class UWidgetComponent* HPWidgetComponent;
 
@@ -51,6 +48,10 @@ protected:
 
 	UPROPERTY()
 	APlayerController* LastKillerPC = nullptr;
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat")
+	class UBaseStatComponent* Stat;
 
 protected:
 	virtual void PostInitializeComponents() override;

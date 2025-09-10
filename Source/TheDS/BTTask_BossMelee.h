@@ -2,19 +2,22 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "BTTask_FindDestination.generated.h"
+#include "BTTask_BossMelee.generated.h"
 
 UCLASS()
-class THEDS_API UBTTask_FindDestination : public UBTTaskNode
+class THEDS_API UBTTask_BossMelee : public UBTTaskNode
 {
 	GENERATED_BODY()
 	
 public:
 	UPROPERTY(EditAnywhere)
-	float PatrolRadius = 1000.f;
+	float Cooldown = 1.5f;
+
+	UPROPERTY(EditAnywhere)
+	FBlackboardKeySelector NextAllowedTimeKey;
 
 public:
-	UBTTask_FindDestination();
+	UBTTask_BossMelee();
 
 public:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;

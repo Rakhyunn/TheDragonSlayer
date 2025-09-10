@@ -72,7 +72,7 @@ void ABasicEnemy_1::ServerAttack_Implementation()
 	DrawDebugCapsule(GetWorld(), Center, HalfHeight, AttackRadius, Rotation, DrawColor, false, 2.f);
 	if (bHit && HitResult.GetActor())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Warrior hit: %s"), *HitResult.GetActor()->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("BasicEnemy hit: %s"), *HitResult.GetActor()->GetName());
 		if (HitResult.GetActor()->ActorHasTag(TEXT("Player"))) {
 			ABaseCharacter* HitPlayer = Cast<ABaseCharacter>(HitResult.GetActor());
 			HitPlayer->ReceiveDamage(Stat->GetAttack());

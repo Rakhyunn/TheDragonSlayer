@@ -106,6 +106,15 @@ void UBaseStatComponent::AddAttack(float PlusAttack)
 	OnRep_AttackChanged();
 }
 
+void UBaseStatComponent::AddMagic(float PlusMagic)
+{
+	if (Magic + PlusMagic <= 0)
+		Magic = 0;
+	else
+		Magic += PlusMagic;
+	OnRep_MagicChanged();
+}
+
 void UBaseStatComponent::AddDefense(float PlusDefense)
 {
 	if (Defense + PlusDefense <= 0)
