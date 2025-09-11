@@ -89,7 +89,15 @@ private:
 
 	FTimerHandle PortalWarpTimer;
 
-	FName CurrentLevel;
+	UPROPERTY(Transient)
+	FName CurrentStreamLevel = NAME_None;
+
+	UPROPERTY(Transient)
+	int32 PreparedCount = 0;
+	UPROPERTY(Transient)
+	int32 ExpectedCount = 0;
+	UPROPERTY(Transient)
+	FString PendingTravelURL;
 
 public:
 	APlayerState* FindNearestPlayer();
@@ -143,4 +151,13 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRaidConfirmResult(bool bAccept, FName LevelName, FTransform Spawn, FName RequiredVillage);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStartRaidInstance(FName BossMap, FName RequiredVillage);
+	UFUNCTION(Client, Reliable)
+	void ClientPrepareForInstanceTravel();
+	UFUNCTION(Server, Reliable)
+	void ServerNotifyPreparedForInstance();
+	UFUNCTION(Client, Reliable)
+	void ClientTravelToBossInstance(const FString& TravelURL);
 };

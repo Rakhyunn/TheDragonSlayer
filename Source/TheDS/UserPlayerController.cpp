@@ -21,6 +21,7 @@
 #include "RespawnDataAsset.h"
 #include "EnemySpawnManager.h"
 #include "RaidConfirmWidget.h"
+#include "DSGameMode.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -59,8 +60,6 @@ void AUserPlayerController::BeginPlay()
 			ChattingWidgetInstance->SetPositionInViewport(FVector2D(100, 200));
 		}
 	}
-
-	CurrentLevel = GetLevel()->GetFName();
 }
 
 void AUserPlayerController::SetupInputComponent()
@@ -534,17 +533,16 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 
 void AUserPlayerController::ClientSetVisibleLevel_Implementation(FName NewLevelName)
 {
-	FLatentActionInfo Latent;
-	Latent.CallbackTarget = this;
-	if (!CurrentLevel.IsNone())
+	if (CurrentStreamLevel != NAME_None && CurrentStreamLevel != NewLevelName)
 	{
-		UGameplayStatics::UnloadStreamLevel(this, CurrentLevel, Latent, false);
+		UGameplayStatics::UnloadStreamLevel(this, CurrentStreamLevel, FLatentActionInfo(), true);
 	}
-	if (!NewLevelName.IsNone())
+	if (NewLevelName != NAME_None)
 	{
-		UGameplayStatics::LoadStreamLevel(this, NewLevelName, true, false, Latent);
-		CurrentLevel = NewLevelName;
+		UGameplayStatics::LoadStreamLevel(this, NewLevelName, true, true, FLatentActionInfo());
 	}
+
+	CurrentStreamLevel = NewLevelName;
 }
 
 void AUserPlayerController::ServerShowRaidConfirm_Implementation(FName LevelName, FTransform Spawn, FName RequiredVillage)
@@ -588,4 +586,62 @@ void AUserPlayerController::ServerRaidConfirmResult_Implementation(bool bAccept,
 	}
 	// 서버에서 파티 멤버에게 적용
 	ServerLoadAndWarp(LevelName, Spawn, true);
+	//ServerStartRaidInstance(LevelName, RequiredVillage);
+}
+
+void AUserPlayerController::ServerStartRaidInstance_Implementation(FName BossMap, FName RequiredVillage)
+{
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (!PS || !PS->IsPartyLeader() || !AreAllPartyMembersInVillage(RequiredVillage)) return;
+	const FString PartyId = FString::Printf(TEXT("PartyLeader_%s"), *PS->GetPlayerName());
+	const FString BossMapPath = FString::Printf(TEXT("/Game/Maps/%s"), *BossMap.ToString());
+	if (ADSGameMode* GM = GetWorld()->GetAuthGameMode<ADSGameMode>())
+	{
+		GM->StartBossInstance(PartyId, BossMapPath, [this](const FString& URL){
+			if (URL.IsEmpty()) 
+			{
+				FChatMessage ErrorMsg;
+				ErrorMsg.Sender = TEXT("시스템");
+				ErrorMsg.Message = FString::Printf(TEXT("레이드 생성 실패"));
+				ErrorMsg.Channel = EChatChannel::Party;
+				ServerSystemChat(ErrorMsg);
+				return;
+			}
+			PendingTravelURL = URL;
+			PreparedCount = 0;
+			const TArray<FPartyMember>& Ms = GetPlayerState<ATheDSPlayerState>()->GetReplicatedPartyMembers();
+			ExpectedCount = Ms.Num() + 1; // +리더
+			for (const FPartyMember& M : Ms)
+				if (auto* PC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+					PC->ClientPrepareForInstanceTravel();
+			ClientPrepareForInstanceTravel(); // 리더
+			});
+	}
+}
+
+void AUserPlayerController::ClientPrepareForInstanceTravel_Implementation()
+{
+	ServerNotifyPreparedForInstance();
+}
+
+void AUserPlayerController::ServerNotifyPreparedForInstance_Implementation()
+{
+	if (!HasAuthority()) return;
+	PreparedCount++;
+	if (PreparedCount >= ExpectedCount && !PendingTravelURL.IsEmpty())
+	{
+		ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>(); if (!PS) return;
+		for (const FPartyMember& M : PS->GetReplicatedPartyMembers())
+			if (auto* PC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+				PC->ClientTravelToBossInstance(PendingTravelURL);
+		ClientTravelToBossInstance(PendingTravelURL);
+		PreparedCount = 0;
+		ExpectedCount = 0;
+		PendingTravelURL.Reset();
+	}
+}
+
+void AUserPlayerController::ClientTravelToBossInstance_Implementation(const FString& TravelURL)
+{
+	ClientTravel(TravelURL, TRAVEL_Absolute);
 }
