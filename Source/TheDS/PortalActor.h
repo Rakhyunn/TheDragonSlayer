@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal")
 	FTransform TargetTransform;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal")
+	FName RequiredMap;
+
 public:	
 	APortalActor();
 
@@ -36,4 +39,5 @@ public:
 	FORCEINLINE EPortalType GetPortalType() const { return PortalType; }
 	FORCEINLINE FName GetTargetMap() const { return TargetMap; }
 	FORCEINLINE FTransform GetTargetTransform() const { return TargetTransform; }
+	FORCEINLINE FName GetRequiredMap() const { return RequiredMap; }
 };

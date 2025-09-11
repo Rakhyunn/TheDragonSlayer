@@ -20,6 +20,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "RespawnDataAsset.h"
 #include "EnemySpawnManager.h"
+#include "RaidConfirmWidget.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -168,15 +169,11 @@ void AUserPlayerController::SwitchToPartyChat()
 	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
 	if (PS && !PS->IsInParty())
 	{
-		if (ChattingWidgetInstance)
-		{
-			FChatMessage ErrorMsg;
-			ErrorMsg.Sender = TEXT("시스템");
-			ErrorMsg.Message = TEXT("파티에 속해있지 않습니다.");
-			ErrorMsg.Channel = EChatChannel::Global;
-
-			ChattingWidgetInstance->AddChat(ErrorMsg);
-		}
+		FChatMessage ErrorMsg;
+		ErrorMsg.Sender = TEXT("시스템");
+		ErrorMsg.Message = TEXT("파티에 속해있지 않습니다.");
+		ErrorMsg.Channel = EChatChannel::Global;
+		ServerSystemChat(ErrorMsg);
 		return;
 	}
 	if (ChattingWidgetInstance)
@@ -194,14 +191,14 @@ void AUserPlayerController::UsePortal(APortalActor* Portal)
 	switch (Portal->GetPortalType())
 	{
 	case EPortalType::Village:
-		if (PS) PS->SetLastVillage(Portal->GetTargetMap(), Portal->GetTargetTransform());
+		if (PS) ServerSetLastVillage(Portal->GetTargetMap(), Portal->GetTargetTransform());
 		if (!Portal->GetTargetMap().IsNone())
 		{
 			ServerLoadAndWarp(Portal->GetTargetMap(), Portal->GetTargetTransform(), false);
 		}
 		break;
 	case EPortalType::MonsterField:
-		if (PS) PS->SetLastField(Portal->GetTargetMap());
+		if (PS) ServerSetLastField(Portal->GetTargetMap());
 		if (!Portal->GetTargetMap().IsNone())
 		{
 			ServerLoadAndWarp(Portal->GetTargetMap(), Portal->GetTargetTransform(), false);
@@ -210,31 +207,33 @@ void AUserPlayerController::UsePortal(APortalActor* Portal)
 	case EPortalType::RaidField:
 		if (!PS || !PS->IsInParty())
 		{
-			if (ChattingWidgetInstance)
-			{
-				FChatMessage ErrorMsg;
-				ErrorMsg.Sender = TEXT("시스템");
-				ErrorMsg.Message = TEXT("파티에 속해있지 않습니다.");
-				ErrorMsg.Channel = EChatChannel::Global;
-
-				ChattingWidgetInstance->AddChat(ErrorMsg);
-			}
+			FChatMessage ErrorMsg;
+			ErrorMsg.Sender = TEXT("시스템");
+			ErrorMsg.Message = TEXT("파티에 속해있지 않습니다.");
+			ErrorMsg.Channel = EChatChannel::Global;
+			ServerSystemChat(ErrorMsg);
 			return;
 		}
 		else if (!PS->IsPartyLeader())
 		{
-			if (ChattingWidgetInstance)
-			{
-				FChatMessage ErrorMsg;
-				ErrorMsg.Sender = TEXT("시스템");
-				ErrorMsg.Message = TEXT("파티장이 아닙니다.");
-				ErrorMsg.Channel = EChatChannel::Global;
-
-				ChattingWidgetInstance->AddChat(ErrorMsg);
-			}
+			FChatMessage ErrorMsg;
+			ErrorMsg.Sender = TEXT("시스템");
+			ErrorMsg.Message = TEXT("파티장이 아닙니다.");
+			ErrorMsg.Channel = EChatChannel::Global;
+			ServerSystemChat(ErrorMsg);
 			return;
 		}
-		ClientShowRaidConfirm(Portal->GetTargetMap(), Portal->GetTargetTransform());
+		FName RequiredMap = Portal->GetRequiredMap();
+		if (!AreAllPartyMembersInVillage(RequiredMap))
+		{
+			FChatMessage ErrorMsg;
+			ErrorMsg.Sender = TEXT("시스템");
+			ErrorMsg.Message = FString::Printf(TEXT("모두가 %s에 있지 않습니다"), *RequiredMap.ToString());
+			ErrorMsg.Channel = EChatChannel::Global;
+			ServerSystemChat(ErrorMsg);
+			return;
+		}
+		ServerShowRaidConfirm(Portal->GetTargetMap(), Portal->GetTargetTransform(), RequiredMap);
 		break;
 	}
 }
@@ -259,6 +258,29 @@ bool AUserPlayerController::FindRespawnMap(ATheDSPlayerState* PS, FName& FindVil
 	FindVillage = FName("Village_2");
 	FindSpawn = FTransform(FRotator::ZeroRotator, FVector(-1350.f, 3170.f, 200.f));
 	return true;
+}
+
+bool AUserPlayerController::AreAllPartyMembersInVillage(FName RequiredVillage) const
+{
+	const ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (!PS) return false;
+	const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
+	bool bInVillage = true;
+	for (const FPartyMember& M : Members)
+	{
+		if (const ATheDSPlayerState* PS_Member = Cast<ATheDSPlayerState>(M.Member))
+		{
+			if (PS_Member->GetLastVillage() != RequiredVillage)
+			{
+				bInVillage = false;
+			}
+		}
+		else
+		{
+			bInVillage = false;
+		}
+	}
+	return bInVillage;
 }
 
 void AUserPlayerController::ServerRequestCreateParty_Implementation()
@@ -433,6 +455,23 @@ void AUserPlayerController::ClientReceiveChat_Implementation(const FChatMessage&
 	}
 }
 
+void AUserPlayerController::ServerSystemChat_Implementation(const FChatMessage& Chat)
+{
+	ClientReceiveChat(Chat);
+}
+
+void AUserPlayerController::ServerSetLastVillage_Implementation(FName Village, FTransform Spawn)
+{
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (PS) PS->SetLastVillage(Village, Spawn);
+}
+
+void AUserPlayerController::ServerSetLastField_Implementation(FName Field)
+{
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (PS) PS->SetLastField(Field);
+}
+
 void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FTransform Spawn, bool bIsRaid)
 {
 	if (LevelName.IsNone()) return;
@@ -467,7 +506,6 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 								}
 							}
 						};
-
 					if (bIsRaid)
 					{
 						if (ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>())
@@ -494,13 +532,6 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 		}, 0.05f, true);
 }
 
-void AUserPlayerController::MulticastLoadAndWarp_Implementation(FName LevelName)
-{
-	FLatentActionInfo Latent; 
-	Latent.CallbackTarget = this;
-	UGameplayStatics::LoadStreamLevel(this, LevelName, true, false, Latent);
-}
-
 void AUserPlayerController::ClientSetVisibleLevel_Implementation(FName NewLevelName)
 {
 	FLatentActionInfo Latent;
@@ -516,16 +547,45 @@ void AUserPlayerController::ClientSetVisibleLevel_Implementation(FName NewLevelN
 	}
 }
 
-void AUserPlayerController::ClientShowRaidConfirm_Implementation(FName LevelName, FTransform Spawn)
+void AUserPlayerController::ServerShowRaidConfirm_Implementation(FName LevelName, FTransform Spawn, FName RequiredVillage)
 {
-	// 레이드 입장? Yes/No UI 출력
-	// Yes일 떄
-	ServerRaidConfirmResult(true, LevelName, Spawn);
+	ClientShowRaidConfirm(LevelName, Spawn, RequiredVillage);
 }
 
-void AUserPlayerController::ServerRaidConfirmResult_Implementation(bool bAccept, FName LevelName, FTransform Spawn)
+void AUserPlayerController::ClientShowRaidConfirm_Implementation(FName LevelName, FTransform Spawn, FName RequiredVillage)
 {
-	if (!bAccept) return;
+	if (!RaidConfirmWidgetClass) return;
+	URaidConfirmWidget* RaidConfirmWidget = CreateWidget<URaidConfirmWidget>(this, RaidConfirmWidgetClass);
+	if (RaidConfirmWidget)
+	{
+		RaidConfirmWidget->Init(LevelName, Spawn, RequiredVillage);
+		RaidConfirmWidget->AddToViewport();
+	}
+}
+
+void AUserPlayerController::ServerRaidConfirmResult_Implementation(bool bAccept, FName LevelName, FTransform Spawn, FName RequiredVillage)
+{
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (!PS || !PS->IsPartyLeader()) return;
+	UE_LOG(LogTemp, Warning, TEXT("Raid Confirm Get"));
+	if (!bAccept)
+	{
+		FChatMessage ErrorMsg;
+		ErrorMsg.Sender = TEXT("시스템");
+		ErrorMsg.Message = TEXT("레이드가 취소되었습니다");
+		ErrorMsg.Channel = EChatChannel::Party;
+		ServerSystemChat(ErrorMsg);
+		return;
+	}
+	if (!AreAllPartyMembersInVillage(RequiredVillage))
+	{
+		FChatMessage ErrorMsg;
+		ErrorMsg.Sender = TEXT("시스템");
+		ErrorMsg.Message = FString::Printf(TEXT("모두가 %s에 있지 않습니다"), *RequiredVillage.ToString());
+		ErrorMsg.Channel = EChatChannel::Party;
+		ServerSystemChat(ErrorMsg);
+		return;
+	}
 	// 서버에서 파티 멤버에게 적용
 	ServerLoadAndWarp(LevelName, Spawn, true);
 }

@@ -17,7 +17,7 @@ void UBTService_FindTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 	if (Pawn)
 	{
 		FVector Center = Pawn->GetActorLocation();
-		float Range = 500.f;
+		float Range = SearchRadius;
 		TArray<FOverlapResult> OverlapResults;
 		FCollisionQueryParams QueryParams(NAME_Name, false, Pawn);
 		bool Result = GetWorld()->OverlapMultiByChannel
@@ -25,7 +25,7 @@ void UBTService_FindTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 			OverlapResults,
 			Center,
 			FQuat::Identity,
-			ECollisionChannel::ECC_GameTraceChannel1,
+			QueryChannel,
 			FCollisionShape::MakeSphere(Range),
 			QueryParams
 		);
@@ -37,13 +37,13 @@ void UBTService_FindTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 				if (Player)
 				{
 					DrawDebugSphere(GetWorld(), Center, Range, 10, FColor::Green, false, 0.5f);
-					OwnerComp.GetBlackboardComponent()->SetValueAsObject(FName("Target"), Player);
+					OwnerComp.GetBlackboardComponent()->SetValueAsObject(TargetKey.SelectedKeyName, Player);
 					return;
 				}
 			}
 
 		}
 		DrawDebugSphere(GetWorld(), Center, Range, 10, FColor::Red, false, 0.5f);
-		OwnerComp.GetBlackboardComponent()->SetValueAsObject(FName("Target"), nullptr);
+		OwnerComp.GetBlackboardComponent()->SetValueAsObject(TargetKey.SelectedKeyName, nullptr);
 	}
 }

@@ -15,11 +15,11 @@ bool UBTDecorator_CheckAttackRange::CalculateRawConditionValue(UBehaviorTreeComp
 	if (Pawn == nullptr)
 		return false;
 
-	auto Target = Cast<ABaseCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(FName("Target")));
+	auto Target = Cast<ABaseCharacter>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(TargetKey.SelectedKeyName));
 	if (Target == nullptr)
 		return false;
 
-	if (Target->GetDistanceTo(Pawn) > 200.f)
+	if (Target->GetDistanceTo(Pawn) > Range)
 		return false;
 
 	return Result;
