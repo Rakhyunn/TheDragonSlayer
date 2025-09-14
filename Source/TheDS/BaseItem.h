@@ -8,7 +8,7 @@ UENUM(BlueprintType)
 enum class EItemType : uint8
 {
 	IT_equipment,
-	IT_comsume,
+	IT_comsume
 };
 
 UCLASS(BlueprintType)
