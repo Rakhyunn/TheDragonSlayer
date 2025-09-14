@@ -36,9 +36,8 @@ void ABossBase::OnRep_ActiveAction()
     case EBossAction::Land:
         if (LandMontage) Anim->Montage_Play(LandMontage);
         break;
-    case EBossAction::Die:
-        if (DieMontage) Anim->Montage_Play(DieMontage);
-        break;
+    case EBossAction::Phase:
+        if (PhaseMontage) Anim->Montage_Play(PhaseMontage);
     }
 }
 
@@ -75,8 +74,8 @@ void ABossBase::MulticastPlayAction_Implementation(EBossAction Action, FName Sec
     case EBossAction::Land:
         if (LandMontage) Montage = LandMontage;
         break;
-    case EBossAction::Die:
-        if (DieMontage) Montage = DieMontage;
+    case EBossAction::Phase:
+        if (PhaseMontage) Montage = PhaseMontage;
         break;
     }
     if(Montage) Anim->Montage_JumpToSection(Section, Montage);

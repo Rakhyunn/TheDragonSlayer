@@ -19,8 +19,6 @@ bool UBTDecorator_CheckAttackRange::CalculateRawConditionValue(UBehaviorTreeComp
 	if (Target == nullptr)
 		return false;
 
-	if (Target->GetDistanceTo(Pawn) > Range)
-		return false;
-
-	return Result;
+	const float D = Target->GetDistanceTo(Pawn);
+	return (D >= MinRange && D <= MaxRange);
 }

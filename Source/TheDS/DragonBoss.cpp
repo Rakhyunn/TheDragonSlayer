@@ -6,6 +6,9 @@
 #include "BaseStatComponent.h"
 #include "UserPlayerController.h"
 #include "TheDSPlayerState.h"
+#include "Net/UnrealNetwork.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 ADragonBoss::ADragonBoss()
 {
@@ -23,6 +26,7 @@ void ADragonBoss::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (!bPhase2 && Stat && Stat->GetCurrentHP() <= Stat->GetMaxHP() * Phase2HPPercent)
 	{
+		ServerStartAction(EBossAction::Phase, NAME_None);
 		EnterPhase2();
 	}
 }
@@ -33,7 +37,7 @@ void ADragonBoss::DoMelee()
 	const float Now = GetWorld()->GetTimeSeconds();
 	if (Now < NextMeleeTime) return;
 	ServerStartAction(EBossAction::Melee, NAME_None);
-	NextMeleeTime = Now + RangedCooldown;
+	NextMeleeTime = Now + MeleeCooldown;
 }
 
 void ADragonBoss::DoRanged()
@@ -95,15 +99,45 @@ void ADragonBoss::Die(ABaseCharacter* Causer)
 				}
 			}
 		}
-		ServerStartAction(EBossAction::Die, NAME_None);
 		bDead = true;
+		OnRep_Dead();
+		EnableEndingInteract(true);
 		// Todo: 드래곤과의 인터랙션 활성화(파티장만 가능)
 	}
 }
 
+void ADragonBoss::OnRep_Dead()
+{
+	if (UCharacterMovementComponent* Move = GetCharacterMovement())
+	{
+		Move->StopMovementImmediately();
+		Move->DisableMovement();
+	}
+}
+
+void ADragonBoss::EnableEndingInteract(bool bEnable)
+{
+	bCanEndingInteract = bEnable;
+	if (bEnable)
+	{ 
+		Tags.AddUnique(TEXT("BossEnding")); 
+	}
+	else
+	{ 
+		Tags.Remove(TEXT("BossEnding")); 
+	}
+}
+
+void ADragonBoss::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ADragonBoss, bDead);
+	DOREPLIFETIME(ADragonBoss, bCanEndingInteract);
+}
+
 void ADragonBoss::Interact(ABaseCharacter* Interactor)
 {
-	if (!Interactor) return;
+	if (!Interactor || !bCanEndingInteract) return;
 
 	AUserPlayerController* UserPlayer = Cast<AUserPlayerController>(Interactor->GetController());
 	if (UserPlayer)

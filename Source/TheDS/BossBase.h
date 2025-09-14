@@ -17,7 +17,7 @@ enum class EBossAction : uint8
 	Teleport,		// 텔레포트(마녀)
 	TakeOff,		// 이륙(드래곤)
 	Land,			// 착륙(드래곤)
-	Die				// 사망
+	Phase			// 페이즈(드래곤)
 };
 
 USTRUCT(BlueprintType)
@@ -84,7 +84,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* LandMontage = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Animation")
-	UAnimMontage* DieMontage = nullptr;
+	UAnimMontage* PhaseMontage = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "BT")
 	bool bUseBehaviorTree;

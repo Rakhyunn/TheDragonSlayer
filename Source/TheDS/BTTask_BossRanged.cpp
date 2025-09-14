@@ -15,7 +15,7 @@ EBTNodeResult::Type UBTTask_BossRanged::ExecuteTask(UBehaviorTreeComponent& Owne
     if (!Boss || !Boss->HasAuthority()) return EBTNodeResult::Failed;
     const float Now = Boss->GetWorld()->GetTimeSeconds();
     UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-    if (BB && NextAllowedTimeKey.SelectedKeyType)
+    if (BB && !NextAllowedTimeKey.SelectedKeyName.IsNone())
     {
         const float NextAllowed = BB->GetValueAsFloat(NextAllowedTimeKey.SelectedKeyName);
         if (Now < NextAllowed) return EBTNodeResult::Failed;

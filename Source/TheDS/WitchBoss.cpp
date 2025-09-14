@@ -71,7 +71,6 @@ void AWitchBoss::Die(ABaseCharacter* Causer)
 				}
 			}
 		}
-		ServerStartAction(EBossAction::Die, NAME_None);
 	}
 }
 
