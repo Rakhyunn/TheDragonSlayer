@@ -28,6 +28,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Reward")
     UBaseItem* DragonPearlDataAsset = nullptr;
     
+    UPROPERTY(ReplicatedUsing = OnRep_Dead, BlueprintReadOnly, Category = "State")
+    bool bDead = false;
+
 public:
     AWitchBoss();
 
@@ -40,6 +43,11 @@ protected:
 
     virtual void Die(ABaseCharacter* Causer) override;
 
+    UFUNCTION()
+    void OnRep_Dead();
+
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
     const FDotInfo& GetPoisonDot() const { return PoisonDot; }
 
@@ -48,4 +56,7 @@ public:
 
     UFUNCTION(NetMulticast, Reliable)
     void MulticastSetHidden(bool bShow);
+
+    UFUNCTION(BlueprintCallable)
+    bool IsDead() const { return bDead; }
 };

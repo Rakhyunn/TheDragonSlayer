@@ -6,6 +6,10 @@
 #include "UserPlayerController.h"
 #include "TheDSPlayerState.h"
 #include "InventoryComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "NavigationSystem.h"
+#include "Components/CapsuleComponent.h"
 
 AWitchBoss::AWitchBoss()
 {
@@ -71,14 +75,31 @@ void AWitchBoss::Die(ABaseCharacter* Causer)
 				}
 			}
 		}
+		bDead = true;
+		OnRep_Dead();
 	}
+}
+
+void AWitchBoss::OnRep_Dead()
+{
+	if (UCharacterMovementComponent* Move = GetCharacterMovement())
+	{
+		Move->StopMovementImmediately();
+		Move->DisableMovement();
+	}
+}
+
+void AWitchBoss::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AWitchBoss, bDead);
 }
 
 void AWitchBoss::ServerTeleportToNearestTarget_Implementation(float SearchRange)
 {
 	if (ABaseCharacter* Target = FindNearestPlayer(SearchRange))
 	{
-		ServerTeleportNear(Target); // 기존의 (보호수준) 함수 호출
+		ServerTeleportNear(Target);
 	}
 }
 

@@ -18,6 +18,5 @@ EBTNodeResult::Type UBTTask_BossDecideAction::ExecuteTask(UBehaviorTreeComponent
 	const float R = FMath::FRandRange(0.f, Total);
 	const bool bTeleportOrFly = (R >= WalkWeight);
 	BB->SetValueAsBool(DoNextActionKey.SelectedKeyName, bTeleportOrFly);
-	UE_LOG(LogTemp, Warning, TEXT("Next Action Decided"));
 	return EBTNodeResult::Succeeded;
 }
