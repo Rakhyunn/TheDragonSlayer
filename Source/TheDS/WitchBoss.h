@@ -16,7 +16,7 @@ public:
 
 protected:
     UPROPERTY(EditAnywhere, Category = "DotInfo")
-    FDotInfo PoisonDot { 5.f, 10.f, 1.f, "Poison" };
+    FDotInfo PoisonDot { 3.f, 6.f, 1.f, "Poison" };
 
     // 순간이동
     UPROPERTY(EditAnywhere, Category = "Move")
@@ -28,17 +28,21 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Reward")
     UBaseItem* DragonPearlDataAsset = nullptr;
     
+    UPROPERTY(ReplicatedUsing = OnRep_Dead, BlueprintReadOnly, Category = "State")
+    bool bDead = false;
+
 public:
     AWitchBoss();
 
 protected:
-    virtual void DoMelee() override;
-    virtual void DoRanged() override;
-    virtual void DoMoveOrSpecial() override;
-
     void ServerTeleportNear(ABaseCharacter* Target);
 
     virtual void Die(ABaseCharacter* Causer) override;
+
+    UFUNCTION()
+    void OnRep_Dead();
+
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
     const FDotInfo& GetPoisonDot() const { return PoisonDot; }
@@ -48,4 +52,7 @@ public:
 
     UFUNCTION(NetMulticast, Reliable)
     void MulticastSetHidden(bool bShow);
+
+    UFUNCTION(BlueprintCallable)
+    bool IsDead() const { return bDead; }
 };

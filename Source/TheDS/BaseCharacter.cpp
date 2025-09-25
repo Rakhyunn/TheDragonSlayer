@@ -79,7 +79,7 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &ABaseCharacter::Attack);
 
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed, this, &ABaseCharacter::InteractPickUp);
-	PlayerInputComponent->BindAction("Talk", IE_Pressed, this, &ABaseCharacter::InteractMerchant);
+	PlayerInputComponent->BindAction("Talk", IE_Pressed, this, &ABaseCharacter::InteractNPC);
 	PlayerInputComponent->BindAction("UsePortal", IE_Pressed, this, &ABaseCharacter::InteractPortal);
 }
 
@@ -160,9 +160,9 @@ void ABaseCharacter::InteractPickUp()
 	ServerTryPickup();
 }
 
-void ABaseCharacter::InteractMerchant()
+void ABaseCharacter::InteractNPC()
 {
-	TryInteract(EInteractionType::Talk);
+	ServerTryTalk();
 }
 
 void ABaseCharacter::InteractPortal()
@@ -241,7 +241,7 @@ void ABaseCharacter::TryInteract(EInteractionType InteractionType)
 				Closest = Actor;
 				MinDist = Distance;
 			}
-			else if (InteractionType == EInteractionType::Talk && Actor->ActorHasTag("MerchantNPC"))
+			else if (InteractionType == EInteractionType::Talk && (Actor->ActorHasTag("MerchantNPC") || Actor->ActorHasTag("BossEnding")))
 			{
 				Closest = Actor;
 				MinDist = Distance;
@@ -269,6 +269,13 @@ void ABaseCharacter::ServerTryPickup_Implementation()
 	if (!HasAuthority()) return;
 
 	TryInteract(EInteractionType::PickUp);
+}
+
+void ABaseCharacter::ServerTryTalk_Implementation()
+{
+	if (!HasAuthority()) return;
+
+	TryInteract(EInteractionType::Talk);
 }
 
 void ABaseCharacter::ServerDie()

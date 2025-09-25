@@ -27,7 +27,7 @@ void UAN_DragonMelee::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase
     for (const FHitResult& Hit : Hits)
     {
         AActor* A = Hit.GetActor();
-        if (!A || A == Dragon || Already.Contains(A)) continue;
+        if (!A || A == Dragon || Already.Contains(A) || !A->ActorHasTag("Player")) continue;
         if (ABaseCharacter* Player = Cast<ABaseCharacter>(A))
         {
             Already.Add(A);

@@ -54,6 +54,8 @@ public:
 
 	const TArray<FInventorySlot>& GetSlots(EItemType Type) const;
 
+	bool HasItem(UBaseItem* Item, int32 NeedAmount = 1) const;
+
 protected:
 	UFUNCTION()
 	void OnRep_ConsumeSlots();

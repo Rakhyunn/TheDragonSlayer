@@ -17,7 +17,7 @@ enum class EBossAction : uint8
 	Teleport,		// 텔레포트(마녀)
 	TakeOff,		// 이륙(드래곤)
 	Land,			// 착륙(드래곤)
-	Die				// 사망
+	Phase			// 페이즈(드래곤)
 };
 
 USTRUCT(BlueprintType)
@@ -61,17 +61,6 @@ public:
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_ActiveAction)
 	EBossAction ActiveAction = EBossAction::Idle;
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ThinkInterval = 1.f;
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float MeleeCooldown = 2.f;
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float RangedCooldown = 3.f;
-
-	float NextMeleeTime = 0.f;
-	float NextRangedTime = 0.f;
-
-	FTimerHandle ThinkTimer;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* MeleeMontage = nullptr;
@@ -84,10 +73,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* LandMontage = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Animation")
-	UAnimMontage* DieMontage = nullptr;
+	UAnimMontage* PhaseMontage = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "BT")
-	bool bUseBehaviorTree;
+	TArray<FTimerHandle> ActiveDotTimers;
 
 	UPROPERTY()
 	TMap<TWeakObjectPtr<AController>, FThreatEntry> ThreatMap;
@@ -110,13 +98,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	UFUNCTION()
-	void Think();
-
-	virtual void DoMelee() PURE_VIRTUAL(ABossBase::MeleeAttack, );
-	virtual void DoRanged() PURE_VIRTUAL(ABossBase::RangedAttack, );
-	virtual void DoMoveOrSpecial() PURE_VIRTUAL(ABossBase::MoveOrSpecial, );
 
 public:
 	UFUNCTION()

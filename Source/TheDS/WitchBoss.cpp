@@ -6,31 +6,23 @@
 #include "UserPlayerController.h"
 #include "TheDSPlayerState.h"
 #include "InventoryComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "NavigationSystem.h"
+#include "Components/CapsuleComponent.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "BrainComponent.h"
 
 AWitchBoss::AWitchBoss()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
+
+	Stat->SetLevel(8);
+	Stat->SetAttack(40.f);
+	Stat->SetMagic(60.f);
 	MeleeRange = 0.f;
-}
-
-void AWitchBoss::DoMelee()
-{
-	// 마녀는 근접 공격이 없음
-	return;
-}
-
-void AWitchBoss::DoRanged()
-{
-	if (!HasAuthority() || !PoisonProjectileClass) return;
-	const float Now = GetWorld()->GetTimeSeconds();
-	if (Now < NextRangedTime) return;
-	ServerStartAction(EBossAction::Ranged, NAME_None);
-	NextRangedTime = Now + RangedCooldown;
-}
-
-void AWitchBoss::DoMoveOrSpecial()
-{
-	if (!HasAuthority()) return;
-	ServerStartAction(EBossAction::Teleport, NAME_None);
 }
 
 void AWitchBoss::ServerTeleportNear(ABaseCharacter* Target)
@@ -43,6 +35,7 @@ void AWitchBoss::ServerTeleportNear(ABaseCharacter* Target)
 
 void AWitchBoss::Die(ABaseCharacter* Causer)
 {
+	if (!Causer) return;
 	if (HasAuthority() && DragonPearlDataAsset) 
 	{
 		// 처치자의 파티원 전원 보상
@@ -71,15 +64,42 @@ void AWitchBoss::Die(ABaseCharacter* Causer)
 				}
 			}
 		}
-		ServerStartAction(EBossAction::Die, NAME_None);
+		bDead = true;
+		OnRep_Dead();
+		AUserPlayerController* PC = Cast<AUserPlayerController>(Causer->GetController());
+		FVector Location = FVector(-1350.f, 3170.f, 192.f);
+		PC->ServerLoadAndWarp("Village_1_", FTransform(Location), true);
 	}
+}
+
+void AWitchBoss::OnRep_Dead()
+{
+	if (UCharacterMovementComponent* Move = GetCharacterMovement())
+	{
+		Move->StopMovementImmediately();
+		Move->DisableMovement();
+	}
+	if (AAIController* AI = Cast<AAIController>(GetController()))
+	{
+		AI->StopMovement();
+		if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
+			BB->SetValueAsBool(TEXT("IsDead"), true);
+		if (UBrainComponent* Brain = AI->GetBrainComponent())
+			Brain->StopLogic(TEXT("Dead"));
+	}
+}
+
+void AWitchBoss::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AWitchBoss, bDead);
 }
 
 void AWitchBoss::ServerTeleportToNearestTarget_Implementation(float SearchRange)
 {
 	if (ABaseCharacter* Target = FindNearestPlayer(SearchRange))
 	{
-		ServerTeleportNear(Target); // 기존의 (보호수준) 함수 호출
+		ServerTeleportNear(Target);
 	}
 }
 

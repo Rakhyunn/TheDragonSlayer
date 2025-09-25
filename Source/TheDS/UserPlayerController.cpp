@@ -21,6 +21,11 @@
 #include "RespawnDataAsset.h"
 #include "EnemySpawnManager.h"
 #include "RaidConfirmWidget.h"
+#include "DSGameMode.h"
+#include "DragonBoss.h"
+#include "EndingConfirmWidget.h"
+#include "EndingPlayWidget.h"
+#include "EndingBookData.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -59,8 +64,6 @@ void AUserPlayerController::BeginPlay()
 			ChattingWidgetInstance->SetPositionInViewport(FVector2D(100, 200));
 		}
 	}
-
-	CurrentLevel = GetLevel()->GetFName();
 }
 
 void AUserPlayerController::SetupInputComponent()
@@ -534,17 +537,16 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 
 void AUserPlayerController::ClientSetVisibleLevel_Implementation(FName NewLevelName)
 {
-	FLatentActionInfo Latent;
-	Latent.CallbackTarget = this;
-	if (!CurrentLevel.IsNone())
+	if (CurrentStreamLevel != NAME_None && CurrentStreamLevel != NewLevelName)
 	{
-		UGameplayStatics::UnloadStreamLevel(this, CurrentLevel, Latent, false);
+		UGameplayStatics::UnloadStreamLevel(this, CurrentStreamLevel, FLatentActionInfo(), true);
 	}
-	if (!NewLevelName.IsNone())
+	if (NewLevelName != NAME_None)
 	{
-		UGameplayStatics::LoadStreamLevel(this, NewLevelName, true, false, Latent);
-		CurrentLevel = NewLevelName;
+		UGameplayStatics::LoadStreamLevel(this, NewLevelName, true, true, FLatentActionInfo());
 	}
+
+	CurrentStreamLevel = NewLevelName;
 }
 
 void AUserPlayerController::ServerShowRaidConfirm_Implementation(FName LevelName, FTransform Spawn, FName RequiredVillage)
@@ -588,4 +590,123 @@ void AUserPlayerController::ServerRaidConfirmResult_Implementation(bool bAccept,
 	}
 	// 서버에서 파티 멤버에게 적용
 	ServerLoadAndWarp(LevelName, Spawn, true);
+	//ServerStartRaidInstance(LevelName, RequiredVillage);
+}
+
+void AUserPlayerController::ServerStartRaidInstance_Implementation(FName BossMap, FName RequiredVillage)
+{
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (!PS || !PS->IsPartyLeader() || !AreAllPartyMembersInVillage(RequiredVillage)) return;
+	const FString PartyId = FString::Printf(TEXT("PartyLeader_%s"), *PS->GetPlayerName());
+	const FString BossMapPath = FString::Printf(TEXT("/Game/ThsDS_Map/%s"), *BossMap.ToString());
+	if (ADSGameMode* GM = GetWorld()->GetAuthGameMode<ADSGameMode>())
+	{
+		GM->StartBossInstance(PartyId, BossMapPath, [this](const FString& URL){
+			if (URL.IsEmpty()) 
+			{
+				FChatMessage ErrorMsg;
+				ErrorMsg.Sender = TEXT("시스템");
+				ErrorMsg.Message = FString::Printf(TEXT("레이드 생성 실패"));
+				ErrorMsg.Channel = EChatChannel::Party;
+				ServerSystemChat(ErrorMsg);
+				return;
+			}
+			PendingTravelURL = URL;
+			PreparedCount = 0;
+			const TArray<FPartyMember>& Ms = GetPlayerState<ATheDSPlayerState>()->GetReplicatedPartyMembers();
+			ExpectedCount = Ms.Num() + 1; // +리더
+			for (const FPartyMember& M : Ms)
+				if (auto* PC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+					PC->ClientPrepareForInstanceTravel();
+			ClientPrepareForInstanceTravel(); // 리더
+			});
+	}
+}
+
+void AUserPlayerController::ClientPrepareForInstanceTravel_Implementation()
+{
+	ServerNotifyPreparedForInstance();
+}
+
+void AUserPlayerController::ServerNotifyPreparedForInstance_Implementation()
+{
+	if (!HasAuthority()) return;
+	PreparedCount++;
+	if (PreparedCount >= ExpectedCount && !PendingTravelURL.IsEmpty())
+	{
+		ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>(); if (!PS) return;
+		for (const FPartyMember& M : PS->GetReplicatedPartyMembers())
+			if (auto* PC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+				PC->ClientTravelToBossInstance(PendingTravelURL);
+		ClientTravelToBossInstance(PendingTravelURL);
+		PreparedCount = 0;
+		ExpectedCount = 0;
+		PendingTravelURL.Reset();
+	}
+}
+
+void AUserPlayerController::ClientTravelToBossInstance_Implementation(const FString& TravelURL)
+{
+	ClientTravel(TravelURL, TRAVEL_Absolute);
+}
+
+void AUserPlayerController::ClientShowEndingConfirm_Implementation(ADragonBoss* Dragon, bool bIsLeader)
+{
+	// WBP_EndingConfirm 위젯 생성/표시
+	// - 리더: 확인/취소 버튼 → 확인 시 ServerConfirmEnding(Dragon, true) 호출
+	// - 파티원: "파티장이 확인 중입니다" 문구만 표시(또는 OK만)
+	if (!EndingConfirmWidgetClass || !Dragon) return;
+	UEndingConfirmWidget* EndingConfirmWidget = CreateWidget<UEndingConfirmWidget>(this, EndingConfirmWidgetClass);
+	if (EndingConfirmWidget)
+	{
+		EndingConfirmWidget->Init(Dragon, bIsLeader);
+		EndingConfirmWidget->AddToViewport();
+	}
+}
+
+void AUserPlayerController::ServerConfirmEnding_Implementation(ADragonBoss* Dragon, bool bAccept)
+{
+	if (!HasAuthority() || !Dragon) return;
+	Dragon->bEndingInProgress = true;
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (!PS || !PS->IsPartyLeader())
+	{
+		Dragon->bEndingInProgress = false;
+		return;
+	}
+	if (!bAccept)
+	{
+		FChatMessage Msg;
+		Msg.Sender = TEXT("시스템");
+		Msg.Channel = EChatChannel::Party;
+		Msg.Message = TEXT("엔딩이 취소되었습니다.");
+		ServerSystemChat(Msg);
+		Dragon->bEndingInProgress = false;
+		return;
+	}
+	const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
+	const float EndDur = 8.f;
+	for (const FPartyMember& M : Members)
+		if (AUserPlayerController* MPC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+			MPC->ClientPlayEnding(EndDur);
+	ClientPlayEnding(EndDur);
+	FTimerHandle T;
+	GetWorldTimerManager().SetTimer(T, [this, Members]()
+		{
+			for (const FPartyMember& M : Members)
+				if (AUserPlayerController* MPC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+					MPC->ServerLoadAndWarp(FName("Village_2"), FTransform(FRotator::ZeroRotator, FVector(-1350, 3170, 200)), false);
+			ServerLoadAndWarp(FName("Village_2"), FTransform(FRotator::ZeroRotator, FVector(-1350, 3170, 200)), false);
+		}, EndDur, false);
+}
+
+void AUserPlayerController::ClientPlayEnding_Implementation(float Duration)
+{
+	if (!IsLocalController() || !EndingPlayWidgetClass) return;
+	UEndingPlayWidget* EndingPlayWidget = CreateWidget<UEndingPlayWidget>(this, EndingPlayWidgetClass);
+	if (EndingPlayWidget)
+	{
+		EndingPlayWidget->AddToViewport(2000);
+		EndingPlayWidget->InitData(EndingBookData);
+	}
 }

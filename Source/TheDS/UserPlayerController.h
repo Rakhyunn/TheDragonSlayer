@@ -14,6 +14,8 @@ class UInvitePartyWidget;
 class URespawnDataAsset;
 class ATheDSPlayerState;
 class URaidConfirmWidget;
+class UEndingConfirmWidget;
+class UEndingPlayWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -71,6 +73,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Raid")
 	TSubclassOf<URaidConfirmWidget> RaidConfirmWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ending")
+	TSubclassOf<UEndingConfirmWidget> EndingConfirmWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ending")
+	TSubclassOf<UEndingPlayWidget> EndingPlayWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ending")
+	TObjectPtr<class UEndingBookData> EndingBookData;
+
 private:
 	UPROPERTY()
 	UPlayerInfoWidget* PlayerInfoWidgetInstance;
@@ -89,7 +100,15 @@ private:
 
 	FTimerHandle PortalWarpTimer;
 
-	FName CurrentLevel;
+	UPROPERTY(Transient)
+	FName CurrentStreamLevel = NAME_None;
+
+	UPROPERTY(Transient)
+	int32 PreparedCount = 0;
+	UPROPERTY(Transient)
+	int32 ExpectedCount = 0;
+	UPROPERTY(Transient)
+	FString PendingTravelURL;
 
 public:
 	APlayerState* FindNearestPlayer();
@@ -143,4 +162,22 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRaidConfirmResult(bool bAccept, FName LevelName, FTransform Spawn, FName RequiredVillage);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStartRaidInstance(FName BossMap, FName RequiredVillage);
+	UFUNCTION(Client, Reliable)
+	void ClientPrepareForInstanceTravel();
+	UFUNCTION(Server, Reliable)
+	void ServerNotifyPreparedForInstance();
+	UFUNCTION(Client, Reliable)
+	void ClientTravelToBossInstance(const FString& TravelURL);
+
+	UFUNCTION(Client, Reliable)
+	void ClientShowEndingConfirm(class ADragonBoss* Dragon, bool bIsLeader);
+
+	UFUNCTION(Server, Reliable)
+	void ServerConfirmEnding(class ADragonBoss* Dragon, bool bAccept);
+
+	UFUNCTION(Client, Reliable)
+	void ClientPlayEnding(float DurationSec);
 };

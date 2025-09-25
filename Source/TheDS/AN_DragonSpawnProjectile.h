@@ -10,7 +10,7 @@ class THEDS_API UAN_DragonSpawnProjectile : public UAnimNotify
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Witch|Ranged")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dragon|Ranged")
 	FVector MuzzleOffset = FVector(120.f, 0.f, 80.f);
 
 public:

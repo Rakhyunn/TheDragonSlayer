@@ -2,6 +2,7 @@
 #include "WitchBoss.h"
 #include "Components/CapsuleComponent.h"
 #include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 void UAN_WitchTeleport::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
@@ -10,9 +11,10 @@ void UAN_WitchTeleport::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
     if (!Witch) return;
 	switch (Stage)
 	{
-    case EWitchTeleportStage::Disappear:
+    case EWitchTeleportStage::Disappear:        
         if (Witch->HasAuthority())
         {
+            UE_LOG(LogTemp, Warning, TEXT("Witch Disappear Notify"));
             if (bToggleCollision && Witch->GetCapsuleComponent())
             {
                 Witch->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -30,12 +32,14 @@ void UAN_WitchTeleport::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
     case EWitchTeleportStage::Teleport:
         if (Witch->HasAuthority())
         {
+            UE_LOG(LogTemp, Warning, TEXT("Witch Teleport Notify"));
             Witch->ServerTeleportToNearestTarget(TeleportSearchRange);
         }
         break;
-    case EWitchTeleportStage::Appear:
+    case EWitchTeleportStage::Appear:        
         if (bToggleHidden)
         {
+            UE_LOG(LogTemp, Warning, TEXT("Witch Appear Notify"));
             Witch->MulticastSetHidden(false);
         }
         if (Witch->HasAuthority())

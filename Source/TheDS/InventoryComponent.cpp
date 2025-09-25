@@ -178,6 +178,15 @@ const TArray<FInventorySlot>& UInventoryComponent::GetSlots(EItemType type) cons
 	}
 }
 
+bool UInventoryComponent::HasItem(UBaseItem* Item, int32 NeedAmount) const
+{
+	if (!Item) return false;
+	int32 Sum = 0;
+	for (const FInventorySlot& S : ConsumeSlots)   if (S.ItemData == Item) Sum += S.Quantity;
+	for (const FInventorySlot& S : EquipmentSlots) if (S.ItemData == Item) Sum += S.Quantity;
+	return Sum >= NeedAmount;
+}
+
 void UInventoryComponent::OnRep_ConsumeSlots()
 {
 	if (LinkedInventoryWidget && LinkedInventoryWidget->IsInViewport())

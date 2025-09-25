@@ -13,8 +13,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	FBlackboardKeySelector TargetKey;
 
-	UPROPERTY(EditAnywhere)
-	float Range = 200.f;
+	UPROPERTY(EditAnywhere, Category = "Range")
+	float MinRange = 0.f;
+	UPROPERTY(EditAnywhere, Category = "Range")
+	float MaxRange = 600.f;
 
 public:
 	UBTDecorator_CheckAttackRange();
