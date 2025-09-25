@@ -84,42 +84,12 @@ void ABossBase::MulticastPlayAction_Implementation(EBossAction Action, FName Sec
 void ABossBase::BeginPlay()
 {
     Super::BeginPlay();
-    if (bUseBehaviorTree)
-    {
-        if (HasAuthority())
-        {
-            GetWorldTimerManager().ClearTimer(ThinkTimer);
-        }
-    }
-    else
-    {
-        if (HasAuthority())
-        {
-            GetWorldTimerManager().SetTimer(ThinkTimer, this, &ABossBase::Think, ThinkInterval, true);
-        }
-    }
 }
 
 void ABossBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(ABossBase, ActiveAction);
-}
-
-void ABossBase::Think()
-{
-    if (!HasAuthority()) return;
-    if (FindNearestPlayer(RangedRange))
-    {
-        DoRanged();
-        return;
-    }
-    if (FindNearestPlayer(MeleeRange))
-    {
-        DoMelee();
-        return;
-    }
-    DoMoveOrSpecial();
 }
 
 ABaseCharacter* ABossBase::FindNearestPlayer(float Range) const
@@ -149,18 +119,21 @@ void ABossBase::ApplyDot(ABaseCharacter* Target, const FDotInfo& Dot)
     int32 LeftTick = FMath::CeilToInt(Dot.Duration / Dot.Tick);
     const float DamagePerTick = Dot.DPS * Dot.Tick;
     TWeakObjectPtr<ABaseCharacter> WeakTarget = Target;
-    FTimerHandle Handle;
-    World->GetTimerManager().SetTimer(Handle, [World, WeakTarget, DamagePerTick, Handle, LeftTick]() mutable
+    const int32 HandleIdx = ActiveDotTimers.AddDefaulted();
+    FTimerHandle& Handle = ActiveDotTimers[HandleIdx];
+    World->GetTimerManager().SetTimer(Handle, [this, WeakTarget, DamagePerTick, LeftTick, HandleIdx]() mutable
         {
             if (!WeakTarget.IsValid())
             {
-                World->GetTimerManager().ClearTimer(Handle);
+                GetWorldTimerManager().ClearTimer(ActiveDotTimers[HandleIdx]);
+                ActiveDotTimers.RemoveAtSwap(HandleIdx);
                 return;
             }
             WeakTarget->ReceiveDamage(DamagePerTick);
             if (--LeftTick <= 0)
             {
-                World->GetTimerManager().ClearTimer(Handle);
+                GetWorldTimerManager().ClearTimer(ActiveDotTimers[HandleIdx]);
+                ActiveDotTimers.RemoveAtSwap(HandleIdx);
             }
         }, Dot.Tick, true);
 }

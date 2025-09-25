@@ -82,7 +82,7 @@ protected:
 	
 	// 상호작용 함수
 	void InteractPickUp();
-	void InteractMerchant();
+	void InteractNPC();
 	void InteractPortal();
 
 public:
@@ -123,6 +123,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerTryPickup();
+
+	UFUNCTION(Server, Reliable)
+	void ServerTryTalk();
 
 	UFUNCTION()
 	void ServerDie();

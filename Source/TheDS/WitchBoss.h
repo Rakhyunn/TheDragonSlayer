@@ -16,7 +16,7 @@ public:
 
 protected:
     UPROPERTY(EditAnywhere, Category = "DotInfo")
-    FDotInfo PoisonDot { 5.f, 10.f, 1.f, "Poison" };
+    FDotInfo PoisonDot { 3.f, 6.f, 1.f, "Poison" };
 
     // 순간이동
     UPROPERTY(EditAnywhere, Category = "Move")
@@ -35,10 +35,6 @@ public:
     AWitchBoss();
 
 protected:
-    virtual void DoMelee() override;
-    virtual void DoRanged() override;
-    virtual void DoMoveOrSpecial() override;
-
     void ServerTeleportNear(ABaseCharacter* Target);
 
     virtual void Die(ABaseCharacter* Causer) override;

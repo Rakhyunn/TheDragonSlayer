@@ -12,7 +12,7 @@ AEnemyProjectile::AEnemyProjectile()
 	Collision->InitSphereRadius(16.f);
 	SetRootComponent(Collision);
 	Collision->SetCollisionProfileName(TEXT("Projectile"));
-	Collision->OnComponentHit.AddDynamic(this, &AEnemyProjectile::OnHit);
+	Collision->OnComponentBeginOverlap.AddDynamic(this, &AEnemyProjectile::OnOverlapBegin);
 
 	Movement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Movement"));
 	Movement->InitialSpeed = 1200.f;
@@ -24,25 +24,24 @@ AEnemyProjectile::AEnemyProjectile()
 void AEnemyProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	Collision->IgnoreActorWhenMoving(GetOwner(), true);
 }
 
-void AEnemyProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* Other, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AEnemyProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!HasAuthority()) 
-	{ 
-		Destroy(); 
-		return; 
-	}
-	if (ABaseCharacter* Player = Cast<ABaseCharacter>(Other)) 
+	if (!HasAuthority())
 	{
-		Player->ReceiveDamage(Damage);
-		if (Dot.DPS > 0.f)
+		Destroy();
+		return;
+	}
+	if (OtherActor && OtherActor->ActorHasTag("Player"))
+	{
+		if (ABaseCharacter* Player = Cast<ABaseCharacter>(OtherActor))
 		{
-			if (auto* OwnerBoss = Cast<ABossBase>(GetOwner()))
-			{
-				OwnerBoss->ApplyDot(Player, Dot);
-			}
+			Player->ReceiveDamage(Damage);
+			if (Dot.DPS > 0.f)
+				if (auto* OwnerBoss = Cast<ABossBase>(GetOwner()))
+					OwnerBoss->ApplyDot(Player, Dot);
 		}
 	}
 	Destroy();

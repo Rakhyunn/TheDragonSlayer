@@ -21,6 +21,6 @@ EBTNodeResult::Type UBTTask_BossRanged::ExecuteTask(UBehaviorTreeComponent& Owne
         if (Now < NextAllowed) return EBTNodeResult::Failed;
         BB->SetValueAsFloat(NextAllowedTimeKey.SelectedKeyName, Now + Cooldown);
     }
-    Boss->ServerStartAction(EBossAction::Ranged, NAME_None);
+    Boss->ServerStartAction(EBossAction::Ranged, FName("RangedAttack"));
     return EBTNodeResult::Succeeded;
 }

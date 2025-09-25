@@ -10,31 +10,19 @@
 #include "Net/UnrealNetwork.h"
 #include "NavigationSystem.h"
 #include "Components/CapsuleComponent.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "BrainComponent.h"
 
 AWitchBoss::AWitchBoss()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
+
+	Stat->SetLevel(8);
+	Stat->SetAttack(40.f);
+	Stat->SetMagic(60.f);
 	MeleeRange = 0.f;
-}
-
-void AWitchBoss::DoMelee()
-{
-	// 마녀는 근접 공격이 없음
-	return;
-}
-
-void AWitchBoss::DoRanged()
-{
-	if (!HasAuthority() || !PoisonProjectileClass) return;
-	const float Now = GetWorld()->GetTimeSeconds();
-	if (Now < NextRangedTime) return;
-	ServerStartAction(EBossAction::Ranged, NAME_None);
-	NextRangedTime = Now + RangedCooldown;
-}
-
-void AWitchBoss::DoMoveOrSpecial()
-{
-	if (!HasAuthority()) return;
-	ServerStartAction(EBossAction::Teleport, NAME_None);
 }
 
 void AWitchBoss::ServerTeleportNear(ABaseCharacter* Target)
@@ -47,6 +35,7 @@ void AWitchBoss::ServerTeleportNear(ABaseCharacter* Target)
 
 void AWitchBoss::Die(ABaseCharacter* Causer)
 {
+	if (!Causer) return;
 	if (HasAuthority() && DragonPearlDataAsset) 
 	{
 		// 처치자의 파티원 전원 보상
@@ -77,6 +66,9 @@ void AWitchBoss::Die(ABaseCharacter* Causer)
 		}
 		bDead = true;
 		OnRep_Dead();
+		AUserPlayerController* PC = Cast<AUserPlayerController>(Causer->GetController());
+		FVector Location = FVector(-1350.f, 3170.f, 192.f);
+		PC->ServerLoadAndWarp("Village_1_", FTransform(Location), true);
 	}
 }
 
@@ -86,6 +78,14 @@ void AWitchBoss::OnRep_Dead()
 	{
 		Move->StopMovementImmediately();
 		Move->DisableMovement();
+	}
+	if (AAIController* AI = Cast<AAIController>(GetController()))
+	{
+		AI->StopMovement();
+		if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
+			BB->SetValueAsBool(TEXT("IsDead"), true);
+		if (UBrainComponent* Brain = AI->GetBrainComponent())
+			Brain->StopLogic(TEXT("Dead"));
 	}
 }
 

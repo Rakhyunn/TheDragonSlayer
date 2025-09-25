@@ -14,6 +14,8 @@ class UInvitePartyWidget;
 class URespawnDataAsset;
 class ATheDSPlayerState;
 class URaidConfirmWidget;
+class UEndingConfirmWidget;
+class UEndingPlayWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -70,6 +72,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Raid")
 	TSubclassOf<URaidConfirmWidget> RaidConfirmWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ending")
+	TSubclassOf<UEndingConfirmWidget> EndingConfirmWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ending")
+	TSubclassOf<UEndingPlayWidget> EndingPlayWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ending")
+	TObjectPtr<class UEndingBookData> EndingBookData;
 
 private:
 	UPROPERTY()
@@ -160,4 +171,13 @@ public:
 	void ServerNotifyPreparedForInstance();
 	UFUNCTION(Client, Reliable)
 	void ClientTravelToBossInstance(const FString& TravelURL);
+
+	UFUNCTION(Client, Reliable)
+	void ClientShowEndingConfirm(class ADragonBoss* Dragon, bool bIsLeader);
+
+	UFUNCTION(Server, Reliable)
+	void ServerConfirmEnding(class ADragonBoss* Dragon, bool bAccept);
+
+	UFUNCTION(Client, Reliable)
+	void ClientPlayEnding(float DurationSec);
 };

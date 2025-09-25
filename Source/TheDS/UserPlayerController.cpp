@@ -22,6 +22,10 @@
 #include "EnemySpawnManager.h"
 #include "RaidConfirmWidget.h"
 #include "DSGameMode.h"
+#include "DragonBoss.h"
+#include "EndingConfirmWidget.h"
+#include "EndingPlayWidget.h"
+#include "EndingBookData.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -594,7 +598,7 @@ void AUserPlayerController::ServerStartRaidInstance_Implementation(FName BossMap
 	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
 	if (!PS || !PS->IsPartyLeader() || !AreAllPartyMembersInVillage(RequiredVillage)) return;
 	const FString PartyId = FString::Printf(TEXT("PartyLeader_%s"), *PS->GetPlayerName());
-	const FString BossMapPath = FString::Printf(TEXT("/Game/Maps/%s"), *BossMap.ToString());
+	const FString BossMapPath = FString::Printf(TEXT("/Game/ThsDS_Map/%s"), *BossMap.ToString());
 	if (ADSGameMode* GM = GetWorld()->GetAuthGameMode<ADSGameMode>())
 	{
 		GM->StartBossInstance(PartyId, BossMapPath, [this](const FString& URL){
@@ -644,4 +648,65 @@ void AUserPlayerController::ServerNotifyPreparedForInstance_Implementation()
 void AUserPlayerController::ClientTravelToBossInstance_Implementation(const FString& TravelURL)
 {
 	ClientTravel(TravelURL, TRAVEL_Absolute);
+}
+
+void AUserPlayerController::ClientShowEndingConfirm_Implementation(ADragonBoss* Dragon, bool bIsLeader)
+{
+	// WBP_EndingConfirm 위젯 생성/표시
+	// - 리더: 확인/취소 버튼 → 확인 시 ServerConfirmEnding(Dragon, true) 호출
+	// - 파티원: "파티장이 확인 중입니다" 문구만 표시(또는 OK만)
+	if (!EndingConfirmWidgetClass || !Dragon) return;
+	UEndingConfirmWidget* EndingConfirmWidget = CreateWidget<UEndingConfirmWidget>(this, EndingConfirmWidgetClass);
+	if (EndingConfirmWidget)
+	{
+		EndingConfirmWidget->Init(Dragon, bIsLeader);
+		EndingConfirmWidget->AddToViewport();
+	}
+}
+
+void AUserPlayerController::ServerConfirmEnding_Implementation(ADragonBoss* Dragon, bool bAccept)
+{
+	if (!HasAuthority() || !Dragon) return;
+	Dragon->bEndingInProgress = true;
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (!PS || !PS->IsPartyLeader())
+	{
+		Dragon->bEndingInProgress = false;
+		return;
+	}
+	if (!bAccept)
+	{
+		FChatMessage Msg;
+		Msg.Sender = TEXT("시스템");
+		Msg.Channel = EChatChannel::Party;
+		Msg.Message = TEXT("엔딩이 취소되었습니다.");
+		ServerSystemChat(Msg);
+		Dragon->bEndingInProgress = false;
+		return;
+	}
+	const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
+	const float EndDur = 8.f;
+	for (const FPartyMember& M : Members)
+		if (AUserPlayerController* MPC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+			MPC->ClientPlayEnding(EndDur);
+	ClientPlayEnding(EndDur);
+	FTimerHandle T;
+	GetWorldTimerManager().SetTimer(T, [this, Members]()
+		{
+			for (const FPartyMember& M : Members)
+				if (AUserPlayerController* MPC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+					MPC->ServerLoadAndWarp(FName("Village_2"), FTransform(FRotator::ZeroRotator, FVector(-1350, 3170, 200)), false);
+			ServerLoadAndWarp(FName("Village_2"), FTransform(FRotator::ZeroRotator, FVector(-1350, 3170, 200)), false);
+		}, EndDur, false);
+}
+
+void AUserPlayerController::ClientPlayEnding_Implementation(float Duration)
+{
+	if (!IsLocalController() || !EndingPlayWidgetClass) return;
+	UEndingPlayWidget* EndingPlayWidget = CreateWidget<UEndingPlayWidget>(this, EndingPlayWidgetClass);
+	if (EndingPlayWidget)
+	{
+		EndingPlayWidget->AddToViewport(2000);
+		EndingPlayWidget->InitData(EndingBookData);
+	}
 }

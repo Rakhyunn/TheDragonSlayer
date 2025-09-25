@@ -9,16 +9,23 @@
 #include "Net/UnrealNetwork.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BrainComponent.h"
+#include "TheDSPlayerState.h"
+#include "InventoryComponent.h"
 
 ADragonBoss::ADragonBoss()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
+
+	Stat->SetLevel(10);
+	Stat->SetAttack(100.f);
+	Stat->SetMagic(60.f);
 }
 
 void ADragonBoss::BeginPlay()
 {
 	Super::BeginPlay();
-	SetFlying(true);
-	ServerStartAction(EBossAction::TakeOff, NAME_None);
 }
 
 void ADragonBoss::Tick(float DeltaTime)
@@ -29,29 +36,6 @@ void ADragonBoss::Tick(float DeltaTime)
 		ServerStartAction(EBossAction::Phase, NAME_None);
 		EnterPhase2();
 	}
-}
-
-void ADragonBoss::DoMelee()
-{
-	if (!HasAuthority()) return;
-	const float Now = GetWorld()->GetTimeSeconds();
-	if (Now < NextMeleeTime) return;
-	ServerStartAction(EBossAction::Melee, NAME_None);
-	NextMeleeTime = Now + MeleeCooldown;
-}
-
-void ADragonBoss::DoRanged()
-{
-	if (!HasAuthority() || !FireProjectileClass) return;
-	const float Now = GetWorld()->GetTimeSeconds();
-	if (Now < NextRangedTime) return;
-	ServerStartAction(EBossAction::Ranged, NAME_None);
-	NextRangedTime = Now + RangedCooldown;
-}
-
-void ADragonBoss::DoMoveOrSpecial()
-{
-	// 날기 이동(애니메이션 및 실제 드래곤 보스가 이동)
 }
 
 void ADragonBoss::EnterPhase2()
@@ -113,19 +97,19 @@ void ADragonBoss::OnRep_Dead()
 		Move->StopMovementImmediately();
 		Move->DisableMovement();
 	}
+	if (AAIController* AI = Cast<AAIController>(GetController()))
+	{
+		AI->StopMovement();
+		if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
+			BB->SetValueAsBool(TEXT("IsDead"), true);
+		if (UBrainComponent* Brain = AI->GetBrainComponent())
+			Brain->StopLogic(TEXT("Dead"));
+	}
 }
 
 void ADragonBoss::EnableEndingInteract(bool bEnable)
 {
 	bCanEndingInteract = bEnable;
-	if (bEnable)
-	{ 
-		Tags.AddUnique(TEXT("BossEnding")); 
-	}
-	else
-	{ 
-		Tags.Remove(TEXT("BossEnding")); 
-	}
 }
 
 void ADragonBoss::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -133,15 +117,38 @@ void ADragonBoss::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ADragonBoss, bDead);
 	DOREPLIFETIME(ADragonBoss, bCanEndingInteract);
+	DOREPLIFETIME(ADragonBoss, bEndingInProgress);
 }
 
 void ADragonBoss::Interact(ABaseCharacter* Interactor)
 {
-	if (!Interactor || !bCanEndingInteract) return;
-
+	if (!HasAuthority() || !Interactor || !bCanEndingInteract || bEndingInProgress) return;
 	AUserPlayerController* UserPlayer = Cast<AUserPlayerController>(Interactor->GetController());
-	if (UserPlayer)
+	if (!UserPlayer) return;
+	ATheDSPlayerState* PS = UserPlayer->GetPlayerState<ATheDSPlayerState>();
+	if (!PS || !PS->IsPartyLeader())
 	{
-		// Todo: 상호작용 시 파티원 모두의 소비 인벤토리에서 드래곤의 진주가 있으면 파티장에게 진주 사용 여부 묻고 사용 시 엔딩으로 넘어감
+		FChatMessage Msg;
+		Msg.Sender = TEXT("시스템");
+		Msg.Channel = EChatChannel::Global;
+		Msg.Message = TEXT("파티장만 상호작용할 수 있습니다.");
+		UserPlayer->ServerSystemChat(Msg);
+		return;
 	}
+	const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
+	for (const FPartyMember& M : Members)
+	{
+		if (auto* MPC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+			if (auto* C = Cast<ABaseCharacter>(MPC->GetPawn()))
+				if (!C->InventoryComponent || !C->InventoryComponent->HasItem(DragonPearl, 1))
+				{
+					FChatMessage Need;
+					Need.Sender = TEXT("시스템");
+					Need.Channel = EChatChannel::Party;
+					Need.Message = TEXT("모든 파티원이 드래곤 진주를 가지고 있어야 합니다.");
+					UserPlayer->ServerSystemChat(Need);
+					return;
+				}
+	}
+	UserPlayer->ClientShowEndingConfirm(this, true);
 }
