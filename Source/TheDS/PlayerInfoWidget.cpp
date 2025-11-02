@@ -141,7 +141,6 @@ void UPlayerInfoWidget::OnInviteClicked()
 	AUserPlayerController* PC = Cast<AUserPlayerController>(GetOwningPlayer());
 	if (PC)
 	{
-		// 예시: 가장 가까운 플레이어 초대 (테스트용)
 		APlayerState* Target = PC->FindNearestPlayer();
 		if (Target)
 		{

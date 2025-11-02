@@ -37,6 +37,7 @@ void UBaseStatComponent::GetDamage(float DamageAmount)
 	OnRep_HPChanged();
 	if (CurrentHP <= 0.f)
 	{
+		ClearAllDots();
 		OnDiedDelegate.Broadcast();
 	}
 }
@@ -207,7 +208,71 @@ void UBaseStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(UBaseStatComponent, CurrentMoney);
 }
 
+void UBaseStatComponent::ApplyDot(const FDotInfo& Info)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+	if (Info.DPS <= 0.f || Info.Tick <= 0.f || Info.Duration <= 0.f) return;
+	const int32 Ticks = FMath::CeilToInt(Info.Duration / Info.Tick);
+	if (FActiveDot* Found = ActiveDots.Find(Info.Type))
+	{
+		Found->Spec = Info;
+		Found->LeftTick = Ticks;
+		Found->DamagePerTick = Info.DPS * Info.Tick;
+		GetWorld()->GetTimerManager().ClearTimer(Found->Timer);
+		FTimerDelegate Del;
+		Del.BindUObject(this, &UBaseStatComponent::TickOneDot, Info.Type);
+		GetWorld()->GetTimerManager().SetTimer(Found->Timer, Del, Info.Tick, true);
+	}
+	else
+	{
+		FActiveDot NewDot;
+		NewDot.Spec = Info;
+		NewDot.LeftTick = Ticks;
+		NewDot.DamagePerTick = Info.DPS * Info.Tick;
+		ActiveDots.Add(Info.Type, NewDot);
+		FActiveDot& Ref = ActiveDots[Info.Type];
+		FTimerDelegate Del;
+		Del.BindUObject(this, &UBaseStatComponent::TickOneDot, Info.Type);
+		GetWorld()->GetTimerManager().SetTimer(Ref.Timer, Del, Info.Tick, true);
+	}
+}
+
+bool UBaseStatComponent::RemoveDotById(FName Type)
+{
+	if (FActiveDot* Dot = ActiveDots.Find(Type))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(Dot->Timer);
+		ActiveDots.Remove(Type);
+		return true;
+	}
+	return false;
+}
+
+void UBaseStatComponent::ClearAllDots()
+{
+	for (auto& P : ActiveDots)
+		GetWorld()->GetTimerManager().ClearTimer(P.Value.Timer);
+	ActiveDots.Empty();
+}
+
 void UBaseStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void UBaseStatComponent::TickOneDot(FName Type)
+{
+	FActiveDot* Dot = ActiveDots.Find(Type);
+	if (!Dot) return;
+	if (!GetOwner() || CurrentHP <= 0.f)
+	{
+		ClearAllDots();
+		return;
+	}
+	GetDamage(Dot->DamagePerTick);
+	if (--Dot->LeftTick <= 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(Dot->Timer);
+		ActiveDots.Remove(Type);
+	}
 }

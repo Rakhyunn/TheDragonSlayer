@@ -12,6 +12,8 @@
 #include "InteractInterface.h"
 #include "UserPlayerController.h"
 #include "TheDSPlayerState.h"
+#include "BossBase.h"
+#include "EngineUtils.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -47,10 +49,6 @@ void ABaseCharacter::BeginPlay()
 	Super::BeginPlay();
 	if (HasAuthority() && Stat)
 	{
-		InventoryComponent->AddItem(TestSwordDataAsset, 1);
-		InventoryComponent->AddItem(TestShieldDataAsset, 1);
-		InventoryComponent->AddItem(TestHeadDataAsset, 1);
-		InventoryComponent->AddItem(TestPotionDataAsset, 150);
 		Stat->OnDiedDelegate.AddUObject(this, &ABaseCharacter::ServerDie);
 	}
 }
@@ -281,14 +279,43 @@ void ABaseCharacter::ServerTryTalk_Implementation()
 void ABaseCharacter::ServerDie()
 {
 	if (!HasAuthority() || !Stat) return;
-
-	Stat->ApplyDiedPenalty();
-	Stat->FullRestore();
-
 	AUserPlayerController* PC = Cast<AUserPlayerController>(Controller);
 	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
 	if (!PC || !PS) return;
-
+	if (PS->IsInParty() && PC->IsInRaid())
+	{
+		ATheDSPlayerState* LeaderPS = Cast<ATheDSPlayerState>(PS->GetPartyLeader());
+		AUserPlayerController* LeaderPC = LeaderPS? Cast<AUserPlayerController>(LeaderPS->GetOwner()) : PC;
+		if (LeaderPC)
+		{
+			FName VillageMap; FTransform VillageSpawn;
+			if (!LeaderPC->FindRespawnMap(LeaderPS, VillageMap, VillageSpawn))
+			{
+				VillageMap = FName("Village_2");
+				VillageSpawn = FTransform(FRotator::ZeroRotator, FVector(-1350.f, 3170.f, 200.f));
+			}
+			const TArray<FPartyMember>& Members = LeaderPS->GetReplicatedPartyMembers();
+			for (const FPartyMember& M : Members)
+			{
+				if (AUserPlayerController* MPC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+				{
+					if (APawn* P = MPC->GetPawn())
+						if (ABaseCharacter* C = Cast<ABaseCharacter>(P))
+							if (C->Stat)
+							{
+								C->Stat->ClearAllDots();
+								C->Stat->ApplyDiedPenalty();
+								C->Stat->FullRestore();
+							}
+					MPC->ServerLoadAndWarp(VillageMap, VillageSpawn, false);
+				}
+			}
+		}
+		return;
+	}
+	Stat->ClearAllDots();
+	Stat->ApplyDiedPenalty();
+	Stat->FullRestore();
 	FName TargetMap;
 	FTransform TargetSpawn;
 	if (PC->FindRespawnMap(PS, TargetMap, TargetSpawn))

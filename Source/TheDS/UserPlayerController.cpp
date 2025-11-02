@@ -26,6 +26,9 @@
 #include "EndingConfirmWidget.h"
 #include "EndingPlayWidget.h"
 #include "EndingBookData.h"
+#include "RaidGiveUpWidget.h"
+#include "EngineUtils.h"
+#include "NicknameWidget.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -36,32 +39,44 @@ void AUserPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (PlayerInfoWidgetClass)
+	if (IsLocalController())
 	{
-		PlayerInfoWidgetInstance = CreateWidget<UPlayerInfoWidget>(this, PlayerInfoWidgetClass);
-		if (PlayerInfoWidgetInstance)
+		if (PlayerInfoWidgetClass)
 		{
-			PlayerInfoWidgetInstance->AddToViewport();
-
-			// 캐릭터에서 스탯 컴포넌트 가져와 바인딩
-			APawn* MyPawn = GetPawn();
-			ABaseCharacter* MyCharacter = Cast<ABaseCharacter>(MyPawn);
-			if (MyCharacter && MyCharacter->Stat)
+			PlayerInfoWidgetInstance = CreateWidget<UPlayerInfoWidget>(this, PlayerInfoWidgetClass);
+			if (PlayerInfoWidgetInstance)
 			{
-				PlayerInfoWidgetInstance->BindInfo(MyCharacter->Stat);
-				PlayerInfoWidgetInstance->UpdateParty();
+				PlayerInfoWidgetInstance->AddToViewport();
+
+				// 캐릭터에서 스탯 컴포넌트 가져와 바인딩
+				APawn* MyPawn = GetPawn();
+				ABaseCharacter* MyCharacter = Cast<ABaseCharacter>(MyPawn);
+				if (MyCharacter && MyCharacter->Stat)
+				{
+					PlayerInfoWidgetInstance->BindInfo(MyCharacter->Stat);
+					PlayerInfoWidgetInstance->UpdateParty();
+				}
 			}
 		}
-	}
 
-	if (ChattingWidgetClass)
-	{
-		ChattingWidgetInstance = CreateWidget<UChattingWidget>(this, ChattingWidgetClass);
-		if (ChattingWidgetInstance)
+		if (ChattingWidgetClass)
 		{
-			ChattingWidgetInstance->AddToViewport();
-			ChattingWidgetInstance->SetVisibility(ESlateVisibility::Visible);
-			ChattingWidgetInstance->SetPositionInViewport(FVector2D(100, 200));
+			ChattingWidgetInstance = CreateWidget<UChattingWidget>(this, ChattingWidgetClass);
+			if (ChattingWidgetInstance)
+			{
+				ChattingWidgetInstance->AddToViewport();
+				ChattingWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+				ChattingWidgetInstance->SetPositionInViewport(FVector2D(10, 100));
+			}
+		}
+
+		if (NicknameWidgetClass)
+		{
+			NicknameWidgetInstance = CreateWidget<UNicknameWidget>(this, NicknameWidgetClass);
+			if (NicknameWidgetInstance)
+			{
+				NicknameWidgetInstance->AddToViewport(1000);
+			}
 		}
 	}
 }
@@ -75,6 +90,8 @@ void AUserPlayerController::SetupInputComponent()
 	InputComponent->BindAction("OpenChat", IE_Pressed, this, &AUserPlayerController::OpenChatInput);
 	InputComponent->BindAction("SwitchToGlobalChat", IE_Pressed, this, &AUserPlayerController::SwitchToGlobalChat);
 	InputComponent->BindAction("SwitchToPartyChat", IE_Pressed, this, &AUserPlayerController::SwitchToPartyChat);
+
+	InputComponent->BindAction("GiveUpRaid", IE_Pressed, this, &AUserPlayerController::GiveUpRaid);
 }
 
 void AUserPlayerController::ToggleInventory()
@@ -136,7 +153,7 @@ void AUserPlayerController::ToggleEquipment()
 
 void AUserPlayerController::OpenShop(ABaseMerchantNPC* Merchant)
 {
-	if (!ShopWidgetClass || !Merchant) return;
+	if (!ShopWidgetClass || !Merchant || !IsLocalController()) return;
 
 	if (!ShopWidgetInstance)
 	{
@@ -155,6 +172,8 @@ void AUserPlayerController::OpenChatInput()
 	if (ChattingWidgetInstance)
 	{
 		ChattingWidgetInstance->ActivateChat();
+		FInputModeUIOnly InputMode;
+		SetInputMode(InputMode);
 	}
 }
 
@@ -286,6 +305,46 @@ bool AUserPlayerController::AreAllPartyMembersInVillage(FName RequiredVillage) c
 	return bInVillage;
 }
 
+void AUserPlayerController::GiveUpRaid()
+{
+	if (bGiveUpInProgress)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't Give Up Raid"));
+		return;
+	}
+	if (ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>())
+	{
+		if (!PS->IsInParty())
+		{
+			FChatMessage ErrorMsg;
+			ErrorMsg.Sender = TEXT("시스템");
+			ErrorMsg.Message = FString::Printf(TEXT("파티가 아닙니다"));
+			ErrorMsg.Channel = EChatChannel::Global;
+			ServerSystemChat(ErrorMsg);
+			return;
+		}
+		if (!PS->IsPartyLeader())
+		{
+			FChatMessage ErrorMsg;
+			ErrorMsg.Sender = TEXT("시스템");
+			ErrorMsg.Message = TEXT("파티장이 아닙니다.");
+			ErrorMsg.Channel = EChatChannel::Global;
+			ServerSystemChat(ErrorMsg);
+			return;
+		}
+	}
+	if (CurrentStreamLevel.IsNone() || !(CurrentStreamLevel.ToString().Contains(TEXT("Dragon")) || CurrentStreamLevel.ToString().Contains(TEXT("Witch"))))
+	{
+		FChatMessage ErrorMsg;
+		ErrorMsg.Sender = TEXT("시스템");
+		ErrorMsg.Message = TEXT("레이드가 아닙니다.");
+		ErrorMsg.Channel = EChatChannel::Global;
+		ServerSystemChat(ErrorMsg);
+		return;
+	}
+	ClientShowGiveUpRaid();
+}
+
 void AUserPlayerController::ServerRequestCreateParty_Implementation()
 {
 	RequestCreateParty();
@@ -309,25 +368,35 @@ APlayerState* AUserPlayerController::FindNearestPlayer()
 	if (!World) return nullptr;
 	APlayerState* Nearest = nullptr;
 	float MinDistSq = TNumericLimits<float>::Max();
-	for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+	for (TActorIterator<APawn> It(World); It; ++It)
 	{
-		APlayerController* OtherPC = It->Get();
-		if (!OtherPC || OtherPC == this) continue;
-		APawn* OtherPawn = OtherPC->GetPawn();
-		if (!OtherPawn) continue;
-		APlayerState* OtherState = OtherPC->PlayerState;
-		if (!OtherState || OtherState == PlayerState) continue;
-		// 이미 파티에 있으면 제외
-		ATheDSPlayerState* OtherDS = Cast<ATheDSPlayerState>(OtherState);
+		APawn* OtherPawn = *It;
+		if (!OtherPawn || OtherPawn == MyPawn) continue;
+		APlayerState* OtherPS = OtherPawn->GetPlayerState();
+		if (!OtherPS || OtherPS == PlayerState) continue;
+		ATheDSPlayerState* OtherDS = Cast<ATheDSPlayerState>(OtherPS);
 		if (OtherDS && OtherDS->IsInParty()) continue;
-		float DistSq = FVector::DistSquared(MyPawn->GetActorLocation(), OtherPawn->GetActorLocation());
+		float DistSq = FVector::DistSquared(OtherPawn->GetActorLocation(), MyPawn->GetActorLocation());
 		if (DistSq < MinDistSq)
 		{
 			MinDistSq = DistSq;
-			Nearest = OtherState;
+			Nearest = OtherPS;
 		}
 	}
 	return Nearest;
+}
+
+void AUserPlayerController::ServerSetNickname_Implementation(const FString& NewNickname)
+{
+	if (ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>())
+	{
+		PS->SetNickname(NewNickname);
+	}
+}
+
+void AUserPlayerController::ClientOpenShop_Implementation(ABaseMerchantNPC* Merchant)
+{
+	OpenShop(Merchant);
 }
 
 void AUserPlayerController::RequestCreateParty()
@@ -593,6 +662,70 @@ void AUserPlayerController::ServerRaidConfirmResult_Implementation(bool bAccept,
 	//ServerStartRaidInstance(LevelName, RequiredVillage);
 }
 
+void AUserPlayerController::ClientShowGiveUpRaid_Implementation()
+{
+	if (bGiveUpInProgress || !RaidGiveUpWidgetClass) return;
+	if (RaidGiveUpWidgetInstance && RaidGiveUpWidgetInstance->IsInViewport())
+		return;
+	if (!RaidGiveUpWidgetInstance)
+		RaidGiveUpWidgetInstance = CreateWidget<URaidGiveUpWidget>(this, RaidGiveUpWidgetClass);
+	if (RaidGiveUpWidgetInstance)
+	{
+		RaidGiveUpWidgetInstance->Init(CurrentStreamLevel);
+		RaidGiveUpWidgetInstance->AddToViewport();
+	}
+}
+
+void AUserPlayerController::ServerRequestGiveUpRaid_Implementation(bool bAccept)
+{
+	if(bGiveUpInProgress) return;
+	if (!bAccept)
+	{
+		FChatMessage ErrorMsg;
+		ErrorMsg.Sender = TEXT("시스템");
+		ErrorMsg.Message = TEXT("레이드를 포기하지 않았습니다");
+		ErrorMsg.Channel = EChatChannel::Global;
+		ServerSystemChat(ErrorMsg);
+		return;
+	}
+	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
+	if (!PS->IsInParty())
+	{
+		FChatMessage ErrorMsg;
+		ErrorMsg.Sender = TEXT("시스템");
+		ErrorMsg.Message = FString::Printf(TEXT("파티가 아닙니다"));
+		ErrorMsg.Channel = EChatChannel::Global;
+		ServerSystemChat(ErrorMsg);
+		return;
+	}
+	if (!PS->IsPartyLeader())
+	{
+		FChatMessage ErrorMsg;
+		ErrorMsg.Sender = TEXT("시스템");
+		ErrorMsg.Message = TEXT("파티장이 아닙니다.");
+		ErrorMsg.Channel = EChatChannel::Global;
+		ServerSystemChat(ErrorMsg);
+		return;
+	}
+	bGiveUpInProgress = true;
+	FName VillageMap;
+	FTransform VillageSpawn;
+	if (!FindRespawnMap(PS, VillageMap, VillageSpawn))
+	{
+		VillageMap = FName("Village_2");
+		VillageSpawn = FTransform(FRotator::ZeroRotator, FVector(-1350.f, 3170.f, 200.f));
+	}
+	const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
+	for (const FPartyMember& M : Members)
+	{
+		if (AUserPlayerController* PC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+		{
+			PC->ServerLoadAndWarp(VillageMap, VillageSpawn, false);
+		}
+	}
+	bGiveUpInProgress = false;
+}
+
 void AUserPlayerController::ServerStartRaidInstance_Implementation(FName BossMap, FName RequiredVillage)
 {
 	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
@@ -614,11 +747,11 @@ void AUserPlayerController::ServerStartRaidInstance_Implementation(FName BossMap
 			PendingTravelURL = URL;
 			PreparedCount = 0;
 			const TArray<FPartyMember>& Ms = GetPlayerState<ATheDSPlayerState>()->GetReplicatedPartyMembers();
-			ExpectedCount = Ms.Num() + 1; // +리더
+			ExpectedCount = Ms.Num() + 1;
 			for (const FPartyMember& M : Ms)
 				if (auto* PC = Cast<AUserPlayerController>(M.Member->GetOwner()))
 					PC->ClientPrepareForInstanceTravel();
-			ClientPrepareForInstanceTravel(); // 리더
+			ClientPrepareForInstanceTravel();
 			});
 	}
 }
@@ -652,9 +785,6 @@ void AUserPlayerController::ClientTravelToBossInstance_Implementation(const FStr
 
 void AUserPlayerController::ClientShowEndingConfirm_Implementation(ADragonBoss* Dragon, bool bIsLeader)
 {
-	// WBP_EndingConfirm 위젯 생성/표시
-	// - 리더: 확인/취소 버튼 → 확인 시 ServerConfirmEnding(Dragon, true) 호출
-	// - 파티원: "파티장이 확인 중입니다" 문구만 표시(또는 OK만)
 	if (!EndingConfirmWidgetClass || !Dragon) return;
 	UEndingConfirmWidget* EndingConfirmWidget = CreateWidget<UEndingConfirmWidget>(this, EndingConfirmWidgetClass);
 	if (EndingConfirmWidget)
@@ -685,7 +815,7 @@ void AUserPlayerController::ServerConfirmEnding_Implementation(ADragonBoss* Drag
 		return;
 	}
 	const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
-	const float EndDur = 8.f;
+	const float EndDur = 15.f;
 	for (const FPartyMember& M : Members)
 		if (AUserPlayerController* MPC = Cast<AUserPlayerController>(M.Member->GetOwner()))
 			MPC->ClientPlayEnding(EndDur);

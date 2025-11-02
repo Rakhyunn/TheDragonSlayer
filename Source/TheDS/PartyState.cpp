@@ -11,7 +11,14 @@ void APartyState::CreateParty(APlayerState* Leader)
 
 	FPartyMember SelfMember;
 	SelfMember.Member = Leader;
-	SelfMember.Nickname = Leader->GetPlayerName();
+	if (ATheDSPlayerState* PS = Cast<ATheDSPlayerState>(Leader))
+	{
+		SelfMember.Nickname = PS->GetNickname();
+	}
+	else
+	{
+		SelfMember.Nickname = Leader->GetPlayerName();
+	}
 
 	if (ATheDSPlayerState* PlayerState = Cast<ATheDSPlayerState>(Leader))
 	{
@@ -73,10 +80,10 @@ void APartyState::AcceptInvite(APlayerState* Invitee, APlayerState* Leader)
 
 	FPartyMember NewMember;
 	NewMember.Member = Invitee;
-	NewMember.Nickname = Invitee->GetPlayerName();
 
 	if (ATheDSPlayerState* PlayerState = Cast<ATheDSPlayerState>(Invitee))
 	{
+		NewMember.Nickname = PlayerState->GetNickname();
 		NewMember.Level = PlayerState->GetLevel();
 		PlayerState->SetPartyLeader(Leader);
 	}

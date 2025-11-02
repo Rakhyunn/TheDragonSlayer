@@ -34,6 +34,8 @@ void UChattingWidget::HandleSendMessage()
 	if (PC)
 	{
 		PC->ServerSendChat(Message, CurrentChannel);
+		FInputModeGameOnly InputMode;
+        PC->SetInputMode(InputMode);
 	}
 	ET_Content->SetText(FText::GetEmpty());
 }

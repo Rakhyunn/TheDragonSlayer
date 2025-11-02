@@ -3,6 +3,7 @@
 #include "Components/Button.h"
 #include "UserPlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "TheDSPlayerState.h"
 
 void UInvitePartyWidget::NativeConstruct()
 {
@@ -14,7 +15,14 @@ void UInvitePartyWidget::NativeConstruct()
 void UInvitePartyWidget::Init(APlayerState* FromLeader)
 {
 	Leader = FromLeader;
-	TXT_LeaderName->SetText(FText::FromString(Leader->GetPlayerName()));
+	if (ATheDSPlayerState* PS = Cast<ATheDSPlayerState>(Leader))
+	{
+		TXT_LeaderName->SetText(FText::FromString(PS->GetNickname()));
+	}
+	else
+	{
+		TXT_LeaderName->SetText(FText::FromString(Leader->GetPlayerName()));
+	}
 }
 
 void UInvitePartyWidget::OnAcceptClicked()

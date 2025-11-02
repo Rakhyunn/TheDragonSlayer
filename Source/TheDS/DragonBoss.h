@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "BossBase.h"
 #include "InteractInterface.h"
+#include "BaseStatComponent.h"
 #include "DragonBoss.generated.h"
 
 UCLASS()
@@ -19,7 +20,7 @@ public:
 
 protected:
     UPROPERTY(EditAnywhere, Category = "DotInfo")
-    FDotInfo BurnDot { 3.f, 3.f, 1.f, "Burn" };
+    FDotInfo BurnDot{ 3.f, 3.f, 1.f, "Burn" , this };
 
     UPROPERTY(EditAnywhere, Category = "Phase")
     float Phase2HPPercent = 0.5f;

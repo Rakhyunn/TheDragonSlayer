@@ -25,14 +25,6 @@ AWitchBoss::AWitchBoss()
 	MeleeRange = 0.f;
 }
 
-void AWitchBoss::ServerTeleportNear(ABaseCharacter* Target)
-{
-	if (!Target) return;
-	const FVector Offset = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(TeleportMin, TeleportMax);
-	FHitResult Hit;
-	SetActorLocation(Target->GetActorLocation() + Offset, true, &Hit);
-}
-
 void AWitchBoss::Die(ABaseCharacter* Causer)
 {
 	if (!Causer) return;
@@ -93,14 +85,6 @@ void AWitchBoss::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AWitchBoss, bDead);
-}
-
-void AWitchBoss::ServerTeleportToNearestTarget_Implementation(float SearchRange)
-{
-	if (ABaseCharacter* Target = FindNearestPlayer(SearchRange))
-	{
-		ServerTeleportNear(Target);
-	}
 }
 
 void AWitchBoss::MulticastSetHidden_Implementation(bool bShow)

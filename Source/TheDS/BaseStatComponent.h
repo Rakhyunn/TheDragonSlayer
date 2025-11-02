@@ -15,6 +15,39 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnDefenseChangedDelegate, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMoneyChangedDelegate, int32);
 DECLARE_MULTICAST_DELEGATE(FOnDiedDelegate);
 
+USTRUCT(BlueprintType)
+struct FDotInfo
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    float DPS = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    float Duration = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    float Tick = 1.f;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FName Type;		// 마녀-독, 드래곤-화상
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TWeakObjectPtr<AActor> Source;
+};
+
+USTRUCT(BlueprintType)
+struct FActiveDot
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FDotInfo Spec;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 LeftTick = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    float DamagePerTick = 0.f;
+    FTimerHandle Timer;
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class THEDS_API UBaseStatComponent : public UActorComponent
 {
@@ -89,8 +122,15 @@ public:
 
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+    void ApplyDot(const FDotInfo& Info);
+    bool RemoveDotById(FName Type);
+    void ClearAllDots();
+
 protected:
     virtual void BeginPlay() override;
+
+private:
+    void TickOneDot(FName Type);
 
 private:
     UPROPERTY(ReplicatedUsing = OnRep_LevelChanged)
@@ -103,7 +143,6 @@ private:
     float MaxMP = 50.f;
     UPROPERTY(ReplicatedUsing = OnRep_MPChanged)
     float CurrentMP;
-
     UPROPERTY(ReplicatedUsing = OnRep_AttackChanged)
     float Attack = 10.f;
     UPROPERTY(ReplicatedUsing = OnRep_MagicChanged)
@@ -111,7 +150,7 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_DefenseChanged)
     float Defense = 5.f;
 
-    float MaxEXP = 100.f;
+    float MaxEXP = 50.f;
     UPROPERTY(ReplicatedUsing = OnRep_EXPChanged)
     float CurrentEXP = 0.f;
 
@@ -120,6 +159,7 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_MoneyChanged)
     int32 CurrentMoney = 1000;
 
+    TMap<FName, FActiveDot> ActiveDots;
 public:
     FOnHPChangedDelegate OnHPChangedDelegate;
     FOnEXPChangedDelegate OnEXPChangedDelegate;

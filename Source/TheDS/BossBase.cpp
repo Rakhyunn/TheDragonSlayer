@@ -6,6 +6,7 @@
 #include "TimerManager.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BaseStatComponent.h"
 
 ABossBase::ABossBase()
 {
@@ -113,29 +114,15 @@ ABaseCharacter* ABossBase::FindNearestPlayer(float Range) const
 
 void ABossBase::ApplyDot(ABaseCharacter* Target, const FDotInfo& Dot)
 {
-    if (!HasAuthority() || !Target || Dot.DPS <= 0.f || Dot.Duration <= 0.f || Dot.Tick <= 0.f) return;
-    UWorld* World = GetWorld();
-    if (!World) return;
-    int32 LeftTick = FMath::CeilToInt(Dot.Duration / Dot.Tick);
-    const float DamagePerTick = Dot.DPS * Dot.Tick;
-    TWeakObjectPtr<ABaseCharacter> WeakTarget = Target;
-    const int32 HandleIdx = ActiveDotTimers.AddDefaulted();
-    FTimerHandle& Handle = ActiveDotTimers[HandleIdx];
-    World->GetTimerManager().SetTimer(Handle, [this, WeakTarget, DamagePerTick, LeftTick, HandleIdx]() mutable
-        {
-            if (!WeakTarget.IsValid())
-            {
-                GetWorldTimerManager().ClearTimer(ActiveDotTimers[HandleIdx]);
-                ActiveDotTimers.RemoveAtSwap(HandleIdx);
-                return;
-            }
-            WeakTarget->ReceiveDamage(DamagePerTick);
-            if (--LeftTick <= 0)
-            {
-                GetWorldTimerManager().ClearTimer(ActiveDotTimers[HandleIdx]);
-                ActiveDotTimers.RemoveAtSwap(HandleIdx);
-            }
-        }, Dot.Tick, true);
+    if (!HasAuthority() || !Target || !Target->Stat  || Dot.DPS <= 0.f || Dot.Duration <= 0.f || Dot.Tick <= 0.f) return;
+    FDotInfo Info;
+    Info.DPS = Dot.DPS;
+    Info.Tick = Dot.Tick;
+    Info.Duration = Dot.Duration;
+    Info.Type = Dot.Type;
+    Info.Source = this;
+
+    Target->Stat->ApplyDot(Info);
 }
 
 void ABossBase::ServerReportThreat_Implementation(AController* AttackController, float Damage)
