@@ -86,7 +86,6 @@ void ADragonBoss::Die(ABaseCharacter* Causer)
 		bDead = true;
 		OnRep_Dead();
 		EnableEndingInteract(true);
-		// Todo: 드래곤과의 인터랙션 활성화(파티장만 가능)
 	}
 }
 

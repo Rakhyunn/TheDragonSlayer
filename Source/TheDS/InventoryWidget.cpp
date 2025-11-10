@@ -19,7 +19,7 @@ void UInventoryWidget::NativeConstruct()
         {
             Player->Stat->OnMoneyChangedDelegate.AddUObject(this, &UInventoryWidget::UpdateMoney);
         }
-        UpdateMoney(Player->Stat->GetMoney()); // 초기화 시점 UI도 갱신
+        UpdateMoney(Player->Stat->GetMoney());
     }
 }
 
@@ -60,13 +60,13 @@ void UInventoryWidget::RefreshInventory()
         if (slotData.ItemData)
         {
             FInventorySlot slotCopy = slotData;
-            slotCopy.OriginalIndex = i; // 드래그/드롭 인덱스 유지
+            slotCopy.OriginalIndex = i;
             slot->Init(slotCopy, Inventory);
         }
         else
         {
             FInventorySlot emptySlot;
-            emptySlot.OriginalIndex = i; // 빈 슬롯에도 index 지정!
+            emptySlot.OriginalIndex = i;
             slot->Init(emptySlot, Inventory);
         }
         WrapBox_Items->AddChildToWrapBox(slot);

@@ -50,8 +50,7 @@ void UShopItemSlotWidget::OnBuyButtonClicked()
 
 	int32 Cost = SlotItem->PurchaseMoney;
 	int32 Quantity = FCString::Atoi(*ET_Quantity->GetText().ToString());
-	if (Quantity <= 0)
-		return;	// 추후에 UI 팝업으로 구매 실패?
+	if (Quantity <= 0) return;
 	int32 TotalCost = Cost * Quantity;
 	if (PlayerRef->Stat->GetMoney() >= TotalCost)
 	{
@@ -62,7 +61,6 @@ void UShopItemSlotWidget::OnBuyButtonClicked()
 	}
 	else
 	{
-		// 구매 실패 UI 팝업?
 		UE_LOG(LogTemp, Warning, TEXT("소지금 부족"));
 	}
 }

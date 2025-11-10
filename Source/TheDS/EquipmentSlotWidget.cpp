@@ -41,7 +41,6 @@ void UEquipmentSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 	UItemToolTipWidget* TooltipWidget = CreateWidget<UItemToolTipWidget>(GetWorld(), ToolTipWidgetClass);
 	if (!TooltipWidget) return;
 	TooltipWidget->InitTooltip(CurrentItem);
-	// UUserWidget은 ToolTipContent로 설정해야 한다.
 	SetToolTip(TooltipWidget);
 }
 

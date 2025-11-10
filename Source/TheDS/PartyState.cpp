@@ -49,11 +49,10 @@ void APartyState::InviteToParty(APlayerState* Leader, APlayerState* Invitee)
 		if (InviteePS->GetPartyLeader()) return;
 	}
 
-	// 여기서는 그냥 로그로 확인
+	// 로그로 확인
 	UE_LOG(LogTemp, Log, TEXT("%s has invited %s to the party"),
 		*Leader->GetPlayerName(), *Invitee->GetPlayerName());
 
-	// 실제 초대 UI는 Client RPC 등으로 따로 구현해야 함
 	if (APlayerController* PC = Cast<APlayerController>(Invitee->GetOwner()))
 	{
 		AUserPlayerController* UserPC = Cast<AUserPlayerController>(PC);
