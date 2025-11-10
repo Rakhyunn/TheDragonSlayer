@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "BossBase.h"
+#include "BaseStatComponent.h"
 #include "WitchBoss.generated.h"
 
 UCLASS()
@@ -16,7 +17,7 @@ public:
 
 protected:
     UPROPERTY(EditAnywhere, Category = "DotInfo")
-    FDotInfo PoisonDot { 3.f, 6.f, 1.f, "Poison" };
+    FDotInfo PoisonDot{ 3.f, 6.f, 1.f, "Poison", this };
 
     // 순간이동
     UPROPERTY(EditAnywhere, Category = "Move")
@@ -35,8 +36,6 @@ public:
     AWitchBoss();
 
 protected:
-    void ServerTeleportNear(ABaseCharacter* Target);
-
     virtual void Die(ABaseCharacter* Causer) override;
 
     UFUNCTION()
@@ -47,12 +46,11 @@ protected:
 public:
     const FDotInfo& GetPoisonDot() const { return PoisonDot; }
 
-    UFUNCTION(Server, Reliable)
-    void ServerTeleportToNearestTarget(float SearchRange = 2500.f);
-
     UFUNCTION(NetMulticast, Reliable)
     void MulticastSetHidden(bool bShow);
 
     UFUNCTION(BlueprintCallable)
     bool IsDead() const { return bDead; }
+
+    virtual void ResetEnemyStat() override;
 };

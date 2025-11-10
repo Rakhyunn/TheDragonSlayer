@@ -16,6 +16,9 @@ class ATheDSPlayerState;
 class URaidConfirmWidget;
 class UEndingConfirmWidget;
 class UEndingPlayWidget;
+class UEndingBookData;
+class URaidGiveUpWidget;
+class UNicknameWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -42,6 +45,14 @@ public:
 	bool FindRespawnMap(ATheDSPlayerState* PS, FName& FindVillage, FTransform& FindSpawn) const;
 
 	bool AreAllPartyMembersInVillage(FName RequiredVillage) const;
+
+	void GiveUpRaid();
+
+	UFUNCTION()
+	bool IsInRaid() const
+	{
+		return bIsInRaid;
+	}
 	
 protected:
 	virtual void BeginPlay() override;
@@ -80,7 +91,13 @@ protected:
 	TSubclassOf<UEndingPlayWidget> EndingPlayWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ending")
-	TObjectPtr<class UEndingBookData> EndingBookData;
+	TObjectPtr<UEndingBookData> EndingBookData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Raid")
+	TSubclassOf<URaidGiveUpWidget> RaidGiveUpWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Nickname")
+	TSubclassOf<UNicknameWidget> NicknameWidgetClass;
 
 private:
 	UPROPERTY()
@@ -98,6 +115,9 @@ private:
 	UPROPERTY()
 	UChattingWidget* ChattingWidgetInstance;
 
+	UPROPERTY()
+	UNicknameWidget* NicknameWidgetInstance;
+
 	FTimerHandle PortalWarpTimer;
 
 	UPROPERTY(Transient)
@@ -110,8 +130,26 @@ private:
 	UPROPERTY(Transient)
 	FString PendingTravelURL;
 
+	UPROPERTY()
+	URaidGiveUpWidget* RaidGiveUpWidgetInstance;
+
+	UPROPERTY()
+	UEndingPlayWidget* EndingPlayWidgetInstance;
+
+	bool bIsInRaid = false;
+
+public:
+	UPROPERTY(Transient, BlueprintReadOnly)
+	bool bGiveUpInProgress = false;
+
 public:
 	APlayerState* FindNearestPlayer();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetNickname(const FString& NewNickname);
+
+	UFUNCTION(Client, Reliable)
+	void ClientOpenShop(class ABaseMerchantNPC* Merchant);
 
 	UFUNCTION(Server, Reliable)
 	void ServerRequestCreateParty();
@@ -163,12 +201,21 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRaidConfirmResult(bool bAccept, FName LevelName, FTransform Spawn, FName RequiredVillage);
 
+	UFUNCTION(Client, Reliable)
+	void ClientShowGiveUpRaid();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRequestGiveUpRaid(bool bAccept);
+
 	UFUNCTION(Server, Reliable)
 	void ServerStartRaidInstance(FName BossMap, FName RequiredVillage);
+
 	UFUNCTION(Client, Reliable)
 	void ClientPrepareForInstanceTravel();
+
 	UFUNCTION(Server, Reliable)
 	void ServerNotifyPreparedForInstance();
+
 	UFUNCTION(Client, Reliable)
 	void ClientTravelToBossInstance(const FString& TravelURL);
 
@@ -180,4 +227,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientPlayEnding(float DurationSec);
+
+	UFUNCTION(Client, Reliable)
+	void ClientRemoveEndingWidget();
+
+	void ResetRaid();
 };

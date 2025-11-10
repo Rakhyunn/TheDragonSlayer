@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "BaseEnemyCharacter.h"
+#include "BaseStatComponent.h"
 #include "BossBase.generated.h"
 
 class UBaseItem;
@@ -18,22 +19,6 @@ enum class EBossAction : uint8
 	TakeOff,		// 이륙(드래곤)
 	Land,			// 착륙(드래곤)
 	Phase			// 페이즈(드래곤)
-};
-
-USTRUCT(BlueprintType)
-struct FDotInfo
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float DPS = 0.f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float Duration = 0.f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float Tick = 1.f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName Type;		// 마녀-독, 드래곤-화상
 };
 
 USTRUCT(BlueprintType)
@@ -74,8 +59,6 @@ protected:
 	UAnimMontage* LandMontage = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* PhaseMontage = nullptr;
-
-	TArray<FTimerHandle> ActiveDotTimers;
 
 	UPROPERTY()
 	TMap<TWeakObjectPtr<AController>, FThreatEntry> ThreatMap;

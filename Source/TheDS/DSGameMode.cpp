@@ -6,7 +6,7 @@ ADSGameMode::ADSGameMode()
     bUseSeamlessTravel = true;
     BossInstanceManager = CreateDefaultSubobject<UBossInstanceManager>(TEXT("BossInstanceManager"));
     const FString ServerExe = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), TEXT("Binaries/Win64/TheDragonSlayerServer.exe")));
-    BossInstanceManager->Init(ServerExe, /*Overworld*/ TEXT("127.0.0.1:7777"), /*MultiHome*/ TEXT("127.0.0.1"));
+    BossInstanceManager->Init(ServerExe, TEXT("127.0.0.1:7777"), TEXT("127.0.0.1"));
 }
 
 void ADSGameMode::StartBossInstance(const FString& PartyId, const FString& BossMapPath, TFunction<void(const FString&)> OnReady)

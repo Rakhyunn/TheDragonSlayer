@@ -20,11 +20,8 @@ void UBossInstanceManager::AllocateBossInstance(const FString& BossMapPath, cons
         return;
     }
     const FString InstanceId = FGuid::NewGuid().ToString(EGuidFormats::Digits);
-    // 서버 커맨드라인 구성
-    // listen 서버로 기동 + 인스턴스 메타 전달
     FString MapURL = FString::Printf(TEXT("%s?listen?InstanceId=%s?PartyId=%s?Overworld=%s"),
         *BossMapPath, *InstanceId, *PartyId, *OverworldURL);
-    // 공백/특수문자 있으면 URL 인코딩 권장(간단히는 _ 로 치환)
     FString Cmd = FString::Printf(TEXT("\"%s\" %s -port=%d -log"),
         *ServerExe, *MapURL, Port);
     if (!MultiHome.IsEmpty())
@@ -35,7 +32,6 @@ void UBossInstanceManager::AllocateBossInstance(const FString& BossMapPath, cons
     Handle.InstanceId = InstanceId;
     Handle.PartyId = PartyId;
     Handle.Port = Port;
-    // 새 프로세스 기동
     Handle.Proc = FPlatformProcess::CreateProc(*ServerExe, *FString::Printf(TEXT("%s -port=%d -log%s"),
         *MapURL, Port, MultiHome.IsEmpty() ? TEXT("") : *FString::Printf(TEXT(" -MULTIHOME=%s"), *MultiHome)),
         true, false, false, nullptr, 0, nullptr, nullptr);
@@ -45,7 +41,6 @@ void UBossInstanceManager::AllocateBossInstance(const FString& BossMapPath, cons
         OnReady.Execute(TEXT(""));
         return;
     }
-    //  1.0~2.0초 대기 후 URL 반환.
     FTimerHandle T; if (UWorld* W = GetWorld())
     {
         W->GetTimerManager().SetTimer(T, FTimerDelegate::CreateLambda([this, OnReady, InstanceId, PartyId, Port]() {

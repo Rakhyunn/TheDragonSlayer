@@ -75,7 +75,7 @@ void ABasicEnemy_1::ServerAttack_Implementation()
 		UE_LOG(LogTemp, Warning, TEXT("BasicEnemy hit: %s"), *HitResult.GetActor()->GetName());
 		if (HitResult.GetActor()->ActorHasTag(TEXT("Player"))) {
 			ABaseCharacter* HitPlayer = Cast<ABaseCharacter>(HitResult.GetActor());
-			HitPlayer->ReceiveDamage(Stat->GetAttack());
+			HitPlayer->ReceiveDamage(this, Stat->GetAttack());
 		}
 	}
 	MulticastAttack();

@@ -26,6 +26,7 @@ EBTNodeResult::Type UBTTask_WitchTeleport::ExecuteTask(UBehaviorTreeComponent& O
 			Dest = NavLoc.Location;
 		}
 	}
+	Dest.Z += 50.f;
 	Boss->SetActorLocation(Dest);
 	return EBTNodeResult::Succeeded;
 }

@@ -71,4 +71,6 @@ protected:
 
 public:
 	void ReceiveDamage(class ABaseCharacter* Causer, float Damage);
+
+	virtual void ResetEnemyStat() {};
 };

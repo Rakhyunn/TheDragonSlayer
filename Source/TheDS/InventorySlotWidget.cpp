@@ -94,7 +94,7 @@ void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, con
 	if (!SlotData.ItemData) return;
 
 	UItemDragDropOperation* DragOperation = NewObject<UItemDragDropOperation>();
-	DragOperation->DefaultDragVisual = this; // or a new small icon widget
+	DragOperation->DefaultDragVisual = this;
 	DragOperation->Pivot = EDragPivot::MouseDown;
 	DragOperation->SourceSlot = this;
 	DragOperation->DraggedItemData = SlotData;
@@ -124,7 +124,6 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 	UItemToolTipWidget* TooltipWidget = CreateWidget<UItemToolTipWidget>(GetWorld(), ToolTipWidgetClass);
 	if (!TooltipWidget) return;
 	TooltipWidget->InitTooltip(SlotData.ItemData);
-	// UUserWidget은 ToolTipContent로 설정해야 한다.
 	SetToolTip(TooltipWidget);
 }
 

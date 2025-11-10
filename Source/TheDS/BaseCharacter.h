@@ -25,15 +25,6 @@ private:
 	class USpringArmComponent* SpringArm;
 	UPROPERTY(VisibleAnywhere)
 	class UCameraComponent* Camera;
-	
-	UPROPERTY(EditAnywhere)
-	class UBaseItem* TestSwordDataAsset;
-	UPROPERTY(EditAnywhere)
-	class UBaseItem* TestShieldDataAsset;
-	UPROPERTY(EditAnywhere)
-	class UBaseItem* TestHeadDataAsset;
-	UPROPERTY(EditAnywhere)
-	class UBaseItem* TestPotionDataAsset;
 
 protected:
 	UPROPERTY(Replicated)
@@ -96,7 +87,7 @@ public:
 	class UEquipmentComponent* EquipmentComponent;
 
 public:
-	void ReceiveDamage(float Damage);
+	void ReceiveDamage(class ABaseEnemyCharacter* Causer, float Damage);
 	
 	virtual void DontMove();
 

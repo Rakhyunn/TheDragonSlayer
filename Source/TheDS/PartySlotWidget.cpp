@@ -1,5 +1,6 @@
 #include "PartySlotWidget.h"
 #include "Components/TextBlock.h"
+#include "TheDSPlayerState.h"
 
 void UPartySlotWidget::Init(const FPartyMember& MemberData, bool bIsLeader)
 {

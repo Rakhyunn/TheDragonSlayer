@@ -11,7 +11,14 @@ void APartyState::CreateParty(APlayerState* Leader)
 
 	FPartyMember SelfMember;
 	SelfMember.Member = Leader;
-	SelfMember.Nickname = Leader->GetPlayerName();
+	if (ATheDSPlayerState* PS = Cast<ATheDSPlayerState>(Leader))
+	{
+		SelfMember.Nickname = PS->GetNickname();
+	}
+	else
+	{
+		SelfMember.Nickname = Leader->GetPlayerName();
+	}
 
 	if (ATheDSPlayerState* PlayerState = Cast<ATheDSPlayerState>(Leader))
 	{
@@ -42,11 +49,10 @@ void APartyState::InviteToParty(APlayerState* Leader, APlayerState* Invitee)
 		if (InviteePS->GetPartyLeader()) return;
 	}
 
-	// 여기서는 그냥 로그로 확인
+	// 로그로 확인
 	UE_LOG(LogTemp, Log, TEXT("%s has invited %s to the party"),
 		*Leader->GetPlayerName(), *Invitee->GetPlayerName());
 
-	// 실제 초대 UI는 Client RPC 등으로 따로 구현해야 함
 	if (APlayerController* PC = Cast<APlayerController>(Invitee->GetOwner()))
 	{
 		AUserPlayerController* UserPC = Cast<AUserPlayerController>(PC);
@@ -73,10 +79,10 @@ void APartyState::AcceptInvite(APlayerState* Invitee, APlayerState* Leader)
 
 	FPartyMember NewMember;
 	NewMember.Member = Invitee;
-	NewMember.Nickname = Invitee->GetPlayerName();
 
 	if (ATheDSPlayerState* PlayerState = Cast<ATheDSPlayerState>(Invitee))
 	{
+		NewMember.Nickname = PlayerState->GetNickname();
 		NewMember.Level = PlayerState->GetLevel();
 		PlayerState->SetPartyLeader(Leader);
 	}
@@ -176,5 +182,38 @@ void APartyState::UpdateAllPartyMemberStates(const FPartyInfo& Party)
 		{
 			PS->SetReplicatedPartyMembers(Party.Members);
 		}
+	}
+}
+
+void APartyState::HandleRaidDeath(APlayerState* DeadMember)
+{
+	if (!DeadMember) return;
+
+	for (auto& Element : ActiveParties)
+	{
+		FPartyInfo& Party = Element.Value;
+		const bool bInThisParty = Party.Members.ContainsByPredicate([DeadMember](const FPartyMember& M) { return M.Member == DeadMember; });
+		if (!bInThisParty) continue;
+		FName VillageMap = FName("Village_2");
+		FTransform VillageSpawn(FRotator::ZeroRotator, FVector(-1350.f, 3170.f, 200.f));
+		if (ATheDSPlayerState* LeaderPS = Cast<ATheDSPlayerState>(Party.Leader))
+		{
+			if (AUserPlayerController* LeaderPC = Cast<AUserPlayerController>(LeaderPS->GetOwner()))
+			{
+				LeaderPC->FindRespawnMap(LeaderPS, VillageMap, VillageSpawn);
+			}
+		}
+		for (const FPartyMember& M : Party.Members)
+		{
+			if (ATheDSPlayerState* MemberPS = Cast<ATheDSPlayerState>(M.Member))
+			{
+				if (AUserPlayerController* PC = Cast<AUserPlayerController>(MemberPS->GetOwner()))
+				{
+					PC->ResetRaid();
+					PC->ServerLoadAndWarp(VillageMap, VillageSpawn, false);
+				}
+			}
+		}
+		break;
 	}
 }

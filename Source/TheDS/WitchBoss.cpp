@@ -20,17 +20,9 @@ AWitchBoss::AWitchBoss()
 	bReplicates = true;
 
 	Stat->SetLevel(8);
-	Stat->SetAttack(40.f);
+	Stat->SetAttack(30.f);
 	Stat->SetMagic(60.f);
 	MeleeRange = 0.f;
-}
-
-void AWitchBoss::ServerTeleportNear(ABaseCharacter* Target)
-{
-	if (!Target) return;
-	const FVector Offset = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(TeleportMin, TeleportMax);
-	FHitResult Hit;
-	SetActorLocation(Target->GetActorLocation() + Offset, true, &Hit);
 }
 
 void AWitchBoss::Die(ABaseCharacter* Causer)
@@ -67,8 +59,9 @@ void AWitchBoss::Die(ABaseCharacter* Causer)
 		bDead = true;
 		OnRep_Dead();
 		AUserPlayerController* PC = Cast<AUserPlayerController>(Causer->GetController());
-		FVector Location = FVector(-1350.f, 3170.f, 192.f);
+		FVector Location = FVector(130.f, -570.f, 27850.f);
 		PC->ServerLoadAndWarp("Village_1_", FTransform(Location), true);
+		PC->ResetRaid();
 	}
 }
 
@@ -95,12 +88,23 @@ void AWitchBoss::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(AWitchBoss, bDead);
 }
 
-void AWitchBoss::ServerTeleportToNearestTarget_Implementation(float SearchRange)
+void AWitchBoss::ResetEnemyStat()
 {
-	if (ABaseCharacter* Target = FindNearestPlayer(SearchRange))
+	Super::ResetEnemyStat();
+	if (Stat)
 	{
-		ServerTeleportNear(Target);
+		Stat->FullRestore();
 	}
+	bDead = false;
+	if (AAIController* AI = Cast<AAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
+			BB->SetValueAsBool(TEXT("IsDead"), false);
+		if (UBrainComponent* Brain = AI->GetBrainComponent())
+			Brain->RestartLogic();
+	}
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	SetActorHiddenInGame(false);
 }
 
 void AWitchBoss::MulticastSetHidden_Implementation(bool bShow)

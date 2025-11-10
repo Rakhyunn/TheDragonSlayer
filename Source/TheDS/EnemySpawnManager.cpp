@@ -74,6 +74,7 @@ void AEnemySpawnManager::SpawnEnemy(const FEnemySpawnData& Config)
 
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	Params.OverrideLevel = GetLevel();
 
 	ABaseEnemyCharacter* Enemy = GetWorld()->SpawnActor<ABaseEnemyCharacter>(Config.EnemyClass, Location, FRotator::ZeroRotator, Params);
 	if (Enemy)

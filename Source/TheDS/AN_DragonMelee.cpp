@@ -31,7 +31,7 @@ void UAN_DragonMelee::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase
         if (ABaseCharacter* Player = Cast<ABaseCharacter>(A))
         {
             Already.Add(A);
-            Player->ReceiveDamage(Dragon->Stat ? Dragon->Stat->GetAttack() : 50.f);
+            Player->ReceiveDamage(Dragon, Dragon->Stat ? Dragon->Stat->GetAttack() : 50.f);
         }
     }
 }

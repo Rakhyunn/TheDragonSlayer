@@ -20,6 +20,6 @@ void ABaseMerchantNPC::Interact(ABaseCharacter* Interactor)
 	AUserPlayerController* UserPlayer = Cast<AUserPlayerController>(Interactor->GetController());
 	if (UserPlayer)
 	{
-		UserPlayer->OpenShop(this);
+		UserPlayer->ClientOpenShop(this);
 	}
 }

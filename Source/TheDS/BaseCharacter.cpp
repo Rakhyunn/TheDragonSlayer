@@ -12,6 +12,10 @@
 #include "InteractInterface.h"
 #include "UserPlayerController.h"
 #include "TheDSPlayerState.h"
+#include "BossBase.h"
+#include "EngineUtils.h"
+#include "PartyState.h"
+#include "BaseEnemyCharacter.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -47,10 +51,6 @@ void ABaseCharacter::BeginPlay()
 	Super::BeginPlay();
 	if (HasAuthority() && Stat)
 	{
-		InventoryComponent->AddItem(TestSwordDataAsset, 1);
-		InventoryComponent->AddItem(TestShieldDataAsset, 1);
-		InventoryComponent->AddItem(TestHeadDataAsset, 1);
-		InventoryComponent->AddItem(TestPotionDataAsset, 150);
 		Stat->OnDiedDelegate.AddUObject(this, &ABaseCharacter::ServerDie);
 	}
 }
@@ -170,7 +170,7 @@ void ABaseCharacter::InteractPortal()
 	TryInteract(EInteractionType::Portal);
 }
 
-void ABaseCharacter::ReceiveDamage(float damage)
+void ABaseCharacter::ReceiveDamage(ABaseEnemyCharacter* Causer, float damage)
 {
 	Stat->GetDamage(damage);
 	UE_LOG(LogTemp, Warning, TEXT("Remain HP: %f"), Stat->GetCurrentHP());
@@ -281,14 +281,20 @@ void ABaseCharacter::ServerTryTalk_Implementation()
 void ABaseCharacter::ServerDie()
 {
 	if (!HasAuthority() || !Stat) return;
-
+	Stat->ClearAllDots();
 	Stat->ApplyDiedPenalty();
 	Stat->FullRestore();
-
 	AUserPlayerController* PC = Cast<AUserPlayerController>(Controller);
 	ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>();
 	if (!PC || !PS) return;
-
+	if (PS->IsInParty() && PC->IsInRaid())
+	{
+		if (APartyState* PartyState = GetWorld()->GetGameState<APartyState>())
+		{
+			PartyState->HandleRaidDeath(PS);
+			return;
+		}
+	}
 	FName TargetMap;
 	FTransform TargetSpawn;
 	if (PC->FindRespawnMap(PS, TargetMap, TargetSpawn))
