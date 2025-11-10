@@ -51,9 +51,7 @@ public:
 	UFUNCTION()
 	bool IsInRaid() const
 	{
-		const FString L = CurrentStreamLevel.ToString();
-		return L.Contains(TEXT("Dragon"), ESearchCase::IgnoreCase)
-			|| L.Contains(TEXT("Witch"), ESearchCase::IgnoreCase);
+		return bIsInRaid;
 	}
 	
 protected:
@@ -134,6 +132,11 @@ private:
 
 	UPROPERTY()
 	URaidGiveUpWidget* RaidGiveUpWidgetInstance;
+
+	UPROPERTY()
+	UEndingPlayWidget* EndingPlayWidgetInstance;
+
+	bool bIsInRaid = false;
 
 public:
 	UPROPERTY(Transient, BlueprintReadOnly)
@@ -224,4 +227,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientPlayEnding(float DurationSec);
+
+	UFUNCTION(Client, Reliable)
+	void ClientRemoveEndingWidget();
+
+	void ResetRaid();
 };

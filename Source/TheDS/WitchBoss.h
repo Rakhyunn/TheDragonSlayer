@@ -51,4 +51,6 @@ public:
 
     UFUNCTION(BlueprintCallable)
     bool IsDead() const { return bDead; }
+
+    virtual void ResetEnemyStat() override;
 };

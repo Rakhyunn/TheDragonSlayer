@@ -19,7 +19,7 @@ ADragonBoss::ADragonBoss()
 	bReplicates = true;
 
 	Stat->SetLevel(10);
-	Stat->SetAttack(100.f);
+	Stat->SetAttack(60.f);
 	Stat->SetMagic(60.f);
 }
 
@@ -43,9 +43,9 @@ void ADragonBoss::EnterPhase2()
 	bPhase2 = true;
 	if (Stat) 
 	{ 
-		Stat->AddAttack(20.f);
-		Stat->AddMagic(20.f);
-		Stat->AddDefense(15.f);
+		Stat->AddAttack(10.f);
+		Stat->AddMagic(10.f);
+		Stat->AddDefense(5.f);
 	}
 }
 
@@ -151,4 +151,26 @@ void ADragonBoss::Interact(ABaseCharacter* Interactor)
 				}
 	}
 	UserPlayer->ClientShowEndingConfirm(this, true);
+}
+
+void ADragonBoss::ResetEnemyStat()
+{
+	Super::ResetEnemyStat();
+	if (Stat)
+	{
+		Stat->FullRestore();
+	}
+	bDead = false;
+	bPhase2 = false;
+	bCanEndingInteract = false;
+	bEndingInProgress = false;
+	if (AAIController* AI = Cast<AAIController>(GetController()))
+	{
+		if (UBlackboardComponent* BB = AI->GetBlackboardComponent())
+			BB->SetValueAsBool(TEXT("IsDead"), false);
+		if (UBrainComponent* Brain = AI->GetBrainComponent())
+			Brain->RestartLogic();
+	}
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	SetActorHiddenInGame(false);
 }

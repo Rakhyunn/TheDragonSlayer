@@ -23,4 +23,5 @@ public:
 	FPartyInfo* GetParty(APlayerState* Leader);
 	bool IsPartyMember(APlayerState* Player);
 	void UpdateAllPartyMemberStates(const FPartyInfo& Party);
+	void HandleRaidDeath(APlayerState* DeadMember);
 };

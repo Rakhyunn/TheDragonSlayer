@@ -185,3 +185,36 @@ void APartyState::UpdateAllPartyMemberStates(const FPartyInfo& Party)
 		}
 	}
 }
+
+void APartyState::HandleRaidDeath(APlayerState* DeadMember)
+{
+	if (!DeadMember) return;
+
+	for (auto& Element : ActiveParties)
+	{
+		FPartyInfo& Party = Element.Value;
+		const bool bInThisParty = Party.Members.ContainsByPredicate([DeadMember](const FPartyMember& M) { return M.Member == DeadMember; });
+		if (!bInThisParty) continue;
+		FName VillageMap = FName("Village_2");
+		FTransform VillageSpawn(FRotator::ZeroRotator, FVector(-1350.f, 3170.f, 200.f));
+		if (ATheDSPlayerState* LeaderPS = Cast<ATheDSPlayerState>(Party.Leader))
+		{
+			if (AUserPlayerController* LeaderPC = Cast<AUserPlayerController>(LeaderPS->GetOwner()))
+			{
+				LeaderPC->FindRespawnMap(LeaderPS, VillageMap, VillageSpawn);
+			}
+		}
+		for (const FPartyMember& M : Party.Members)
+		{
+			if (ATheDSPlayerState* MemberPS = Cast<ATheDSPlayerState>(M.Member))
+			{
+				if (AUserPlayerController* PC = Cast<AUserPlayerController>(MemberPS->GetOwner()))
+				{
+					PC->ResetRaid();
+					PC->ServerLoadAndWarp(VillageMap, VillageSpawn, false);
+				}
+			}
+		}
+		break;
+	}
+}

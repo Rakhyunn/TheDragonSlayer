@@ -87,7 +87,7 @@ public:
 	class UEquipmentComponent* EquipmentComponent;
 
 public:
-	void ReceiveDamage(float Damage);
+	void ReceiveDamage(class ABaseEnemyCharacter* Causer, float Damage);
 	
 	virtual void DontMove();
 

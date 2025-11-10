@@ -551,7 +551,7 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 	FLatentActionInfo Latent; 
 	Latent.CallbackTarget = this;
 	UGameplayStatics::LoadStreamLevel(this, LevelName, true, false, Latent);
-
+	bIsInRaid = bIsRaid;
 	GetWorldTimerManager().SetTimer(PortalWarpTimer, [this, LevelName, Spawn, bIsRaid]()
 		{
 			if (ULevelStreaming* S = UGameplayStatics::GetStreamingLevel(this, LevelName))
@@ -588,6 +588,7 @@ void AUserPlayerController::ServerLoadAndWarp_Implementation(FName LevelName, FT
 								if (AUserPlayerController* PC = Cast<AUserPlayerController>(M.Member->GetOwner()))
 								{
 									TeleportOne(PC);
+									PC->bIsInRaid = bIsRaid;
 									PC->ClientSetVisibleLevel(LevelName);
 								}
 							}
@@ -614,7 +615,6 @@ void AUserPlayerController::ClientSetVisibleLevel_Implementation(FName NewLevelN
 	{
 		UGameplayStatics::LoadStreamLevel(this, NewLevelName, true, true, FLatentActionInfo());
 	}
-
 	CurrentStreamLevel = NewLevelName;
 }
 
@@ -715,6 +715,7 @@ void AUserPlayerController::ServerRequestGiveUpRaid_Implementation(bool bAccept)
 		VillageMap = FName("Village_2");
 		VillageSpawn = FTransform(FRotator::ZeroRotator, FVector(-1350.f, 3170.f, 200.f));
 	}
+	ResetRaid();
 	const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
 	for (const FPartyMember& M : Members)
 	{
@@ -815,7 +816,7 @@ void AUserPlayerController::ServerConfirmEnding_Implementation(ADragonBoss* Drag
 		return;
 	}
 	const TArray<FPartyMember>& Members = PS->GetReplicatedPartyMembers();
-	const float EndDur = 15.f;
+	const float EndDur = 10.f;
 	for (const FPartyMember& M : Members)
 		if (AUserPlayerController* MPC = Cast<AUserPlayerController>(M.Member->GetOwner()))
 			MPC->ClientPlayEnding(EndDur);
@@ -823,9 +824,14 @@ void AUserPlayerController::ServerConfirmEnding_Implementation(ADragonBoss* Drag
 	FTimerHandle T;
 	GetWorldTimerManager().SetTimer(T, [this, Members]()
 		{
+			ResetRaid();
 			for (const FPartyMember& M : Members)
 				if (AUserPlayerController* MPC = Cast<AUserPlayerController>(M.Member->GetOwner()))
+				{
+					MPC->ClientRemoveEndingWidget();
 					MPC->ServerLoadAndWarp(FName("Village_2"), FTransform(FRotator::ZeroRotator, FVector(-1350, 3170, 200)), false);
+				}
+			ClientRemoveEndingWidget();
 			ServerLoadAndWarp(FName("Village_2"), FTransform(FRotator::ZeroRotator, FVector(-1350, 3170, 200)), false);
 		}, EndDur, false);
 }
@@ -833,10 +839,36 @@ void AUserPlayerController::ServerConfirmEnding_Implementation(ADragonBoss* Drag
 void AUserPlayerController::ClientPlayEnding_Implementation(float Duration)
 {
 	if (!IsLocalController() || !EndingPlayWidgetClass) return;
-	UEndingPlayWidget* EndingPlayWidget = CreateWidget<UEndingPlayWidget>(this, EndingPlayWidgetClass);
-	if (EndingPlayWidget)
+	if (!EndingPlayWidgetInstance)
 	{
-		EndingPlayWidget->AddToViewport(2000);
-		EndingPlayWidget->InitData(EndingBookData);
+		EndingPlayWidgetInstance = CreateWidget<UEndingPlayWidget>(this, EndingPlayWidgetClass);
+		if (EndingPlayWidgetInstance) 
+		{
+			EndingPlayWidgetInstance->AddToViewport(2000);
+			EndingPlayWidgetInstance->InitData(EndingBookData);
+		}
+	}
+}
+
+void AUserPlayerController::ClientRemoveEndingWidget_Implementation()
+{
+	if (EndingPlayWidgetInstance)
+	{
+		EndingPlayWidgetInstance->RemoveFromParent();
+		EndingPlayWidgetInstance = nullptr;
+	}
+}
+
+void AUserPlayerController::ResetRaid()
+{
+	if (!HasAuthority()) return;
+	UWorld* World = GetWorld();
+	if (!World) return;
+	for (TActorIterator<ABaseEnemyCharacter> It(World); It; ++It)
+	{
+		if (ABaseEnemyCharacter* Enemy = *It)
+		{
+			Enemy->ResetEnemyStat();
+		}
 	}
 }

@@ -38,10 +38,12 @@ void AEnemyProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 	{
 		if (ABaseCharacter* Player = Cast<ABaseCharacter>(OtherActor))
 		{
-			Player->ReceiveDamage(Damage);
 			if (Dot.DPS > 0.f)
 				if (auto* OwnerBoss = Cast<ABossBase>(GetOwner()))
+				{
+					Player->ReceiveDamage(OwnerBoss, Damage);
 					OwnerBoss->ApplyDot(Player, Dot);
+				}
 		}
 	}
 	Destroy();
