@@ -1,37 +1,9 @@
-# The Dragon Slayer
+# The Dragon Slayer 🐉
 
 ## Flow
-https://drive.google.com/file/d/1pFW2w4uHY0l4iUrIcjvVPEb8c45VMqdn/view?usp=sharing
+https://drive.google.com/drive/u/0/folders/1gFVnLqAvhGisttvPBUy7Q08GzfejiSb4
 
-## Git Rule
-### 커밋 타입
-- Feature: 기능 구현
-- Fix: 버그 수정
-- Refactor: 코드 리팩토링
-- Style: 코드 스타일 변경
-- Docs: 문서 수정
-- Test: 테스트 코드 추가
-- Chore: 잡일
-
-### 브랜치 이름
-- Feature/#이슈번호/Rakhyunn(깃허브 이름)
-- Fix/#이슈번호/Rakhyunn(깃허브 이름)
-### 커밋 메시지
-- [타입] 변경 사항
-### 이슈
-
-[타입]
-
-💡Feature Issue
-
-🌿To-do
-
-### PR
-
-[#이슈번호] 이슈 제목
-
-📍이슈 번호
-
-✍️ 주요 변경 사항
-
-🙏 코드 리뷰 참고 사항
+## 게임 설명
+- 이 게임은 언리얼 5.5 활용하고 c++를 주로 하여 만든 멀티 RPG 게임입니다.
+- 일반 몬스터 사냥, 다양한 마을, 장비 및 소비 아이템, 2가지 레이드를 구성하고 있습니다.
+- 게임 제목을 보면 단순히 드래곤을 잡으면 끝나는 것으로 보이지만 그 이면에 숨겨진 진실이 존재합니다.
