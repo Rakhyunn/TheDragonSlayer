@@ -28,7 +28,7 @@
 #include "EndingBookData.h"
 #include "RaidGiveUpWidget.h"
 #include "EngineUtils.h"
-#include "NicknameWidget.h"
+#include "ServerGameInstance.h"
 
 AUserPlayerController::AUserPlayerController()
 {
@@ -70,12 +70,12 @@ void AUserPlayerController::BeginPlay()
 			}
 		}
 
-		if (NicknameWidgetClass)
+		if (UServerGameInstance* GI = GetWorld()->GetGameInstance<UServerGameInstance>())
 		{
-			NicknameWidgetInstance = CreateWidget<UNicknameWidget>(this, NicknameWidgetClass);
-			if (NicknameWidgetInstance)
+			const FString Nick = GI->GetLoggedInNickname();
+			if (!Nick.IsEmpty())
 			{
-				NicknameWidgetInstance->AddToViewport(1000);
+				ServerSetNickname(Nick);
 			}
 		}
 	}

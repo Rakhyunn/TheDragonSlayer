@@ -18,7 +18,6 @@ class UEndingConfirmWidget;
 class UEndingPlayWidget;
 class UEndingBookData;
 class URaidGiveUpWidget;
-class UNicknameWidget;
 
 UCLASS()
 class THEDS_API AUserPlayerController : public APlayerController
@@ -96,9 +95,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Raid")
 	TSubclassOf<URaidGiveUpWidget> RaidGiveUpWidgetClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Nickname")
-	TSubclassOf<UNicknameWidget> NicknameWidgetClass;
-
 private:
 	UPROPERTY()
 	UPlayerInfoWidget* PlayerInfoWidgetInstance;
@@ -114,9 +110,6 @@ private:
 
 	UPROPERTY()
 	UChattingWidget* ChattingWidgetInstance;
-
-	UPROPERTY()
-	UNicknameWidget* NicknameWidgetInstance;
 
 	FTimerHandle PortalWarpTimer;
 
