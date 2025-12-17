@@ -8,6 +8,21 @@ public class TheDS : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NavigationSystem", "AIModule", "Niagara", "Slate", "SlateCore", "UMG", "Networking", "Sockets" });
+		PublicDependencyModuleNames.AddRange(new string[] 
+		{ 
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"EnhancedInput", 
+			"NavigationSystem", 
+			"AIModule", 
+			"Niagara", 
+			"Slate", 
+			"SlateCore", 
+			"UMG", 
+			"Networking", 
+			"Sockets" 
+		});
 	}
 }

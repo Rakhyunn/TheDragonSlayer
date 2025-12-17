@@ -1,4 +1,4 @@
-#include "Database.h"
+﻿#include "Database.h"
 #include <iostream>
 
 Database::Database() {
@@ -76,4 +76,31 @@ bool Database::CheckNickname(const string& Nickname) {
 	bool isExists = sqlite3_step(stmt) == SQLITE_ROW;		
 	sqlite3_finalize(stmt);
 	return isExists;
+}
+
+string Database::GetNickname(const string& id)
+{
+	lock_guard <mutex> lock(db_mutex);
+	string sql = "SELECT Nickname FROM USERS WHERE ID = '" + id + "'";
+	sqlite3_stmt* stmt;
+	if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+		return "";
+	}
+	sqlite3_bind_text(stmt, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+	string nickname;
+	int rc = sqlite3_step(stmt);
+	if (rc == SQLITE_ROW)
+	{
+		const unsigned char* text = sqlite3_column_text(stmt, 0);
+		if (text)
+		{
+			nickname = reinterpret_cast<const char*>(text);
+		}
+	}
+	else if (rc != SQLITE_DONE)
+	{
+		cerr << "GetNickname step error: " << sqlite3_errmsg(db) << "\n";
+	}
+	sqlite3_finalize(stmt);
+	return nickname;
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <sqlite3.h>
 #include <string>
 #include <mutex>
@@ -14,6 +14,7 @@ public:
 	bool LoginUser(const string& userID, const string& Password);
 	bool CheckID(const string& userID);
 	bool CheckNickname(const string& Nickname);
+	string GetNickname(const string& id);
 
 private:
 	sqlite3* db;

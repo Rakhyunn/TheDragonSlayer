@@ -1,4 +1,4 @@
-#include "Session.h"
+﻿#include "Session.h"
 #include <iostream>
 #include <sstream>
 #include "Server.h"
@@ -83,8 +83,13 @@ void Session::ReadMessage() {
 					else if (db_.LoginUser(userID, password)) {
 						server_.AddLoggedInUser(userID);
 						LoggedInUserID_ = userID;
-						cout << "Login Success\n";
-						WriteMessage("Login Success");
+						string nickname = db_.GetNickname(userID);
+						if (nickname.empty())
+						{
+							nickname = userID;	// 못찾으면 ID로 대체
+						}
+						cout << "Login Success: " << userID << " (" << nickname << ")" << std::endl;
+						WriteMessage("Login Success " + nickname);
 					}
 					else {
 						cout << "Login Failed\n";
