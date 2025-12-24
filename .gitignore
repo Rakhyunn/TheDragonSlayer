@@ -48,16 +48,16 @@ Client/Build/*/**
 !Client/Build/**/*.ico
 
 # 에셋
-Client/Content/AncientTreasures
-Client/Content/Cave_Ruins
-Client/Content/CraftResourcesIcons
-Client/Content/FlatIconsFreeSamplePack
-Client/Content/MedievalDungeon
-Client/Content/ParagonDekker
-Client/Content/ParagonGreystone
-Client/Content/ParagonMorigesh
-Client/Content/QuadrapedCreatures
-Client/Content/Fonts
+Client/Content/AncientTreasures/
+Client/Content/Cave_Ruins/
+Client/Content/CraftResourcesIcons/
+Client/Content/FlatIconsFreeSamplePack/
+Client/Content/MedievalDungeon/
+Client/Content/ParagonDekker/
+Client/Content/ParagonGreystone/
+Client/Content/ParagonMorigesh/
+Client/Content/QuadrapedCreatures/
+Client/Content/Fonts/
 
 # C++ 로그인 Server 프로젝트
 
