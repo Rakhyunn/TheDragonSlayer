@@ -20,11 +20,6 @@ void Session::ReadMessage() {
 			if (!ec) {
 				string message(data_.data(), length);
 				cout << "Client Request: " << message << "\n";
-				/*cout << "Client Request (Hex): ";
-				for (char c : message) {
-					cout << std::hex << (int)(unsigned char)c << " ";
-				}
-				cout << endl;*/
 				if (message.empty()) {
 					cerr << "Empty Message!\n";
 					WriteMessage("Empty Request");
@@ -41,34 +36,22 @@ void Session::ReadMessage() {
 					return;
 				}
 				string command = tokens[0];
-				string userID, password, nickname;
-				if (tokens.size() == 2) {
-					if (command == "CHECKID") {
-						userID = tokens[1];
-						password = "";
-						nickname = "";
-					}
-					else if (command == "CHECKNICK") {
-						nickname = tokens[1];
-						userID = "";
-						password = "";
-					}
-				}
-				else if (tokens.size() >= 3) {
-					userID = tokens[1];
-					password = tokens[2];
-					nickname = (tokens.size() > 3) ? tokens[3] : "";
-				}
-				cout << command << "/" << userID << "/" << password << "/" << nickname << "/\n";
 				if (command == "REGISTER") {
-					if (tokens.size() < 4) {
+					if (tokens.size() < 3) {
 						cout << "Can't Solve Command\n";
 						WriteMessage("Can't Solve Command");
 						return;
 					}
-					if (db_.RegisterUser(userID, password, nickname)) {
-						cout << "Register Success\n";
-						WriteMessage("Register Success");
+					string userID = tokens[1], password = tokens[2];
+					if (db_.RegisterUser(userID, password)) {
+						if (db_.CreateCharacter(userID, userID)) {
+							cout << "Register & Create Character Success: " << userID << "\n";
+							WriteMessage("Register Success");
+						}
+						else {
+							cout << "Register Success But Character Create Failed\n";
+							WriteMessage("Register Partial Success");
+						}
 					}
 					else {
 						cout << "Register Failed\n";
@@ -76,6 +59,7 @@ void Session::ReadMessage() {
 					}
 				}
 				else if (command == "LOGIN") {
+					string userID = tokens[1], password = tokens[2];
 					if (server_.IsUserLoggedIn(userID)) {
 						cout << "Login Failed: Already Logged In\n";
 						WriteMessage("Login Failed: Already Logged In");
@@ -83,13 +67,9 @@ void Session::ReadMessage() {
 					else if (db_.LoginUser(userID, password)) {
 						server_.AddLoggedInUser(userID);
 						LoggedInUserID_ = userID;
-						string nickname = db_.GetNickname(userID);
-						if (nickname.empty())
-						{
-							nickname = userID;	// 못찾으면 ID로 대체
-						}
-						cout << "Login Success: " << userID << " (" << nickname << ")" << std::endl;
-						WriteMessage("Login Success " + nickname);
+						CurrentCharacter_ = userID;	// 임시로 닉네임의 ID로 설정
+						cout << "Login Success: " << CurrentCharacter_ << "\n";
+						WriteMessage("Login Success " + userID);
 					}
 					else {
 						cout << "Login Failed\n";
@@ -97,6 +77,7 @@ void Session::ReadMessage() {
 					}
 				}
 				else if (command == "CHECKID") {
+					string userID = tokens[1];
 					if (db_.CheckID(userID)) {
 						cout << "ID Use Impossible\n";
 						WriteMessage("ID Use Impossible");
@@ -106,7 +87,22 @@ void Session::ReadMessage() {
 						WriteMessage("ID Use Possible");
 					}
 				}
+				else if (command == "CREATECHARACTER") {
+					string userID = tokens[1], nickname = tokens[2];
+					if (db_.CheckNickname(nickname)) {
+						WriteMessage("Create Failed: Nickname can't Use");
+					}
+					else if (db_.CreateCharacter(userID, nickname)) {
+						cout << "Character Create Success\n";
+						WriteMessage("Character Create Success");
+					}
+					else {
+						cout << "Nickname Use Possible\n";
+						WriteMessage("Nickname Use Possible");
+					}
+				}
 				else if (command == "CHECKNICK") {
+					string nickname = tokens[1];
 					if (db_.CheckNickname(nickname)) {
 						cout << "Nickname Use Impossible\n";
 						WriteMessage("Nickname Use Impossible");
@@ -114,6 +110,45 @@ void Session::ReadMessage() {
 					else {
 						cout << "Nickname Use Possible\n";
 						WriteMessage("Nickname Use Possible");
+					}
+				}
+				else if (command == "SAVEUSER") {
+					if (tokens.size() >= 9) {
+						string id = LoggedInUserID_;
+						string nickname = CurrentCharacter_;
+						int level = stoi(tokens[3]);
+						int exp = stoi(tokens[4]);
+						int gold = stoi(tokens[5]);
+						string map = tokens[6];
+						float x = stof(tokens[7]);
+						float y = stof(tokens[8]);
+						float z = stof(tokens[9]);
+						string inventory = "";
+						for (size_t i = 10; i < tokens.size(); i++) {
+							if (i > 10) inventory += " ";
+							inventory += tokens[i];
+						}
+						if (db_.SaveUserData(id, nickname, level, exp, gold, map, x, y, z, inventory)) {
+							WriteMessage("Save Success");
+							cout << "Saved User: " << id << "\n";
+						}
+						else {
+							WriteMessage("Save Failed");
+						}
+					}
+				}
+				else if (command == "LOADUSER") {
+					if (tokens.size() >= 3) {
+						string id = tokens[1];
+						string nickname = tokens[2];
+						string data = db_.LoadUserData(id, nickname);
+						if (!data.empty()) {
+							WriteMessage("LoadData " + id + " " + data);
+							cout << "Loaded User: " << id << "\n";
+						}
+						else {
+							WriteMessage("Load Fail");
+						}
 					}
 				}
 				else {

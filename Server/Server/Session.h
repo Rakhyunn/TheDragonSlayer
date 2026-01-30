@@ -24,5 +24,6 @@ private:
 	array<char, 1024> data_;
 	Server& server_;
 	string LoggedInUserID_;
+	string CurrentCharacter_;
 };
 
