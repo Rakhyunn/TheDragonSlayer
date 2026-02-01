@@ -44,12 +44,6 @@ protected:
     UButton* Reg_CheckIDBtn;
 
     UPROPERTY(meta = (BindWidget))
-    UEditableTextBox* Reg_NickBox;
-
-    UPROPERTY(meta = (BindWidget))
-    UButton* Reg_CheckNickBtn;
-
-    UPROPERTY(meta = (BindWidget))
     UEditableTextBox* Reg_PWBox;
 
     UPROPERTY(meta = (BindWidget))
@@ -79,9 +73,6 @@ protected:
 
     UFUNCTION()
     void OnCheckIDClicked();
-
-    UFUNCTION()
-    void OnCheckNickClicked();
 
     UFUNCTION()
     void ShowLoginResult(const FString Message);

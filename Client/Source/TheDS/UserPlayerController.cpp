@@ -72,12 +72,35 @@ void AUserPlayerController::BeginPlay()
 
 		if (UServerGameInstance* GI = GetWorld()->GetGameInstance<UServerGameInstance>())
 		{
+			const FString ID = GI->GetLoggedInID();
+			if (!ID.IsEmpty())
+			{
+				ServerSetID(ID);
+			}
 			const FString Nick = GI->GetLoggedInNickname();
 			if (!Nick.IsEmpty())
 			{
 				ServerSetNickname(Nick);
 			}
+
+			GI->RequestLoadGameData(ID, Nick);
 		}
+		GetWorld()->GetTimerManager().SetTimer(AutoSaveHandle, this, &AUserPlayerController::AutoSaveData, 15.0f, true);
+	}
+}
+
+void AUserPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	AutoSaveData();
+
+	Super::EndPlay(EndPlayReason);
+}
+
+void AUserPlayerController::AutoSaveData()
+{
+	if (ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>())
+	{
+		PS->SaveUserData();
 	}
 }
 
@@ -384,6 +407,14 @@ APlayerState* AUserPlayerController::FindNearestPlayer()
 		}
 	}
 	return Nearest;
+}
+
+void AUserPlayerController::ServerSetID_Implementation(const FString& NewID)
+{
+	if (ATheDSPlayerState* PS = GetPlayerState<ATheDSPlayerState>())
+	{
+		PS->SetUserID(NewID);
+	}
 }
 
 void AUserPlayerController::ServerSetNickname_Implementation(const FString& NewNickname)

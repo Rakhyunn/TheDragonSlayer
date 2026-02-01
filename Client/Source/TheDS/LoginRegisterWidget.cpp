@@ -31,10 +31,6 @@ void ULoginRegisterWidget::NativeConstruct()
     {
         Reg_CheckIDBtn->OnClicked.AddDynamic(this, &ULoginRegisterWidget::OnCheckIDClicked);
     }
-    if (Reg_CheckNickBtn)
-    {
-        Reg_CheckNickBtn->OnClicked.AddDynamic(this, &ULoginRegisterWidget::OnCheckNickClicked);
-    }
     // 처음엔 로그인 페이지 활성
     if (PageSwitcher)
     {
@@ -78,12 +74,12 @@ void ULoginRegisterWidget::OnLoginClicked()
         GetWorld()->GetTimerManager().ClearTimer(RegisterResultTimerHandle);
         if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
         {
-            FInputModeGameOnly InputMode;
-            PC->SetInputMode(InputMode);
-            PC->bShowMouseCursor = false;
+            FInputModeGameOnly GameInputMode;
+            PC->SetInputMode(GameInputMode);
+            PC->bShowMouseCursor = true;
             PC->ClientTravel(TEXT("127.0.0.1:7777"), TRAVEL_Absolute);
         }
-        //FName NextLevel = TEXT("TestMap");
+        //FName NextLevel = TEXT("Basic");
         //UGameplayStatics::OpenLevel(this, NextLevel);
     }
 }
@@ -105,14 +101,13 @@ void ULoginRegisterWidget::OnBackToLoginClicked()
         PageSwitcher->SetActiveWidgetIndex(0);
         Reg_IDBox->SetText(FText::GetEmpty());
         Reg_PWBox->SetText(FText::GetEmpty());
-        Reg_NickBox->SetText(FText::GetEmpty());
     }
 }
 
 void ULoginRegisterWidget::OnRegisterClicked()
 {
-    if (!Reg_IDBox || !Reg_PWBox || !Reg_NickBox || !Reg_ResultText) return;
-    if (Reg_IDBox->GetText().IsEmpty() || Reg_PWBox->GetText().IsEmpty() || Reg_NickBox->GetText().IsEmpty())
+    if (!Reg_IDBox || !Reg_PWBox || !Reg_ResultText) return;
+    if (Reg_IDBox->GetText().IsEmpty() || Reg_PWBox->GetText().IsEmpty())
     {
         FString DebugMsg = FString::Printf(TEXT("Please Make All Contents"));
         ShowRegisterResult(DebugMsg);
@@ -120,7 +115,6 @@ void ULoginRegisterWidget::OnRegisterClicked()
     }
     const FString Id = Reg_IDBox->GetText().ToString();
     const FString Pw = Reg_PWBox->GetText().ToString();
-    const FString Nick = Reg_NickBox->GetText().ToString();
     UServerGameInstance* GI = GetServerGameInstance(GetWorld());
     if (!GI)
     {
@@ -128,13 +122,12 @@ void ULoginRegisterWidget::OnRegisterClicked()
         ShowRegisterResult(DebugMsg);
         return;
     }
-    const FString Result = GI->RegisterAccount(Id, Pw, Nick);
+    const FString Result = GI->RegisterAccount(Id, Pw);
     ShowRegisterResult(Result);
     if (Result.Contains("Success"))
     {
         Reg_IDBox->SetText(FText::GetEmpty());
         Reg_PWBox->SetText(FText::GetEmpty());
-        Reg_NickBox->SetText(FText::GetEmpty());
     }
 }
 
@@ -156,27 +149,6 @@ void ULoginRegisterWidget::OnCheckIDClicked()
         return;
     }
     const FString Result = GI->CheckID(Id);
-    ShowRegisterResult(Result);
-}
-
-void ULoginRegisterWidget::OnCheckNickClicked()
-{
-    if (!Reg_NickBox || !Reg_ResultText) return;
-    if (Reg_NickBox->GetText().IsEmpty())
-    {
-        FString DebugMsg = FString::Printf(TEXT("Please Put Your Own Nickname"));
-        ShowRegisterResult(DebugMsg);
-        return;
-    }
-    const FString Nick = Reg_NickBox->GetText().ToString();
-    UServerGameInstance* GI = GetServerGameInstance(GetWorld());
-    if (!GI)
-    {
-        FString DebugMsg = FString::Printf(TEXT("Please Check GameInstance"));
-        ShowRegisterResult(DebugMsg);
-        return;
-    }
-    const FString Result = GI->CheckNickname(Nick);
     ShowRegisterResult(Result);
 }
 

@@ -56,7 +56,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	virtual void SetupInputComponent() override;
+
+	void AutoSaveData();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
@@ -131,12 +135,17 @@ private:
 
 	bool bIsInRaid = false;
 
+	FTimerHandle AutoSaveHandle;
+
 public:
 	UPROPERTY(Transient, BlueprintReadOnly)
 	bool bGiveUpInProgress = false;
 
 public:
 	APlayerState* FindNearestPlayer();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetID(const FString& NewID);
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetNickname(const FString& NewNickname);

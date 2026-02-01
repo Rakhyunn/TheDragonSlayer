@@ -22,7 +22,9 @@ public class TheDS : ModuleRules
 			"SlateCore", 
 			"UMG", 
 			"Networking", 
-			"Sockets" 
-		});
+			"Sockets", 
+            "Json", 
+			"JsonUtilities"
+        });
 	}
 }

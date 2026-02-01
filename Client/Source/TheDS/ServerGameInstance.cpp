@@ -3,13 +3,26 @@
 #include "Interfaces/IPv4/IPv4Address.h"
 #include "HAL/PlatformTime.h"
 #include "HAL/PlatformProcess.h"
+#include "TheDSPlayerState.h"
+#include "BaseItem.h"
 
 void UServerGameInstance::Init()
 {
     Super::Init();
 
     // 테스트 용: 프로젝트 실행 시 자동 연결
-    ConnectToAuthServer(TEXT("127.0.0.1"), 6000);
+    // ConnectToAuthServer(TEXT("127.0.0.1"), 6000);
+    if (IsRunningDedicatedServer())
+    {
+        UE_LOG(LogTemp, Log, TEXT("[Dedicated Server] Connecting to Auth/DB Server."));
+        ConnectToAuthServer(TEXT("127.0.0.1"), 6000);
+        FTimerHandle hTimer;
+        GetTimerManager().SetTimer(hTimer, this, &UServerGameInstance::CheckNetworkData, 0.1f, true);
+    }
+    else
+    {
+        ConnectToAuthServer(TEXT("127.0.0.1"), 6000);
+    }
 }
 
 void UServerGameInstance::Shutdown()
@@ -51,6 +64,94 @@ bool UServerGameInstance::ConnectToAuthServer(const FString& Ip, int32 Port)
         *Ip, Port, bConnected ? TEXT("Success") : TEXT("Fail"));
 
     return bConnected;
+}
+
+void UServerGameInstance::RequestSaveGameData(const FString& ID, const FString& Nickname, int32 Level, float Exp, int32 Gold, const FString& MapName, FVector Location, const FString& InventoryJson)
+{
+    if (!EnsureConnected())
+    {
+        ConnectToAuthServer(TEXT("127.0.0.1"), 6000);
+        if (!EnsureConnected()) return;
+    }
+    FString Packet = FString::Printf(TEXT("SAVEUSER %s %s %d %f %d %s %f %f %f %s"),
+        *ID, *Nickname, Level, Exp, Gold, *MapName, Location.X, Location.Y, Location.Z, *InventoryJson);
+    if (SendLine(Packet))
+    {
+        UE_LOG(LogTemp, Log, TEXT("Save Request Sent for User: %s"), *ID);
+    }
+}
+
+void UServerGameInstance::RequestLoadGameData(const FString& ID, const FString& Nickname)
+{
+    if (!EnsureConnected())
+    {
+        ConnectToAuthServer(TEXT("127.0.0.1"), 6000);
+        if (!EnsureConnected()) return;
+    }
+    FString Packet = FString::Printf(TEXT("LOADUSER %s %s"), *ID, *Nickname);
+    SendLine(Packet);
+}
+
+void UServerGameInstance::CheckNetworkData()
+{
+    if (!AuthSocket) return;
+    uint32 PendingDataSize = 0;
+    if (AuthSocket->HasPendingData(PendingDataSize) && PendingDataSize > 0)
+    {
+        TArray<uint8> ReceivedData;
+        ReceivedData.SetNumUninitialized(PendingDataSize);
+        int32 BytesRead = 0;
+        if (AuthSocket->Recv(ReceivedData.GetData(), PendingDataSize, BytesRead))
+        {
+            FString Message = FString(BytesRead, UTF8_TO_TCHAR((const char*)ReceivedData.GetData()));
+            TArray<FString> Lines;
+            Message.ParseIntoArray(Lines, TEXT("\n"), true);
+            for (const FString& Line : Lines)
+            {
+                ProcessPacket(Line);
+            }
+        }
+    }
+}
+
+void UServerGameInstance::ProcessPacket(const FString& Packet)
+{
+    TArray<FString> Tokens;
+    Packet.ParseIntoArray(Tokens, TEXT(" "), true);
+    if (Tokens.Num() > 0 && Tokens[0] == TEXT("LoadData"))
+    {
+        if (Tokens.Num() < 3) return;
+        FString TargetID = Tokens[1];
+        FString Payload = Packet.RightChop(Tokens[0].Len() + 1 + Tokens[1].Len() + 1);
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+        {
+            if (APlayerController* PC = It->Get())
+            {
+                if (ATheDSPlayerState* PS = PC->GetPlayerState<ATheDSPlayerState>())
+                {
+                    if (PS->GetUserID() == TargetID)
+                    {
+                        PS->LoadUserData(Payload);
+                        UE_LOG(LogTemp, Log, TEXT("Data Loaded for User: %s"), *TargetID);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+UBaseItem* UServerGameInstance::GetItemByID(int32 ItemID)
+{
+    for (UBaseItem* Item : AllGameItems)
+    {
+        if (Item && Item->ItemID == ItemID)
+        {
+            return Item;
+        }
+    }
+    UE_LOG(LogTemp, Warning, TEXT("Could not find Item: %d"), ItemID);
+    return nullptr;
 }
 
 bool UServerGameInstance::EnsureConnected()
@@ -97,10 +198,10 @@ FString UServerGameInstance::WaitResponse(float TimeoutSeconds)
     return TEXT("TIMEOUT");
 }
 
-FString UServerGameInstance::RegisterAccount(const FString& Id, const FString& Password, const FString& Nickname)
+FString UServerGameInstance::RegisterAccount(const FString& Id, const FString& Password)
 {
     if (!EnsureConnected()) return TEXT("Failed Connect Server");
-    FString Line = FString::Printf(TEXT("REGISTER %s %s %s"), *Id, *Password, *Nickname);
+    FString Line = FString::Printf(TEXT("REGISTER %s %s"), *Id, *Password);
     if (!SendLine(Line)) return TEXT("Failed Send");
     return WaitResponse(3.0f);
 }
