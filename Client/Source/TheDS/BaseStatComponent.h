@@ -61,9 +61,11 @@ public:
     void SetMP(float NewMP) { MaxMP = NewMP; };
     void SetAttack(float NewAttack) { Attack = NewAttack; };
     void SetMagic(float NewMagic) { Magic = NewMagic; };
-    void SetDefense(float newDefense) { Defense = newDefense; };
+    void SetDefense(float NewDefense) { Defense = NewDefense; };
     void SetExp(float NewExp) { MaxEXP = NewExp; };
     void SetEnemyExp(float NewExp) { EnemyEXP = NewExp; };
+    void SetCurrentEXP(float Exp) { CurrentEXP = Exp; }
+    void SetCurrentMoney(int32 money) { CurrentMoney = money; }
 
     void GetDamage(float DamageAmount);
     void RestoreHP(float Amount);

@@ -18,6 +18,8 @@ class THEDS_API UBaseItem : public UDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Item")
+	int32 ItemID;
+	UPROPERTY(EditAnywhere, Category = "Item")
 	EItemType ItemType;
 	UPROPERTY(EditAnywhere, Category = "Item")
 	FText ItemName;

@@ -3,7 +3,29 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "PartyType.h"
+#include "JsonObjectConverter.h"
 #include "TheDSPlayerState.generated.h"
+
+USTRUCT()
+struct FItemSaveData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 ItemID = 0;
+
+	UPROPERTY()
+	int32 Amount = 0;
+};
+
+USTRUCT()
+struct FInventorySaveData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FItemSaveData> Items;
+};
 
 UCLASS()
 class THEDS_API ATheDSPlayerState : public APlayerState
@@ -22,6 +44,9 @@ protected:
 	FString Nickname;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
+	FString UserID;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	FName LastVisitedVillage = NAME_None;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
@@ -36,6 +61,9 @@ protected:
 public:
 	FString GetNickname() const { return Nickname; }
 	void SetNickname(const FString& InNickname) { Nickname = InNickname; }
+
+	FString GetUserID() const { return UserID; }
+	void SetUserID(const FString& InID) { UserID = InID; }
 
 	int32 GetLevel() const;
 
@@ -66,4 +94,8 @@ public:
 	const FName& GetLastVillage() const { return LastVisitedVillage; }
 	const FName& GetLastField() const { return LastVisitedField; }
 	const FTransform& GetLastVillageSpawn() const { return LastVillageSpawn; }
+
+	// 데이터 저장 및 로드 함수
+	void SaveUserData();
+	void LoadUserData(const FString& DataString);
 };
