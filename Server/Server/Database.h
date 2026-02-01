@@ -22,6 +22,6 @@ public:
 
 private:
 	sqlite3* db;
-	mutex db_mutex;
+	recursive_mutex db_mutex;
 };
 

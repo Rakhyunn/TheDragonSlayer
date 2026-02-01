@@ -48,8 +48,8 @@ Database::~Database() {
 }
 
 bool Database::RegisterUser(const string& userID, const string& Password) {
-	lock_guard <mutex> lock(db_mutex);
-	string sqlAcc = "INSERT INTO Accounts (ID, Password, Nickname) VALUES "
+	lock_guard <recursive_mutex> lock(db_mutex);
+	string sqlAcc = "INSERT INTO Accounts (ID, Password) VALUES "
 					"('" + userID + "', '" + Password + "');";
 	char* errMsg = nullptr;
 	if (sqlite3_exec(db, sqlAcc.c_str(), nullptr, nullptr, &errMsg) != SQLITE_OK) {
@@ -62,7 +62,7 @@ bool Database::RegisterUser(const string& userID, const string& Password) {
 }
 
 bool Database::LoginUser(const string& userID, const string& Password) {
-	lock_guard <mutex> lock(db_mutex);
+	lock_guard <recursive_mutex> lock(db_mutex);
 	string sql = "SELECT * FROM Accounts WHERE ID = '" + userID + "' AND Password = '" + Password + "';";
 	sqlite3_stmt* stmt;
 	if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -74,7 +74,7 @@ bool Database::LoginUser(const string& userID, const string& Password) {
 }
 
 bool Database::CheckID(const string& userID) {
-	lock_guard <mutex> lock(db_mutex);
+	lock_guard <recursive_mutex> lock(db_mutex);
 	string sql = "SELECT ID FROM Accounts WHERE ID = '" + userID + "'";
 	sqlite3_stmt* stmt;
 	if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -87,7 +87,7 @@ bool Database::CheckID(const string& userID) {
 
 bool Database::CreateCharacter(const string& userID, const string& nickname)
 {
-	lock_guard <mutex> lock(db_mutex);
+	lock_guard <recursive_mutex> lock(db_mutex);
 	if (CheckNickname(nickname)) return false;
 	string sqlChar = "INSERT INTO Characters (Nickname, OwnerID) VALUES ('" + nickname + "', '" + userID + "');";
 	char* errMsg = nullptr;
@@ -101,7 +101,7 @@ bool Database::CreateCharacter(const string& userID, const string& nickname)
 }
 
 bool Database::CheckNickname(const string& Nickname) {
-	lock_guard <mutex> lock(db_mutex);
+	lock_guard <recursive_mutex> lock(db_mutex);
 	string sql = "SELECT Nickname FROM Characters WHERE Nickname = '" + Nickname + "'";
 	sqlite3_stmt* stmt;
 	if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -114,7 +114,7 @@ bool Database::CheckNickname(const string& Nickname) {
 
 bool Database::SaveUserData(const string& id, const string& charName, int level, int exp, int gold, const string& mapName, float x, float y, float z, const string& inventory)
 {
-	lock_guard<mutex> lock(db_mutex);
+	lock_guard<recursive_mutex> lock(db_mutex);
 	string sql = "UPDATE Characters SET "
 		"Level = " + to_string(level) + ", "
 		"Exp = " + to_string(exp) + ", "
@@ -136,6 +136,7 @@ bool Database::SaveUserData(const string& id, const string& charName, int level,
 
 string Database::LoadUserData(const string& id, const string& nickname)
 {
+	lock_guard<recursive_mutex> lock(db_mutex);
 	string sql = "SELECT Level, Exp, Gold, MapName, PosX, PosY, PosZ, Inventory FROM Characters WHERE OwnerID = '" + id + "' AND Nickname = '" + nickname + "';";
 	sqlite3_stmt* stmt;
 	if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) return string();
