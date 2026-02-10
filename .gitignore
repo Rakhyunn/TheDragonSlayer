@@ -67,3 +67,6 @@ Server/**/*.log
 # OS 공통 쓰레기 파일
 .DS_Store
 Thumbs.db
+
+# 에셋
+Client/Content/Assets/

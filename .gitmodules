@@ -1,0 +1,3 @@
+[submodule "Client/Content/Assets"]
+	path = Client/Content/Assets
+	url = https://github.com/Rakhyunn/TheDragonSlayer_Assets.git
