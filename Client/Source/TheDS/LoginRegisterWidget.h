@@ -55,6 +55,12 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UTextBlock* Reg_ResultText;
 
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<class UCharacterSelectWidget> CharacterSelectWidgetClass;
+
+    UPROPERTY()
+    UCharacterSelectWidget* CharacterSelectWidgetInstance;
+
 protected:
     virtual void NativeConstruct() override;
 

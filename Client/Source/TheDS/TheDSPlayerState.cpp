@@ -118,7 +118,7 @@ void ATheDSPlayerState::SaveUserData()
     UServerGameInstance* GI = Cast<UServerGameInstance>(GetGameInstance());
     if (GI)
     {
-        GI->RequestSaveGameData(ID, Nick, Level, Exp, Gold, MapName, Loc, InventoryJsonString);
+        GI->RequestSaveGameData(Level, Exp, Gold, MapName, Loc, InventoryJsonString);
     }
 }
 
@@ -126,7 +126,7 @@ void ATheDSPlayerState::LoadUserData(const FString& DataString)
 {
     TArray<FString> Tokens;
     DataString.ParseIntoArray(Tokens, TEXT(" "), true);
-    if (Tokens.Num() < 7) return;
+    if (Tokens.Num() < 8) return;
     // 공백 기준 데이터 분리
     int32 LoadedLevel = FCString::Atoi(*Tokens[0]);
     float LoadedExp = FCString::Atof(*Tokens[1]);
@@ -135,6 +135,7 @@ void ATheDSPlayerState::LoadUserData(const FString& DataString)
     float LoadedX = FCString::Atof(*Tokens[4]);
     float LoadedY = FCString::Atof(*Tokens[5]);
     float LoadedZ = FCString::Atof(*Tokens[6]);
+    FString LoadedClass = Tokens[7];
     // 스탯 적용
     if (ABaseCharacter* Player = Cast<ABaseCharacter>(GetPawn()))
     {
@@ -143,15 +144,18 @@ void ATheDSPlayerState::LoadUserData(const FString& DataString)
             Player->Stat->SetLevel(LoadedLevel);
             Player->Stat->SetCurrentEXP(LoadedExp);
             Player->Stat->SetCurrentMoney(LoadedGold);
+        }
+        if (LoadedMap != TEXT("NEW"))
+        {
             Player->SetActorLocation(FVector(LoadedX, LoadedY, LoadedZ));
         }
     }
 
     // 인벤토리 JSON 파싱
     FString JsonString = "";
-    for (int32 i = 7; i < Tokens.Num(); i++)
+    for (int32 i = 8; i < Tokens.Num(); i++)
     {
-        if (i > 7) JsonString += " ";
+        if (i > 8) JsonString += " ";
         JsonString += Tokens[i];
     }
     FInventorySaveData InventoryData;

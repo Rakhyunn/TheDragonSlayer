@@ -45,13 +45,23 @@ public:
     UFUNCTION(BlueprintCallable)
     FString CheckNickname(const FString& Nickname);
 
-    FString GetLoggedInNickname() { return LoggedInNickname; }
+    // 캐릭터 리스트
+    UFUNCTION(BlueprintCallable)
+    FString GetCharacterList();
 
-    // ID 반환
+    // 캐릭터 선택
+    UFUNCTION(BlueprintCallable)
+    FString SelectCharacter(const FString& Nickname);
+
+    // 캐릭터 생성
+    UFUNCTION(BlueprintCallable)
+    FString CreateCharacter(const FString& Nickname, const FString& CharClass);
+
+    FString GetLoggedInNickname() { return LoggedInNickname; }
     FString GetLoggedInID() { return LoggedInID; }
 
     // 데이터 저장 및 로드 요청
-    void RequestSaveGameData(const FString& ID, const FString& Nickname, int32 Level, float Exp, int32 Gold, const FString& MapName, FVector Location, const FString& InventoryJson);
+    void RequestSaveGameData(int32 Level, float Exp, int32 Gold, const FString& MapName, FVector Location, const FString& InventoryJson);
     void RequestLoadGameData(const FString& ID, const FString& Nickname);
 
     void CheckNetworkData();
