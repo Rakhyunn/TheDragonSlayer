@@ -55,6 +55,9 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	FName LastVisitedField = NAME_None;
 
+	UPROPERTY(ReplicatedUsing = OnRep_DataLoaded)
+	bool bIsDataLoaded = false;
+
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -98,4 +101,11 @@ public:
 	// 데이터 저장 및 로드 함수
 	void SaveUserData();
 	void LoadUserData(const FString& DataString);
+
+	UFUNCTION()
+	void OnRep_DataLoaded();
+
+private:
+	FTimerHandle LoadRetryTimerHandle;
+	FString PendingLoadData;
 };

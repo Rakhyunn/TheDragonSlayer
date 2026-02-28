@@ -89,6 +89,7 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(ABaseCharacter, WalkSpeed);
 	DOREPLIFETIME(ABaseCharacter, RunSpeed);
+	DOREPLIFETIME(ABaseCharacter, JumpZVelocity);
 }
 
 void ABaseCharacter::SetCharacterDefaults()

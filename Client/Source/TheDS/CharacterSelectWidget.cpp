@@ -223,7 +223,21 @@ void UCharacterSelectWidget::HandleSelectSlot(int32 Index)
             FInputModeGameOnly GameInput;
             PC->SetInputMode(GameInput);
             PC->bShowMouseCursor = false;
-            PC->ClientTravel(TEXT("127.0.0.1:7777"), TRAVEL_Absolute);
+            //FString Options = FString::Printf(TEXT("?UserID=%s?Nickname=%s"), *GI->GetLoggedInID(), *Data.Nickname);
+            //FString ServerURL = TEXT("127.0.0.1:7777") + Options;
+            //PC->ClientTravel(ServerURL, TRAVEL_Absolute);
+            // [방법 B] 에디터 테스트 / 싱글 플레이 방식으로 열 때 (기존 방식)
+             //FName NextLevel = TEXT("Basic");
+             //UGameplayStatics::OpenLevel(this, NextLevel, true, FString::Printf(TEXT("UserID=%s?Nickname=%s")));
+#if WITH_EDITOR
+             // 에디터 PIE 테스트용
+             FString Options = FString::Printf(TEXT("UserID=%s?Nickname=%s"), *GI->GetLoggedInID(), *Data.Nickname);
+             UGameplayStatics::OpenLevel(GetWorld(), TEXT("Basic"), true, Options);
+#else
+             // 빌드(데디케이티드 서버) 테스트용
+             FString URL = FString::Printf(TEXT("127.0.0.1:7777?UserID=%s?Nickname=%s"), *GI->GetLoggedInID(), *Data.Nickname);
+             PC->ClientTravel(URL, TRAVEL_Absolute);
+#endif
         }
     }
     else
