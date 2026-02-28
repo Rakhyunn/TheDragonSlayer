@@ -5,6 +5,7 @@
 #include "Components/TextBlock.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
+#include "CharacterSelectWidget.h"
 
 void ULoginRegisterWidget::NativeConstruct()
 {
@@ -72,13 +73,24 @@ void ULoginRegisterWidget::OnLoginClicked()
         RemoveFromParent();
         GetWorld()->GetTimerManager().ClearTimer(LoginResultTimerHandle);
         GetWorld()->GetTimerManager().ClearTimer(RegisterResultTimerHandle);
-        if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+        if (!CharacterSelectWidgetInstance)
+        {
+            if (CharacterSelectWidgetClass)
+            {
+                CharacterSelectWidgetInstance = CreateWidget<UCharacterSelectWidget>(GetWorld(), CharacterSelectWidgetClass);
+                if (CharacterSelectWidgetInstance)
+                {
+                    CharacterSelectWidgetInstance->AddToViewport();
+                }
+            }
+        }
+        /*if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
         {
             FInputModeGameOnly GameInputMode;
             PC->SetInputMode(GameInputMode);
             PC->bShowMouseCursor = true;
             PC->ClientTravel(TEXT("127.0.0.1:7777"), TRAVEL_Absolute);
-        }
+        }*/
         //FName NextLevel = TEXT("Basic");
         //UGameplayStatics::OpenLevel(this, NextLevel);
     }

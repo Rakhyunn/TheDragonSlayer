@@ -41,6 +41,7 @@ void AUserPlayerController::BeginPlay()
 
 	if (IsLocalController())
 	{
+		ShowLoadingScreen();
 		if (PlayerInfoWidgetClass)
 		{
 			PlayerInfoWidgetInstance = CreateWidget<UPlayerInfoWidget>(this, PlayerInfoWidgetClass);
@@ -901,5 +902,28 @@ void AUserPlayerController::ResetRaid()
 		{
 			Enemy->ResetEnemyStat();
 		}
+	}
+}
+
+void AUserPlayerController::ShowLoadingScreen()
+{
+	if (!IsLocalPlayerController()) return;
+	if (LoadingWidgetClass && !LoadingWidgetInstance)
+	{
+		LoadingWidgetInstance = CreateWidget<UUserWidget>(this, LoadingWidgetClass);
+		if (LoadingWidgetInstance)
+		{
+			LoadingWidgetInstance->AddToViewport(9999);
+		}
+	}
+}
+
+void AUserPlayerController::HideLoadingScreen()
+{
+	if (!IsLocalPlayerController()) return;
+	if (LoadingWidgetInstance)
+	{
+		LoadingWidgetInstance->RemoveFromParent();
+		LoadingWidgetInstance = nullptr;
 	}
 }

@@ -99,6 +99,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Raid")
 	TSubclassOf<URaidGiveUpWidget> RaidGiveUpWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UUserWidget> LoadingWidgetClass;
+
 private:
 	UPROPERTY()
 	UPlayerInfoWidget* PlayerInfoWidgetInstance;
@@ -136,6 +139,9 @@ private:
 	bool bIsInRaid = false;
 
 	FTimerHandle AutoSaveHandle;
+
+	UPROPERTY()
+	UUserWidget* LoadingWidgetInstance;
 
 public:
 	UPROPERTY(Transient, BlueprintReadOnly)
@@ -234,4 +240,7 @@ public:
 	void ClientRemoveEndingWidget();
 
 	void ResetRaid();
+
+	void ShowLoadingScreen();
+	void HideLoadingScreen();
 };

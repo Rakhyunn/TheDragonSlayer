@@ -66,18 +66,18 @@ bool UServerGameInstance::ConnectToAuthServer(const FString& Ip, int32 Port)
     return bConnected;
 }
 
-void UServerGameInstance::RequestSaveGameData(const FString& ID, const FString& Nickname, int32 Level, float Exp, int32 Gold, const FString& MapName, FVector Location, const FString& InventoryJson)
+void UServerGameInstance::RequestSaveGameData(int32 Level, float Exp, int32 Gold, const FString& MapName, FVector Location, const FString& InventoryJson)
 {
     if (!EnsureConnected())
     {
         ConnectToAuthServer(TEXT("127.0.0.1"), 6000);
         if (!EnsureConnected()) return;
     }
-    FString Packet = FString::Printf(TEXT("SAVEUSER %s %s %d %f %d %s %f %f %f %s"),
-        *ID, *Nickname, Level, Exp, Gold, *MapName, Location.X, Location.Y, Location.Z, *InventoryJson);
+    FString Packet = FString::Printf(TEXT("SAVEUSER %d %f %d %s %f %f %f %s"),
+        Level, Exp, Gold, *MapName, Location.X, Location.Y, Location.Z, *InventoryJson);
     if (SendLine(Packet))
     {
-        UE_LOG(LogTemp, Log, TEXT("Save Request Sent for User: %s"), *ID);
+        UE_LOG(LogTemp, Log, TEXT("Save Request Sent for User"));
     }
 }
 
@@ -118,10 +118,11 @@ void UServerGameInstance::ProcessPacket(const FString& Packet)
 {
     TArray<FString> Tokens;
     Packet.ParseIntoArray(Tokens, TEXT(" "), true);
-    if (Tokens.Num() > 0 && Tokens[0] == TEXT("LoadData"))
+    if (Tokens.Num() <= 0) return;
+    if (Tokens[0] == TEXT("LoadData"))
     {
         if (Tokens.Num() < 3) return;
-        FString TargetID = Tokens[1];
+        FString TargetNickname = Tokens[1];
         FString Payload = Packet.RightChop(Tokens[0].Len() + 1 + Tokens[1].Len() + 1);
         for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
         {
@@ -129,10 +130,10 @@ void UServerGameInstance::ProcessPacket(const FString& Packet)
             {
                 if (ATheDSPlayerState* PS = PC->GetPlayerState<ATheDSPlayerState>())
                 {
-                    if (PS->GetUserID() == TargetID)
+                    if (PS->GetNickname() == TargetNickname)
                     {
                         PS->LoadUserData(Payload);
-                        UE_LOG(LogTemp, Log, TEXT("Data Loaded for User: %s"), *TargetID);
+                        UE_LOG(LogTemp, Log, TEXT("Data Loaded for User: %s"), *TargetNickname);
                         break;
                     }
                 }
@@ -216,11 +217,8 @@ FString UServerGameInstance::LoginAccount(const FString& Id, const FString& Pass
     ResultMessage.ParseIntoArrayWS(Tokens);
     if (Tokens.Num() >= 2 && Tokens[0] == TEXT("Login") && Tokens[1] == TEXT("Success"))
     {
-        if (Tokens.Num() >= 3)
-        {
-            LoggedInID = Id;
-            LoggedInNickname = Tokens[2];
-        }
+        LoggedInID = Id;
+        //LoggedInNickname = Tokens[2];
         return TEXT("Login Success");
     }
     return ResultMessage;
@@ -238,6 +236,36 @@ FString UServerGameInstance::CheckNickname(const FString& Nickname)
 {
     if (!EnsureConnected()) return TEXT("Failed Connect Server");
     FString Line = FString::Printf(TEXT("CHECKNICK %s"), *Nickname);
+    if (!SendLine(Line)) return TEXT("Failed Send");
+    return WaitResponse(3.0f);
+}
+
+FString UServerGameInstance::GetCharacterList()
+{
+    if (!EnsureConnected()) return TEXT("Failed Connect Server");
+    if (!SendLine(TEXT("GETCHARACTERLIST"))) return TEXT("Failed Send");
+    return WaitResponse(3.0f);
+}
+
+FString UServerGameInstance::SelectCharacter(const FString& Nickname)
+{
+    if (!EnsureConnected()) return TEXT("Failed Connect Server");
+    FString Line = FString::Printf(TEXT("SELECTCHARACTER %s"), *Nickname);
+    if (!SendLine(Line)) return TEXT("Failed Send");
+    FString Result = WaitResponse(3.0f);
+    // 성공 시 LoggedInNickname 세팅
+    // 응답: "LoadData <nickname> ..."
+    if (Result.StartsWith(TEXT("LoadData")))
+    {
+        LoggedInNickname = Nickname;
+    }
+    return Result;
+}
+
+FString UServerGameInstance::CreateCharacter(const FString& Nickname, const FString& CharClass)
+{
+    if (!EnsureConnected()) return TEXT("Failed Connect Server");
+    FString Line = FString::Printf(TEXT("CREATECHARACTER %s %s"), *Nickname, *CharClass);
     if (!SendLine(Line)) return TEXT("Failed Send");
     return WaitResponse(3.0f);
 }

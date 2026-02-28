@@ -70,3 +70,6 @@ Thumbs.db
 
 # 에셋
 Client/Content/Assets/
+
+# 언리얼 sln 파일
+Client/*.sln

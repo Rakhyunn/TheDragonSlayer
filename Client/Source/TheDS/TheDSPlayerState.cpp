@@ -118,7 +118,7 @@ void ATheDSPlayerState::SaveUserData()
     UServerGameInstance* GI = Cast<UServerGameInstance>(GetGameInstance());
     if (GI)
     {
-        GI->RequestSaveGameData(ID, Nick, Level, Exp, Gold, MapName, Loc, InventoryJsonString);
+        GI->RequestSaveGameData(Level, Exp, Gold, MapName, Loc, InventoryJsonString);
     }
 }
 
@@ -126,7 +126,7 @@ void ATheDSPlayerState::LoadUserData(const FString& DataString)
 {
     TArray<FString> Tokens;
     DataString.ParseIntoArray(Tokens, TEXT(" "), true);
-    if (Tokens.Num() < 7) return;
+    if (Tokens.Num() < 8) return;
     // 공백 기준 데이터 분리
     int32 LoadedLevel = FCString::Atoi(*Tokens[0]);
     float LoadedExp = FCString::Atof(*Tokens[1]);
@@ -135,45 +135,77 @@ void ATheDSPlayerState::LoadUserData(const FString& DataString)
     float LoadedX = FCString::Atof(*Tokens[4]);
     float LoadedY = FCString::Atof(*Tokens[5]);
     float LoadedZ = FCString::Atof(*Tokens[6]);
+    FString LoadedClass = Tokens[7];
     // 스탯 적용
     if (ABaseCharacter* Player = Cast<ABaseCharacter>(GetPawn()))
     {
+        if (!Player || !Player->InventoryComponent)
+        {
+            // Pawn 준비 안 됨 → 저장 후 재시도
+            PendingLoadData = DataString;
+            GetWorld()->GetTimerManager().SetTimer(
+                LoadRetryTimerHandle,
+                [this]()
+                {
+                    if (!PendingLoadData.IsEmpty())
+                        LoadUserData(PendingLoadData);
+                },
+                0.3f, false
+            );
+            return;
+        }
+
+        PendingLoadData = TEXT(""); // 성공 시 초기화
+        GetWorld()->GetTimerManager().ClearTimer(LoadRetryTimerHandle);
+
         if (Player->Stat)
         {
             Player->Stat->SetLevel(LoadedLevel);
             Player->Stat->SetCurrentEXP(LoadedExp);
             Player->Stat->SetCurrentMoney(LoadedGold);
+        }
+        if (LoadedMap != TEXT("NEW"))
+        {
             Player->SetActorLocation(FVector(LoadedX, LoadedY, LoadedZ));
         }
-    }
-
-    // 인벤토리 JSON 파싱
-    FString JsonString = "";
-    for (int32 i = 7; i < Tokens.Num(); i++)
-    {
-        if (i > 7) JsonString += " ";
-        JsonString += Tokens[i];
-    }
-    FInventorySaveData InventoryData;
-    if (FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &InventoryData, 0, 0))
-    {
-        if (ABaseCharacter* Player = Cast<ABaseCharacter>(GetPawn()))
+        // 인벤토리 JSON 파싱
+        FString JsonString = "";
+        for (int32 i = 8; i < Tokens.Num(); i++)
         {
-            if (Player->InventoryComponent)
+            if (i > 8) JsonString += " ";
+            JsonString += Tokens[i];
+        }
+        FInventorySaveData InventoryData;
+        if (FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &InventoryData, 0, 0))
+        {
+            UServerGameInstance* GI = Cast<UServerGameInstance>(GetGameInstance());
+            if (GI)
             {
-                UServerGameInstance* GI = Cast<UServerGameInstance>(GetGameInstance());
-                if (GI)
+                for (const FItemSaveData& ItemData : InventoryData.Items)
                 {
-                    for (const FItemSaveData& ItemData : InventoryData.Items)
+                    UBaseItem* FoundItem = GI->GetItemByID(ItemData.ItemID);
+                    if (FoundItem)
                     {
-                        UBaseItem* FoundItem = GI->GetItemByID(ItemData.ItemID);
-                        if (FoundItem)
-                        {
-                            Player->InventoryComponent->AddItem(FoundItem, ItemData.Amount);
-                        }
+                        Player->InventoryComponent->AddItem(FoundItem, ItemData.Amount);
                     }
                 }
             }
+        }
+    }
+    if (HasAuthority())
+    {
+        bIsDataLoaded = true;
+        OnRep_DataLoaded();
+    }
+}
+
+void ATheDSPlayerState::OnRep_DataLoaded()
+{
+    if (bIsDataLoaded)
+    {
+        if (AUserPlayerController* PC = Cast<AUserPlayerController>(GetOwner()))
+        {
+            PC->HideLoadingScreen();
         }
     }
 }
@@ -188,4 +220,5 @@ void ATheDSPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ATheDSPlayerState, LastVillageSpawn);
 	DOREPLIFETIME(ATheDSPlayerState, LastVisitedField);
     DOREPLIFETIME(ATheDSPlayerState, UserID);
+    DOREPLIFETIME(ATheDSPlayerState, bIsDataLoaded);
 }
